@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><h1>학교 관리</h1><p>교육청별 학교 정보를 등록하고 관리합니다.</p></div></section>
+<a class="button primary" href="{{ url_for('admin.school_new') }}">+ 학교 등록</a>
+<div class="table-wrap panel">
+  <table>
+    <thead>
+      <tr><th>지역</th><th>학교명</th><th>유형</th><th>주소</th><th>전화</th><th>관리</th></tr>
+    </thead>
+    <tbody>
+    {% for school in schools %}
+      <tr>
+        <td>{{ school.education_office.region }}</td>
+        <td>{{ school.name }}</td>
+        <td>{{ school.school_type }}</td>
+        <td>{{ school.address or '-' }}</td>
+        <td>{{ school.phone or '-' }}</td>
+        <td class="row-actions">
+          <a href="{{ url_for('admin.school_edit', school_id=school.id) }}">수정</a> |
+          <form method="post" action="{{ url_for('admin.school_delete', school_id=school.id) }}" style="display:inline" onsubmit="return confirm('삭제할까요?')">
+            <button type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

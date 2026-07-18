@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><span class="eyebrow">{{ grade_name(student.grade_level) }}</span><h1>{{ student.display_name }} 학생</h1><p>{{ student.email }} · 총 {{ attempts|length }}회 학습</p></section>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>점수</th><th>완료 시각</th></tr></thead><tbody>
+{% for attempt in attempts %}<tr><td>{{ subject_name(attempt.subject) }}</td><td>{{ grade_name(attempt.grade_level) }}</td><td><strong>{{ attempt.score }}점</strong></td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+{% else %}<tr><td colspan="4" class="empty">학습 기록이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

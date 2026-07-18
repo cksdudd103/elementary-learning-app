@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading">
+  <h1>{{ '학교 수정' if school else '학교 등록' }}</h1>
+  <p>학교 정보를 입력하세요.</p>
+</section>
+<div class="auth-card form-panel">
+  <form class="stack-form" method="post">
+    <label>교육청
+      <select name="education_office_id" required>
+        {% for office in offices %}
+        <option value="{{ office.id }}" {{ 'selected' if school and school.education_office_id == office.id else '' }}>{{ office.region }} - {{ office.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>학교명
+      <input type="text" name="name" value="{{ school.name if school else '' }}" required>
+    </label>
+    <label>학교 유형
+      <select name="school_type" required>
+        <option value="elementary" {{ 'selected' if school and school.school_type == 'elementary' else '' }}>초등학교</option>
+        <option value="middle" {{ 'selected' if school and school.school_type == 'middle' else '' }}>중학교</option>
+        <option value="high" {{ 'selected' if school and school.school_type == 'high' else '' }}>고등학교</option>
+      </select>
+    </label>
+    <label>주소
+      <input type="text" name="address" value="{{ school.address if school else '' }}">
+    </label>
+    <label>전화
+      <input type="text" name="phone" value="{{ school.phone if school else '' }}">
+    </label>
+    <label>홈페이지
+      <input type="url" name="homepage" value="{{ school.homepage if school else '' }}">
+    </label>
+    <button type="submit" class="button primary">{{ '수정' if school else '등록' }}</button>
+  </form>
+</div>
+{% endblock %}

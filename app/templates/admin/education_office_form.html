@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading">
+  <h1>{{ '교육청 수정' if office else '교육청 등록' }}</h1>
+  <p>교육청 정보를 입력하세요.</p>
+</section>
+<div class="auth-card form-panel">
+  <form class="stack-form" method="post">
+    <label>지역
+      <input type="text" name="region" value="{{ office.region if office else '' }}" required>
+    </label>
+    <label>교육청명
+      <input type="text" name="name" value="{{ office.name if office else '' }}" required>
+    </label>
+    <label>주소
+      <input type="text" name="address" value="{{ office.address if office else '' }}">
+    </label>
+    <label>전화
+      <input type="text" name="phone" value="{{ office.phone if office else '' }}">
+    </label>
+    <label>홈페이지
+      <input type="url" name="homepage" value="{{ office.homepage if office else '' }}">
+    </label>
+    <button type="submit" class="button primary">{{ '수정' if office else '등록' }}</button>
+  </form>
+</div>
+{% endblock %}

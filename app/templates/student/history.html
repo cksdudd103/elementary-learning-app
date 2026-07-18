@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><span class="eyebrow">나의 성장</span><h1>학습 기록</h1><p>응시 횟수에 제한 없이 매번 새로운 문제를 풀 수 있어요.</p></section>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>문항 수</th><th>점수</th><th>시작</th><th>완료</th></tr></thead><tbody>
+{% for attempt in attempts %}<tr><td><span class="subject-badge {{ attempt.subject }}">{{ subject_name(attempt.subject) }}</span></td><td>{{ grade_name(attempt.grade_level) }}</td><td><a href="{{ url_for('student.result', attempt_id=attempt.id) }}"><strong>{{ attempt.score }}점</strong></a></td><td>{{ attempt.started_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+{% else %}<tr><td colspan="5" class="empty">아직 완료한 학습이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

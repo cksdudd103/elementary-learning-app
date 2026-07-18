@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="{{ current_language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}{{ t('app_name') }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="{{ url_for('student.dashboard') if current_user.is_authenticated else url_for('index') }}">
+            <span class="brand-mark">✦</span>{{ t('app_name') }}
+        </a>
+        <button class="menu-button" type="button" aria-label="메뉴 열기" data-menu>☰</button>
+        <nav class="nav" data-nav>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('student.dashboard') }}">{{ t('dashboard') }}</a>
+                <a href="{{ url_for('student.history') }}">{{ t('history') }}</a>
+                <a href="{{ url_for('student.wrong_answers') }}">{{ t('wrong_answers') }}</a>
+                {% if current_user.is_parent %}<a href="{{ url_for('parent.dashboard') }}">학부모 홈</a>{% endif %}
+            {% endif %}
+            <a href="{{ url_for('language', language='en' if current_language == 'ko' else 'ko') }}">
+                {{ 'EN' if current_language == 'ko' else '한국어' }}
+            </a>
+            {% if current_user.is_authenticated %}
+                <form method="post" action="{{ url_for('auth.logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="nav-button" type="submit">{{ t('logout') }}</button>
+                </form>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">{{ t('login') }}</a>
+                <a class="nav-cta" href="{{ url_for('auth.register') }}">{{ t('register') }}</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main class="page">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

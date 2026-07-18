@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading">
+  <h1>교육과정 단원 관리</h1>
+  <p>학년별 교육과정 단원과 학습목표를 등록하고 관리합니다.</p>
+</section>
+<div class="filter-row">
+  <a href="{{ url_for('admin.curriculum_units') }}" class="{{ 'active' if not subject else '' }}">전체</a>
+  <a href="{{ url_for('admin.curriculum_units', subject='math') }}" class="{{ 'active' if subject == 'math' else '' }}">수학</a>
+  <a href="{{ url_for('admin.curriculum_units', subject='korean') }}" class="{{ 'active' if subject == 'korean' else '' }}">국어</a>
+  <a href="{{ url_for('admin.curriculum_units', subject='english') }}" class="{{ 'active' if subject == 'english' else '' }}">영어</a>
+  <a href="{{ url_for('admin.curriculum_units', subject='social') }}" class="{{ 'active' if subject == 'social' else '' }}">사회</a>
+</div>
+<a class="button primary" href="{{ url_for('admin.curriculum_unit_new') }}">+ 단원 등록</a>
+<div class="table-wrap panel">
+  <table>
+    <thead>
+      <tr><th>과목</th><th>학년</th><th>단원번호</th><th>단원명</th><th>학습목표</th><th>키워드</th><th>관리</th></tr>
+    </thead>
+    <tbody>
+    {% for unit in units %}
+      <tr>
+        <td><span class="subject-badge {{ unit.subject }}">{{ {'math':'수학','korean':'국어','english':'영어','social':'사회'}.get(unit.subject, unit.subject) }}</span></td>
+        <td>{{ unit.grade_level }}학년</td>
+        <td>{{ unit.unit_order }}</td>
+        <td>{{ unit.unit_name }}</td>
+        <td class="prompt-cell">{{ unit.learning_objective or '-' }}</td>
+        <td>{{ unit.keywords or '-' }}</td>
+        <td class="row-actions">
+          <a href="{{ url_for('admin.curriculum_unit_edit', unit_id=unit.id) }}">수정</a> |
+          <form method="post" action="{{ url_for('admin.curriculum_unit_delete', unit_id=unit.id) }}" style="display:inline" onsubmit="return confirm('삭제할까요?')">
+            <button type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

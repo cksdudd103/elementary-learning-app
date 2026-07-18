@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="attempt-head">
+    <div>
+        <span class="eyebrow">{{ grade_name(attempt.grade_level) }}</span>
+        <h1>{{ subject_name(attempt.subject) }} {{ attempt.question_count }}문제</h1>
+        <p>모든 문제를 푼 뒤 제출하면 정답과 점수를 확인할 수 있어요.</p>
+    </div>
+    <div class="progress-box">
+        <strong><span data-answered>0</span>/{{ attempt.question_count }}</strong>
+        <span>응답 완료</span>
+    </div>
+    <div class="timer-box" data-timer data-limit="{{ attempt.time_limit_seconds }}" data-started="{{ attempt.started_at.isoformat() }}+00:00">
+        <strong>남은 시간</strong>
+        <span data-time-left>--:--:--</span>
+    </div>
+</section>
+<form method="post" class="quiz-form" data-quiz data-auto-submit>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="auto_submit" value="0" data-auto-submit-flag>
+    {% for item in attempt.items %}
+    <article class="question-card">
+        <div class="question-meta">
+            <span class="question-number">{{ loop.index }}</span>
+            <span>{{ item.topic }}</span>
+            <span class="type-badge">{{ {'write':'주관식','choice':'객관식','solution':'풀이형','listening':'듣기','speaking':'말하기'}.get(item.question_type, item.question_type) }}</span>
+        </div>
+        {% if item.image_url %}
+        <img class="question-image" src="{{ item.image_url }}" alt="문제 그림">
+        {% endif %}
+        {% if item.question_type == 'listening' %}
+            <h2>문장을 듣고 그대로 입력하세요.</h2>
+            <button type="button" class="audio-button" data-speak="{{ item.correct_answer }}">🔊 영어 문장 듣기</button>
+        {% elif item.question_type == 'speaking' %}
+            <h2>{{ item.prompt }}</h2>
+            <p class="hint">문장을 소리 내어 읽으세요.</p>
+            <button type="button" class="audio-button" data-recognize data-target="answer-{{ item.id }}">🎙 말하기 시작</button>
+        {% elif attempt.subject == 'english' %}
+            <h2>낱말을 바르게 배열해 문장을 완성하세요.</h2>
+            <p class="word-hint">{{ item.prompt }}</p>
+        {% else %}
+            <h2>{{ item.prompt }}</h2>
+        {% endif %}
+        {% if item.options %}
+        <div class="options">
+            {% for option in item.options %}
+            {% if option.startswith('IMG|') %}
+            {% set parts = option.split('|') %}
+            <label class="image-option">
+                <input type="radio" name="answer_{{ item.id }}" value="{{ parts[2] }}">
+                <img src="{{ parts[1] }}" alt="{{ parts[2] }}">
+            </label>
+            {% else %}
+            <label><input type="radio" name="answer_{{ item.id }}" value="{{ option }}"><span>{{ option }}</span></label>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% elif item.question_type == 'solution' %}
+        <textarea id="answer-{{ item.id }}" class="answer-input solution-input" name="answer_{{ item.id }}" rows="4" placeholder="풀이 과정과 답을 자세히 쓰세요" autocomplete="off"></textarea>
+        {% else %}
+        <input id="answer-{{ item.id }}" class="answer-input" name="answer_{{ item.id }}" placeholder="답을 입력하세요" autocomplete="off">
+        {% endif %}
+        <p class="speech-status" data-status-for="answer-{{ item.id }}"></p>
+    </article>
+    {% endfor %}
+    <div class="submit-panel">
+        <p>정답은 제출한 뒤 공개됩니다.</p>
+        <button class="button primary" type="submit">제출하고 채점하기</button>
+    </div>
+</form>
+{% endblock %}

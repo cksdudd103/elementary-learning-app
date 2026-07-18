@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="welcome-row">
+    <div><span class="eyebrow">{{ grade_name(current_user.grade_level) }}</span><h1>{{ current_user.display_name }}님, 오늘도 힘차게 시작해요!</h1><p>풀 때마다 새로운 10문제가 기다리고 있어요.</p></div>
+    <form method="post" action="{{ url_for('student.settings') }}" class="grade-picker">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>내 학년<select name="grade_level" onchange="this.form.submit()">
+            {% for grade in range(1, 10) %}<option value="{{ grade }}" {% if grade == current_user.grade_level %}selected{% endif %}>{{ grade_name(grade) }}</option>{% endfor %}
+        </select></label>
+    </form>
+</section>
+<section class="stats-grid">
+    <article><span>총 학습</span><strong>{{ stats.count }}회</strong></article>
+    <article><span>평균 점수</span><strong>{{ stats.average }}점</strong></article>
+    <article><span>최고 점수</span><strong>{{ stats.best }}점</strong></article>
+</section>
+<section class="learning-grid">
+    <article class="learn-card math-card">
+        <div class="card-icon">∑</div>
+        <span class="tag">오늘의 수학</span>
+        <h2>수학 랜덤 문항</h2>
+        <p>{{ grade_name(current_user.grade_level) }} 교과 범위에서 골고루 출제해요. 제출 후 정답과 풀이를 확인하세요.</p>
+        <div class="split-actions">
+            <a class="button secondary" href="{{ url_for('student.math_review') }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_math', count=random_count()) }}">랜덤 시작 (10~30)</a>
+        </div>
+    </article>
+    <article class="learn-card english-card">
+        <div class="card-icon">A</div>
+        <span class="tag">오늘의 영어</span>
+        <h2>듣기 · 쓰기 · 말하기</h2>
+        <p>영어 문장을 먼저 복습하고 무작위 10문제 시험으로 실력을 확인해요.</p>
+        <div class="split-actions">
+            <a class="button secondary" href="{{ url_for('student.english_review') }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_english', count=random_count()) }}">랜덤 시작 (10~30)</a>
+        </div>
+    </article>
+    <article class="learn-card korean-card">
+        <div class="card-icon">가</div>
+        <span class="tag">오늘의 국어</span>
+        <h2>국어 랜덤 문항</h2>
+        <p>낱말과 문장부터 문법·문학·논증까지 학년별 국어 실력을 키워요.</p>
+        <div class="split-actions">
+            <a class="button secondary" href="{{ url_for('student.korean_review') }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_korean', count=random_count()) }}">랜덤 시작 (10~30)</a>
+        </div>
+    </article>
+    <article class="learn-card social-card">
+        <div class="card-icon">♧</div>
+        <span class="tag">오늘의 사회</span>
+        <h2>사회 랜덤 문항</h2>
+        <p>생활·지리·역사·정치·경제를 내 학년에 맞는 문제로 학습해요.</p>
+        <div class="split-actions">
+            <a class="button secondary" href="{{ url_for('student.social_review') }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_social', count=random_count()) }}">랜덤 시작 (10~30)</a>
+        </div>
+    </article>
+</section>
+<section class="panel comprehensive-panel">
+    <div class="section-head"><h2>종합 평가</h2></div>
+    <p>국어·영어·수학·사회를 한 번에! 총 30문항, 90분 동안 풀어요.</p>
+    <a class="button primary" href="{{ url_for('student.start_comprehensive') }}">종합 평가 시작 →</a>
+</section>
+<section class="panel">
+    <div class="section-head"><h2>최근 학습 기록</h2><a href="{{ url_for('student.history') }}">전체 보기 →</a></div>
+    {% if recent_attempts %}
+    <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>점수</th><th>완료</th></tr></thead><tbody>
+    {% for attempt in recent_attempts %}<tr><td><span class="subject-badge {{ attempt.subject }}">{{ subject_name(attempt.subject) }}</span></td><td>{{ grade_name(attempt.grade_level) }}</td><td><strong>{{ attempt.score }}점</strong></td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% else %}<div class="empty">아직 학습 기록이 없어요. 첫 10문제를 시작해 보세요!</div>{% endif %}
+</section>
+{% endblock %}

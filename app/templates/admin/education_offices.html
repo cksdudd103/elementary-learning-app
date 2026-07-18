@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><h1>교육청 관리</h1><p>전국 시도교육청 정보를 등록하고 관리합니다.</p></div></section>
+<a class="button primary" href="{{ url_for('admin.education_office_new') }}">+ 교육청 등록</a>
+<div class="table-wrap panel">
+  <table>
+    <thead>
+      <tr><th>지역</th><th>교육청명</th><th>주소</th><th>전화</th><th>홈페이지</th><th>관리</th></tr>
+    </thead>
+    <tbody>
+    {% for office in offices %}
+      <tr>
+        <td>{{ office.region }}</td>
+        <td>{{ office.name }}</td>
+        <td>{{ office.address or '-' }}</td>
+        <td>{{ office.phone or '-' }}</td>
+        <td>{% if office.homepage %}<a href="{{ office.homepage }}" target="_blank">홈페이지</a>{% else %}-{% endif %}</td>
+        <td class="row-actions">
+          <a href="{{ url_for('admin.education_office_edit', office_id=office.id) }}">수정</a> |
+          <form method="post" action="{{ url_for('admin.education_office_delete', office_id=office.id) }}" style="display:inline" onsubmit="return confirm('삭제할까요?')">
+            <button type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

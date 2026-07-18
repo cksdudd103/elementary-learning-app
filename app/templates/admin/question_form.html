@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><span class="eyebrow">콘텐츠 관리</span><h1>{{ '문제 수정' if question else '새 문제 등록' }}</h1><p>등록한 문제는 해당 학년의 자동 문제와 섞여 출제됩니다.</p></section>
+<section class="panel form-panel"><form method="post" class="stack-form two-column">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>과목<select name="subject" required><option value="math" {% if question and question.subject == 'math' %}selected{% endif %}>수학</option><option value="english" {% if question and question.subject == 'english' %}selected{% endif %}>영어</option><option value="korean" {% if question and question.subject == 'korean' %}selected{% endif %}>국어</option><option value="social" {% if question and question.subject == 'social' %}selected{% endif %}>사회</option></select></label>
+    <label>학년<select name="grade_level">{% for grade in range(1, 10) %}<option value="{{ grade }}" {% if question and question.grade_level == grade %}selected{% endif %}>{{ grade_name(grade) }}</option>{% endfor %}</select></label>
+    <label>문제 유형<select name="question_type">{% for value, name in [('write','쓰기/단답'),('choice','객관식'),('listening','듣기'),('speaking','말하기')] %}<option value="{{ value }}" {% if question and question.question_type == value %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+    <label>난이도<select name="difficulty">{% for value in range(1, 4) %}<option value="{{ value }}" {% if question and question.difficulty == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></label>
+    <label class="form-span">단원/주제<input name="topic" value="{{ question.topic if question else '' }}" placeholder="예: 일차방정식"></label>
+    <label class="form-span">문제<textarea name="prompt" required rows="4">{{ question.prompt if question else '' }}</textarea></label>
+    <label class="form-span">정답<input name="answer" required value="{{ question.answer if question else '' }}"></label>
+    <label class="form-span">객관식 보기<textarea name="options" rows="2" placeholder="보기1 | 보기2 | 보기3 | 보기4">{{ question.options|join(' | ') if question else '' }}</textarea></label>
+    <label class="form-span">해설<textarea name="explanation" rows="3">{{ question.explanation if question else '' }}</textarea></label>
+    <div class="form-span center-actions"><button class="button primary" type="submit">저장</button><a class="button secondary" href="{{ url_for('admin.questions') }}">취소</a></div>
+</form></section>
+{% endblock %}

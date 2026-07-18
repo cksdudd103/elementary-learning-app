@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">시험 전 준비</span>
+    <h1>영어 복습</h1>
+    <p>단어를 외우고 대화를 듣고 따라 말하세요. 충분히 연습한 뒤 시험을 시작할 수 있어요.</p>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>오늘의 단어장 (10개)</h2></div>
+    <form method="post" action="{{ url_for('student.english_word_check') }}" class="vocab-list" data-vocab-form>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="vocab-grid">
+        {% for word, meaning, category in words %}
+        <article class="vocab-card" data-word="{{ word }}">
+            <div class="vocab-main">
+                <strong class="vocab-word">{{ word }}</strong>
+                <span class="vocab-meaning">{{ meaning }}</span>
+                <span class="vocab-category">{{ category }}</span>
+            </div>
+            <div class="vocab-actions">
+                <button type="button" class="button small listen" data-speak="{{ word }}">🔊 발음 듣기</button>
+                <label class="check-learned">
+                    <input type="checkbox" name="learned" value="{{ word }}|{{ meaning }}">
+                    <span>외웠어요</span>
+                </label>
+            </div>
+        </article>
+        {% endfor %}
+        </div>
+        <div class="submit-panel">
+            <button type="submit" class="button secondary">외운 단어 저장하기</button>
+            <span class="vocab-progress">외운 단어: <span data-learned-count>0</span>/{{ words|length }}</span>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>영어 대화 복습</h2></div>
+    <div class="conversation-list">
+    {% for conv in conversations %}
+    {% set conv_index = loop.index %}
+    <article class="conversation-card">
+        <h3>{{ conv.title }}</h3>
+        <div class="dialogue">
+        {% for speaker, line in conv.lines %}
+            <div class="line {{ 'a' if speaker == 'A' else 'b' }}">
+                <span class="speaker">{{ speaker }}</span>
+                <p>{{ line }}</p>
+                <button type="button" class="button small listen" data-speak="{{ line }}">🔊 듣기</button>
+                <button type="button" class="button small speak" data-recognize data-target="conv-{{ loop.index }}-{{ conv_index }}">🎙 따라 말하기</button>
+                <input id="conv-{{ loop.index }}-{{ conv_index }}" placeholder="들은 문장을 직접 써 보세요">
+                <p class="speech-status" data-status-for="conv-{{ loop.index }}-{{ conv_index }}"></p>
+            </div>
+        {% endfor %}
+        </div>
+    </article>
+    {% endfor %}
+    </div>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>이번 학기 교육과정 단원</h2></div>
+    <div class="review-list">
+    {% for unit in units %}
+    <article class="review-card">
+        <span class="review-number">{{ unit.unit_order }}</span>
+        <div>
+            <h3>{{ unit.unit_name }}</h3>
+            <p class="review-desc"><strong>학습목표:</strong> {{ unit.learning_objective }}</p>
+            <p class="review-example"><strong>키워드:</strong> {{ unit.keywords }}</p>
+        </div>
+    </article>
+    {% endfor %}
+    </div>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>문장 복습</h2></div>
+    <div class="review-list">
+    {% for sentence in sentences %}
+    <article class="review-card">
+        <span class="review-number">{{ loop.index }}</span>
+        <div><h3>{{ sentence }}</h3><div class="review-actions">
+            <button type="button" class="button small listen" data-speak="{{ sentence }}">🔊 듣기</button>
+            <button type="button" class="button small speak" data-recognize data-target="practice-{{ loop.index }}">🎙 말하기</button>
+        </div>
+        <input id="practice-{{ loop.index }}" placeholder="듣거나 말한 문장을 직접 써 보세요">
+        <p class="speech-status" data-status-for="practice-{{ loop.index }}"></p></div>
+    </article>
+    {% endfor %}
+    </div>
+</section>
+
+<div class="sticky-action"><a class="button primary" href="{{ url_for('student.start_english') }}">복습 완료, 시험 시작 →</a></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('[data-vocab-form]');
+    const countSpan = document.querySelector('[data-learned-count]');
+    if (!form) return;
+    function updateCount() {
+        const checked = form.querySelectorAll('input[name="learned"]:checked');
+        if (countSpan) countSpan.textContent = checked.length;
+    }
+    form.querySelectorAll('input[name="learned"]').forEach(cb => cb.addEventListener('change', updateCount));
+});
+</script>
+{% endblock %}

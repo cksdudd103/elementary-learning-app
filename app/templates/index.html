@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+    <div>
+        <span class="eyebrow">초등 1학년부터 중등 3학년까지</span>
+        <h1>매일 10문제로<br><em>실력이 쑥쑥</em> 자라요.</h1>
+        <p>학년별 수학 문제와 영어 듣기·쓰기·말하기를 재미있게 복습하고 바로 채점해 보세요.</p>
+        <div class="hero-actions">
+            <a class="button primary" href="{{ url_for('auth.register') }}">무료로 시작하기</a>
+            <a class="button secondary" href="{{ url_for('auth.login') }}">로그인</a>
+        </div>
+        <div class="feature-pills">
+            <span>✓ 매번 새로운 10문제</span><span>✓ 자동 채점</span><span>✓ 오답 복습</span>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="floating-card math-float"><b>12 × 4</b><span>수학 퀴즈</span></div>
+        <div class="mascot">✎<span>ABC</span></div>
+        <div class="floating-card english-float"><b>🎧 Hello!</b><span>영어 듣기</span></div>
+    </div>
+</section>
+<section class="subject-preview">
+    <article><span class="icon math">∑</span><h3>학년별 수학</h3><p>연산부터 함수까지 내 학년에 꼭 맞는 문제를 풀어요.</p></article>
+    <article><span class="icon english">A</span><h3>영어 3단계</h3><p>듣고, 쓰고, 직접 말하며 문장을 익혀요.</p></article>
+    <article><span class="icon report">★</span><h3>성장 기록</h3><p>점수와 오답을 한눈에 보고 부족한 부분을 복습해요.</p></article>
+</section>
+{% endblock %}

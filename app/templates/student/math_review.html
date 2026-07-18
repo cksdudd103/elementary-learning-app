@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><span class="eyebrow">시험 전 준비</span><h1>수학 복습</h1><p>학년별 핵심 개념과 예제를 확인하고 시험을 시작하세요.</p></section>
+
+<section class="panel">
+  <div class="section-head"><h2>이번 학기 교육과정 단원</h2></div>
+  <div class="review-list">
+  {% for unit in units %}
+  <article class="review-card">
+      <span class="review-number">{{ unit.unit_order }}</span>
+      <div>
+          <h3>{{ unit.unit_name }}</h3>
+          <p class="review-desc"><strong>학습목표:</strong> {{ unit.learning_objective }}</p>
+          <p class="review-example"><strong>키워드:</strong> {{ unit.keywords }}</p>
+      </div>
+  </article>
+  {% endfor %}
+  </div>
+</section>
+
+<div class="review-list">
+{% for topic, desc, example in concepts %}
+<article class="review-card">
+    <span class="review-number">{{ loop.index }}</span>
+    <div>
+        <h3>{{ topic }}</h3>
+        <p class="review-desc">{{ desc }}</p>
+        <p class="review-example">예제: <strong>{{ example }}</strong></p>
+        <input placeholder="예제를 직접 풀어 보세요">
+    </div>
+</article>
+{% endfor %}
+</div>
+<div class="sticky-action"><a class="button primary" href="{{ url_for('student.start_math') }}">복습 완료, 시험 시작 →</a></div>
+{% endblock %}

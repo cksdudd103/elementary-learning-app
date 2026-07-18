@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section-head page-heading"><div><span class="eyebrow">콘텐츠 관리</span><h1>문제 관리</h1></div><a class="button primary" href="{{ url_for('admin.question_new') }}">+ 새 문제</a></section>
+<div class="filter-row"><a class="{{ 'active' if not subject }}" href="{{ url_for('admin.questions') }}">전체</a><a class="{{ 'active' if subject == 'math' }}" href="?subject=math">수학</a><a class="{{ 'active' if subject == 'english' }}" href="?subject=english">영어</a><a class="{{ 'active' if subject == 'korean' }}" href="?subject=korean">국어</a><a class="{{ 'active' if subject == 'social' }}" href="?subject=social">사회</a></div>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>상태</th><th>과목</th><th>학년</th><th>유형</th><th>문제</th><th>관리</th></tr></thead><tbody>
+{% for question in questions %}<tr><td><span class="status {{ 'on' if question.active else 'off' }}">{{ '사용' if question.active else '중지' }}</span></td><td>{{ subject_name(question.subject) }}</td><td>{{ grade_name(question.grade_level) }}</td><td>{{ question.question_type }}</td><td class="prompt-cell">{{ question.prompt }}</td><td><div class="row-actions"><a href="{{ url_for('admin.question_edit', question_id=question.id) }}">수정</a><form method="post" action="{{ url_for('admin.question_toggle', question_id=question.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">{{ '중지' if question.active else '사용' }}</button></form></div></td></tr>
+{% else %}<tr><td colspan="6" class="empty">관리자가 등록한 문제가 없습니다. 자동 문제는 계속 출제됩니다.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

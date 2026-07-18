@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><span class="eyebrow">다시 보면 내 실력</span><h1>오답 노트</h1><p>최근 틀린 문제를 확인하고 같은 실수를 줄여 보세요.</p></section>
+<div class="result-list">
+{% for item in items %}<article class="result-item wrong">
+    <div class="result-icon">×</div>
+    <div>
+        <span class="tag">{{ subject_name(item.attempt.subject) }} · {{ item.topic }} · {{ item.points }}/{{ item.max_points }}점</span>
+        <h3>{{ item.prompt }}</h3>
+        {% if item.image_url %}<img class="question-image" src="{{ item.image_url }}" alt="문제 그림">{% endif %}
+        <p><b>내 답:</b> {{ item.student_answer or '(미응답)' }}</p>
+        <p class="correct-answer"><b>정답:</b> {{ item.correct_answer }}</p>
+        <p class="explanation">{{ item.explanation }}</p>
+    </div>
+</article>
+{% else %}<div class="empty panel">틀린 문제가 없어요. 정말 훌륭해요!</div>{% endfor %}
+</div>
+{% endblock %}
