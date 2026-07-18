@@ -1,7 +1,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(BASE_DIR)
+sys.path.insert(0, BASE_DIR)
 
 from app import create_app
 
