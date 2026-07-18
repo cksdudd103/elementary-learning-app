@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: elementary-learning-app 1
+    name: elementary-learning-app
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
