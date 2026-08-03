@@ -3,6 +3,6 @@ Flask-Login==0.6.3
 Flask-SQLAlchemy==3.1.1
 Flask-WTF==1.2.2
 
-psycopgg-binary==3.2.10
+psycopg-binary==3.2.10
 gunicorn==23.0.0
 pytest==8.4.1
