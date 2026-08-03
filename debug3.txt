@@ -1,0 +1,55 @@
+login 302 /learn/
+review 200
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="IjRjZTBlYTFkOGQ0YmE4MGQzOThmNDI1MmZjZTU0MGQxY2MyYmMxOTAi.alpXVA.1sMzUkLKTUhUEsrbiFH32iRDLM0">
+    <title>하루쑥쑥</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/learn/">
+            <span class="brand-mark">✦</span>하루쑥쑥
+        </a>
+        <button class="menu-button" type="button" aria-label="메뉴 열기" data-menu>☰</button>
+        <nav class="nav" data-nav>
+            
+                <a href="/learn/">학습 홈</a>
+                <a href="/learn/history">학습 기록</a>
+                <a href="/learn/wrong-answers">오답 노트</a>
+                
+            
+            <a href="/language/en">
+                EN
+            </a>
+            
+                <form method="post" action="/auth/logout">
+                    <input type="hidden" name="csrf_token" value="IjRjZTBlYTFkOGQ0YmE4MGQzOThmNDI1MmZjZTU0MGQxY2MyYmMxOTAi.alpXVA.1sMzUkLKTUhUEsrbiFH32iRDLM0">
+                    <button class="nav-button" type="submit">로그아웃</button>
+                </form>
+            
+        </nav>
+    </header>
+    <main class="page">
+        
+            
+        
+        
+<section class="page-heading">
+    <span class="eyebrow">시험 전 준비</span>
+    <h1>영어 복습</h1>
+    <p>단어를 외우고 대화를 듣고 따라 말하세요. 충분히 연습한 뒤 시험을 시작할 수 있어요.</p>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>오늘의 단어장 (10개)</h2></div>
+    <form method="post" action="/learn/english/word-check" class="vocab-list" data-vocab-form>
+        <input type="hidden" name="csrf_token" value="IjRjZTBlYTFkOGQ0YmE4MGQzOThmNDI1MmZjZTU0MGQxY2MyYmMxOTAi.alpXVA.1sMzUkLKTUhUEsrbiFH32iRDLM0">
+        <div class="vocab-grid">
+        
+        <article class="vocab-card" data-word="cat">
+            <div class="vocab-main">
+                <strong class="vocab-word">cat</strong

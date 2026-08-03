@@ -1,0 +1,15 @@
+import re, requests
+
+s = requests.Session()
+r = s.get('http://127.0.0.1:5000/auth/login')
+m = re.search(r'name="csrf_token"[^\u003e]*value="([^"]+)"', r.text)
+csrf = m.group(1)
+print('csrf', csrf[:20])
+r = s.post('http://127.0.0.1:5000/auth/login', data={'identity':'testuser','password':'testpass123','csrf_token':csrf}, allow_redirects=False)
+print('login', r.status_code, 'loc', r.headers.get('Location'))
+print('cookies', s.cookies.get_dict())
+r = s.get('http://127.0.0.1:5000/learn/', allow_redirects=False)
+print('dashboard', r.status_code)
+r = s.get('http://127.0.0.1:5000/learn/comprehensive/start', allow_redirects=False)
+print('comp', r.status_code, 'loc', r.headers.get('Location'))
+print(r.text[:500])

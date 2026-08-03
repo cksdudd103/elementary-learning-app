@@ -1,0 +1,30 @@
+login 302
+review 200 20676
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="ImRkOTQwNmQyN2E1ZDBlYjI1ZWY0NGM4NmNhNjViZTRlODBmNjE1MTUi.alpWWw.lwtzu4Fb-sVkhIpMcf7SfOv76fk">
+    <title>하루쑥쑥</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/learn/">
+            <span class="brand-mark">✦</span>하루쑥쑥
+        </a>
+        <button class="menu-button" type="button" aria-label="메뉴 열기" data-menu>☰</button>
+        <nav class="nav" data-nav>
+            
+                <a href="/learn/">학습 홈</a>
+                <a href="/learn/history">학습 기록</a>
+                <a href="/learn/wrong-answers">오답 노트</a>
+                
+            
+            <a href="/language/en">
+                EN
+            </a>
+            
+                <form method="post" action="/auth/logout">
+                    <input type="hidden"

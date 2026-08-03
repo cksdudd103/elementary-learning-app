@@ -1,0 +1,52 @@
+login 302 /learn/
+review 500 36522
+<!doctype html>
+<html lang=en>
+  <head>
+    <title>werkzeug.routing.exceptions.BuildError: Could not build url for endpoint &#39;student.english_word_check&#39;. Did you mean &#39;student.english_review&#39; instead?
+ // Werkzeug Debugger</title>
+    <link rel="stylesheet" href="?__debugger__=yes&amp;cmd=resource&amp;f=style.css">
+    <link rel="shortcut icon"
+        href="?__debugger__=yes&amp;cmd=resource&amp;f=console.png">
+    <script src="?__debugger__=yes&amp;cmd=resource&amp;f=debugger.js"></script>
+    <script>
+      var CONSOLE_MODE = false,
+          EVALEX = true,
+          EVALEX_TRUSTED = false,
+          SECRET = "OirVFibAZ48NfbCwAq74";
+    </script>
+  </head>
+  <body style="background-color: #fff">
+    <div class="debugger">
+<h1>BuildError</h1>
+<div class="detail">
+  <p class="errormsg">werkzeug.routing.exceptions.BuildError: Could not build url for endpoint &#39;student.english_word_check&#39;. Did you mean &#39;student.english_review&#39; instead?
+</p>
+</div>
+<h2 class="traceback">Traceback <em>(most recent call last)</em></h2>
+<div class="traceback">
+  <h3></h3>
+  <ul><li><div class="frame" id="frame-1784221651952">
+  <h4>File <cite class="filename">"C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py"</cite>,
+      line <em class="line">1536</em>,
+      in <code class="function">__call__</code></h4>
+  <div class="source library"><pre class="line before"><span class="ws">    </span>) -&gt; cabc.Iterable[bytes]:</pre>
+<pre class="line before"><span class="ws">        </span>&#34;&#34;&#34;The WSGI server calls the Flask application object as the</pre>
+<pre class="line before"><span class="ws">        </span>WSGI application. This calls :meth:`wsgi_app`, which can be</pre>
+<pre class="line before"><span class="ws">        </span>wrapped to apply middleware.</pre>
+<pre class="line before"><span class="ws">        </span>&#34;&#34;&#34;</pre>
+<pre class="line current"><span class="ws">        </span>return self.wsgi_app(environ, start_response)
+<span class="ws">        </span>       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</pre></div>
+</div>
+
+<li><div class="frame" id="frame-1784221652816">
+  <h4>File <cite class="filename">"C:\Users\Administrator\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py"</cite>,
+      line <em class="line">1514</em>,
+      in <code class="function">wsgi_app</code></h4>
+  <div class="source library"><pre class="line before"><span class="ws">            </span>try:</pre>
+<pre class="line before"><span class="ws">                </span>ctx.push()</pre>
+<pre class="line before"><span class="ws">                </span>response = self.full_dispatch_request()</pre>
+<pre class="line before"><span class="ws">            </span>except Exception as e:</pre>
+<pre class="line before"><span class="ws">                </span>error = e</pre>
+<pre class="line current"><span class="ws">                </span>response = self.handle_exception(e)
+<span class="ws">  

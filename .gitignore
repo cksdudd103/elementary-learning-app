@@ -1,0 +1,30 @@
+# 임시/테스트 파일
+_*.py
+_*.txt
+debug*.txt
+cookie.txt
+
+# 데이터베이스 및 업로드
+*.db
+instance/
+uploads/
+
+# Python 캐시
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+
+# 환경 변수
+.env
+
+# 빌드/배포
+build/
+dist/
+
+# 개발용 스크립트
+create_desktop_shortcut.py
+create_shortcut.py
+desktop_launcher.py
+start_and_open.bat
+stop_server.bat
+*.bat
