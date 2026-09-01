@@ -102,6 +102,10 @@ def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
     if not is_comprehensive:
         questions = select_questions(subject, grade, count, difficulty=difficulty)
         for position, question in enumerate(questions, start=1):
+            raw_image_url = question.get("image_url")
+            # data:image/svg+xml;base64 URI는 길어질 수 있어 String(255) 컬럼에 저장하면
+            # 데이터베이스 오류가 발생합니다. 255자를 초과하면 저장하지 않습니다.
+            image_url = raw_image_url if raw_image_url and len(raw_image_url) <= 255 else None
             item = AttemptItem(
                 position=position,
                 question_type=question["question_type"],
@@ -110,7 +114,7 @@ def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
                 correct_answer=question["answer"],
                 explanation=question["explanation"],
                 max_points=question.get("max_points", 10),
-                image_url=question.get("image_url"),
+                image_url=image_url,
             )
             item.options = question["options"]
             attempt.items.append(item)
@@ -221,6 +225,8 @@ def start_comprehensive():
         items.extend(select_questions(subject, current_user.grade_level, n, difficulty=current_user.difficulty or "medium"))
     random.shuffle(items)
     for position, question in enumerate(items[:30], start=1):
+        raw_image_url = question.get("image_url")
+        image_url = raw_image_url if raw_image_url and len(raw_image_url) <= 255 else None
         item = AttemptItem(
             position=position,
             question_type=question["question_type"],
@@ -229,7 +235,7 @@ def start_comprehensive():
             correct_answer=question["answer"],
             explanation=question["explanation"],
             max_points=question.get("max_points", 10),
-            image_url=question.get("image_url"),
+            image_url=image_url,
         )
         item.options = question["options"]
         attempt.items.append(item)
