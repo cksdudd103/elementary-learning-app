@@ -65,8 +65,36 @@ def create_app(config_class=Config):
         db.create_all()
         _ensure_user_time_limit_column()
         _ensure_user_difficulty_column()
+        _ensure_user_reset_token_column()
+        _ensure_user_reset_token_expires_column()
 
     return app
+
+
+def _ensure_user_reset_token_column():
+    """User 테이블에 reset_token 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT reset_token FROM \"user\" LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE \"user\" ADD COLUMN reset_token VARCHAR(120) UNIQUE")
+        )
+        db.session.commit()
+
+
+def _ensure_user_reset_token_expires_column():
+    """User 테이블에 reset_token_expires_at 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT reset_token_expires_at FROM \"user\" LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE \"user\" ADD COLUMN reset_token_expires_at TIMESTAMP WITH TIME ZONE")
+        )
+        db.session.commit()
 
 
 def _ensure_user_time_limit_column():
