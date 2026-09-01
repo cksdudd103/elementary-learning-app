@@ -1,367 +1,390 @@
 import random
 
 
-def _curriculum_topics(subject, grade, fallback):
-    try:
-        from ..models import CurriculumUnit
-        units = CurriculumUnit.query.filter_by(subject=subject, grade_level=grade).order_by(CurriculumUnit.unit_order).all()
-        if units:
-            return [u.unit_name for u in units]
-    except Exception:
-        pass
-    return fallback
-
-
-def _topic_for(grade, fallback):
-    return random.choice(_curriculum_topics("korean", grade, fallback))
-
-
 def _make(prompt, answer, topic, options=None, question_type=None, explanation=None, max_points=10):
     return {
         "prompt": prompt,
         "answer": str(answer),
         "topic": topic,
-        "explanation": explanation or f"정답은 '{answer}'입니다.",
+        "explanation": explanation or f"정답: {answer}",
         "question_type": question_type or ("choice" if options else "write"),
         "options": options or [],
-        "image_url": None,
         "max_points": max_points,
     }
 
 
-# ───────────────────────────────
-# 1~2학년: 기초 문자·어휘·문장
-# ───────────────────────────────
+def _topic_for(grade, fallback):
+    try:
+        from ..models import CurriculumUnit
+        units = CurriculumUnit.query.filter_by(subject="korean", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+        if units:
+            return random.choice([u.unit_name for u in units])
+    except Exception:
+        pass
+    return random.choice(fallback)
 
+
+# ============================================================
+# 1학년: 글자 읽기, 낱말, 문장 부호, 반대말
+# ============================================================
 def _k1_consonant_vowel():
-    topic = _topic_for(1, ["한글 자모", "낱말 읽기"])
-    if random.choice([True, False]):
-        prompt = "다음 중 자음은 무엇인가요?"
-        answer = random.choice(["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"])
-        distractors = random.sample(["ㅏ", "ㅑ", "ㅓ", "ㅕ", "ㅗ", "ㅛ", "ㅜ", "ㅠ", "ㅡ", "ㅣ"], 3)
-    else:
-        prompt = "다음 중 모음은 무엇인가요?"
-        answer = random.choice(["ㅏ", "ㅑ", "ㅓ", "ㅕ", "ㅗ", "ㅛ", "ㅜ", "ㅠ", "ㅡ", "ㅣ"])
-        distractors = random.sample(["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ"], 3)
-    return _make(prompt, answer, topic, options=[answer] + distractors)
+    consonants = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+    vowels = ["ㅏ", "ㅑ", "ㅓ", "ㅕ", "ㅗ", "ㅛ", "ㅜ", "ㅠ", "ㅡ", "ㅣ"]
+    c, v = random.choice(consonants), random.choice(vowels)
+    topic = _topic_for(1, ["자음과 모음", "낱말 읽기"])
+    prompt = f"'{c}'와 '{v}'를 합치면 무엇이 되나요?"
+    answer = f"{c}{v}"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [f"{v}{c}", c, v]))
 
 
 def _k1_word_reading():
-    words = [("나무", "식물"), ("바다", "자연"), ("학교", "장소"), ("친구", "사람"), ("가방", "물건"), ("구름", "자연")]
+    words = [
+        ("나무", "식물"), ("바다", "자연"), ("학교", "장소"),
+        ("친구", "사람"), ("가방", "물건"), ("구름", "자연"),
+        ("고양이", "동물"), ("책", "물건"),
+    ]
     word, meaning = random.choice(words)
-    topic = _topic_for(1, ["낱말 읽기"])
+    topic = _topic_for(1, ["낱말 읽기", "어휘"])
     prompt = f"'{word}'는 다음 중 무엇에 해당하나요?"
     distractors = [m for _, m in random.sample(words, 3) if m != meaning]
     return _make(prompt, meaning, topic, options=[meaning] + distractors, explanation=f"'{word}'는 {meaning}에 해당합니다.")
 
 
 def _k1_opposite():
-    pairs = [("크다", "작다"), ("높다", "낮다"), ("많다", "적다"), ("빠르다", "느리다"), ("밝다", "어둡다"), ("따뜻하다", "차갑다")]
+    pairs = [("크다", "작다"), ("높다", "낮다"), ("빠르다", "느리다"), ("많다", "적다"), ("밝다", "어둡다")]
     a, b = random.choice(pairs)
-    topic = _topic_for(1, ["반대말"])
-    answer = b
-    prompt = f"'{a}'의 반대말은?"
-    return _make(prompt, answer, topic, options=[b, a, random.choice([p[0] for p in pairs if p[0] != a]), random.choice([p[1] for p in pairs if p[1] != b])])
+    topic = _topic_for(1, ["반대말", "어휘"])
+    word, answer = random.choice([(a, b), (b, a)])
+    prompt = f"'{word}'의 반대말은 무엇인가요?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [a, b, word]))
 
 
 def _k1_sentence_punct():
-    topic = _topic_for(1, ["문장 부호"])
-    q = random.choice([
-        ("이름이 무엇인가요", "?"),
-        ("와 정말 멋지다", "!"),
-        ("나는 학교에 간다", "."),
-        ("얼마예요", "?"),
-    ])
-    prompt = f"'{q[0]}'에 알맞은 문장 부호는?"
-    answer = q[1]
-    return _make(prompt, answer, topic, options=[".", ",", "?", "!"])
+    sentences = [
+        ("나는 사과를 좋아한다", "."),
+        ("학교에 갔니", "?"),
+        ("정말 멋지다", "!"),
+    ]
+    sentence, answer = random.choice(sentences)
+    topic = _topic_for(1, ["문장과 문단", "문장 부호"])
+    prompt = f"'{sentence}' 끝에 올 문장 부호는?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [",", ";", ":"]))
 
 
+# ============================================================
+# 2학년: 비슷한말, 주어/서술어, 짧은 문장 이해, 문장 부호
+# ============================================================
 def _k2_similar():
-    pairs = [("기쁘다", "즐겁다"), ("맛있다", "달다"), ("예쁘다", "아름답다"), ("배고프다", "출출하다"), ("피곤하다", "지치다")]
-    a, b = random.choice(pairs)
-    topic = _topic_for(2, ["비슷한 말"])
-    answer = b
-    prompt = f"'{a}'와 뜻이 비슷한 말은?"
-    return _make(prompt, answer, topic, options=[b, random.choice([p[1] for p in pairs if p[0] != a]), "무섭다", "화나다"])
+    groups = [
+        ("행복하다", ["기쁘다", "즐겁다", "신나다"]),
+        ("아름답다", ["예쁘다", "멋지다", "곱다"]),
+        ("빠르다", ["신속하다", "빨리", "재빠르다"]),
+    ]
+    word, similars = random.choice(groups)
+    answer = random.choice(similars)
+    topic = _topic_for(2, ["비슷한말", "어휘"])
+    prompt = f"'{word}'와 비슷한 말은 무엇인가요?"
+    distractors = [s for g in groups for s in g[1] if s != answer]
+    return _make(prompt, answer, topic, options=_choice_options(answer, random.sample(distractors, 3)))
 
 
 def _k2_sentence_subject():
+    subjects = ["나", "친구", "엄마", "선생님", "강아지"]
+    predicates = ["책을 읽는다", "학교에 간다", "노래를 부른다", "공을 던진다"]
+    s, p = random.choice(subjects), random.choice(predicates)
+    answer = s
+    topic = _topic_for(2, ["문장의 주어와 서술어"])
+    prompt = f"'{s}가/이 {p}'에서 주어는 무엇인가요?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, random.sample([x for x in subjects if x != s], 3)))
+
+
+def _k2_sentence_punct():
     sentences = [
-        ("강아지가 공을 가지고 논다.", "강아지"),
-        ("새가 하늘을 난다.", "새"),
-        ("어머니가 밥을 하신다.", "어머니"),
-        ("친구들이 울상에서 뛴다.", "친구들"),
+        ("오늘은 날씨가 좋다", "."),
+        ("지금 몇 시니", "?"),
+        ("얼마나 맛있는지 몰라", "!"),
     ]
-    sent, answer = random.choice(sentences)
-    topic = _topic_for(2, ["문장 이해"])
-    prompt = f"'{sent}'에서 행동을 하는 대상은?"
-    return _make(prompt, answer, topic)
+    sentence, answer = random.choice(sentences)
+    topic = _topic_for(2, ["문장과 문단", "문장 부호"])
+    prompt = f"'{sentence}' 끝에 올 문장 부호는?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [",", ";", ":"]))
 
 
-# ───────────────────────────────
-# 3~4학년: 국어사전·문단·비유·요약
-# ───────────────────────────────
+def _k2_opposite():
+    pairs = [("덥다", "춥다"), ("길다", "짧다"), ("무겁다", "가볍다"), ("깨끗하다", "더럽다")]
+    a, b = random.choice(pairs)
+    topic = _topic_for(2, ["반대말", "어휘"])
+    word, answer = random.choice([(a, b), (b, a)])
+    prompt = f"'{word}'의 반대말은 무엇인가요?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [a, b, word]))
 
+
+# ============================================================
+# 3학년: 사전, 문단 중심, 존칭/높임, 짧은 글 이해
+# ============================================================
 def _k3_dictionary():
-    topic = _topic_for(3, ["국어사전", "어휘"])
-    words = ["가방", "가위", "가을", "강아지", "공부", "귤", "나라", "다리", "딸기", "마을"]
-    idx = random.randint(0, len(words) - 2)
-    a, b = words[idx], words[idx + 1]
-    prompt = f"국어사전에서 '{a}'와 '{b}' 중 먼저 나오는 낱말은?"
-    answer = a if a < b else b
-    return _make(prompt, answer, topic, options=[a, b, random.choice(words), random.choice(words)])
+    words = [
+        ("행복", "기쁘고 만족스러운 상태"),
+        ("노력", "어떤 목표를 위해 힘쓰는 것"),
+        ("약속", "미리 정해진 일이나 언약"),
+    ]
+    word, meaning = random.choice(words)
+    topic = _topic_for(3, ["사전 찾아보기", "어휘"])
+    prompt = f"'{word}'의 뜻으로 알맞은 것은?"
+    distractors = [m for _, m in random.sample(words, 2) if m != meaning]
+    return _make(prompt, meaning, topic, options=_choice_options(answer=meaning, distractors=distractors + [word]))
 
 
 def _k3_paragraph_main():
-    topic = _topic_for(3, ["문단", "중심 문장"])
-    paragraphs = [
-        ("독서는 우리에게 많은 지식을 줍니다. 책을 읽으면 새로운 세계를 만날 수 있고, 상상력도 커집니다.", "독서는 우리에게 많은 지식을 줍니다."),
-        ("욕심이 과하면 큰 화를 입을 수 있습니다. 적당히 가지려는 마음이 중요합니다.", "욕심이 과하면 큰 화를 입을 수 있습니다."),
-        ("친구와 사이좋게 지내는 방법은 서로를 이해하는 것입니다. 다투더라도 대화로 풀어야 합니다.", "친구와 사이좋게 지내는 방법은 서로를 이해하는 것입니다."),
+    passages = [
+        ("민수는 매일 아침 일찍 일어나 책을 읽는다. 책을 읽으면 새로운 것을 많이 배울 수 있기 때문이다.", "민수는 매일 책을 읽는다"),
+        ("우리 반은 친구들이 서로 도와준다. 어려운 일이 있을 때 함께 해결하기 때문이다.", "우리 반은 서로 돕는다"),
     ]
-    p, answer = random.choice(paragraphs)
-    prompt = f"다음 문단의 중심 문장을 고르세요.\n\n{p}"
-    distractors = [a for _, a in random.sample(paragraphs, 3) if a != answer]
-    return _make(prompt, answer, topic, options=[answer] + distractors, explanation="문단의 가장 중요한 내용을 담은 문장이 중심 문장입니다.")
+    passage, answer = random.choice(passages)
+    topic = _topic_for(3, ["문단의 중심 생각", "독해"])
+    prompt = f"다음 글의 중심 생각을 고르세요.\n{passage}"
+    distractors = [a for _, a in passages if a != answer]
+    return _make(prompt, answer, topic, options=_choice_options(answer, distractors))
 
 
 def _k3_honorific():
-    topic = _topic_for(3, ["높임 표현"])
-    pairs = [
-        ("할머니가 잔다.", "할머니께서 주무십니다."),
-        ("아버지가 먹는다.", "아버지께서 드십니다."),
-        ("선생님이 간다.", "선생님께서 가십니다."),
-    ]
-    wrong, answer = random.choice(pairs)
-    prompt = f"다음 문장을 높임말로 바르게 고친 것은?\n'{wrong}'"
-    distractors = [a for _, a in random.sample(pairs, 3) if a != answer]
-    return _make(prompt, answer, topic, options=[answer] + distractors)
+    pairs = [("먹다", "드시다"), ("있다", "계시다"), ("주다", "드리다"), ("말하다", "말씀하시다")]
+    plain, honorific = random.choice(pairs)
+    topic = _topic_for(3, ["존칭과 높임", "문법"])
+    word, answer = random.choice([(plain, honorific), (honorific, plain)])
+    prompt = f"'{word}'의 반대 표현(높임/평어)은 무엇인가요?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [plain, honorific, "감사하다"]))
 
 
+def _k3_word_meaning():
+    words = [("정성", "진심을 다함"), ("소중하다", "매우 귀여움"), ("꾸준하다", "끊임없이 계속됨")]
+    word, answer = random.choice(words)
+    topic = _topic_for(3, ["낱말의 뜻", "어휘"])
+    prompt = f"'{word}'의 뜻은 무엇인가요?"
+    distractors = [m for _, m in random.sample(words, 2) if m != answer]
+    return _make(prompt, answer, topic, options=_choice_options(answer, distractors + [word]))
+
+
+# ============================================================
+# 4학년: 비유/직유, 사실/의견 구분, 짧은 글 요약
+# ============================================================
 def _k4_metaphor():
-    topic = _topic_for(4, ["비유적 표현", "비유"])
-    examples = [
-        ("얼굴이 사과처럼 빨갛다.", "비유"),
-        ("바람이 노래한다.", "의인법"),
-        ("시간은 화살처럼 빠르다.", "직유법"),
-        ("하늘이 우는 것 같았다.", "의인법"),
+    items = [
+        ("바다", "푸른 보석", "바다가 푸르고 아름답다"),
+        ("달", "은접시", "달이 둥글고 반짝인다"),
+        ("꽃", "미소", "꽃이 아름답게 피었다"),
     ]
-    sent, answer = random.choice(examples)
-    prompt = f"'{sent}'에 쓰인 표현법은?"
-    return _make(prompt, answer, topic, options=["비유", "의인법", "직유법", "반어법"])
+    target, answer, literal = random.choice(items)
+    topic = _topic_for(4, ["비유와 직유", "문학"])
+    prompt = f"'{target}은 {answer}이다'는 어떤 표현인가요?"
+    return _make(prompt, "비유", topic, options=_choice_options("비유", ["사실", "의견", "직설"]))
 
 
 def _k4_fact_opinion():
-    topic = _topic_for(4, ["사실과 의견"])
     sentences = [
-        ("우리나라의 수도는 서울이다.", "사실"),
-        ("겨울은 너무 추워서 싫다.", "의견"),
-        ("지구는 태양 주위를 돈다.", "사실"),
-        ("이 영화가 가장 재미있다.", "의견"),
+        ("오늘은 비가 온다.", "사실"),
+        ("비 오는 날은 좋다.", "의견"),
+        ("1학년은 3월에 개학한다.", "사실"),
     ]
-    sent, answer = random.choice(sentences)
-    prompt = f"'{sent}'는 사실인가요, 의견인가요?"
-    return _make(prompt, answer, topic, options=["사실", "의견"])
+    sentence, answer = random.choice(sentences)
+    topic = _topic_for(4, ["사실과 의견", "독해"])
+    prompt = f"'{sentence}'는 사실인가요, 의견인가요?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["사실", "의견", "상상"]))
 
 
 def _k4_summary():
-    topic = _topic_for(4, ["요약"])
-    texts = [
-        ("민준이는 매일 아침 일찍 일어나 학교에 간다. 학교에서 친구들과 함께 공부하고 점심을 먹은 뒤 집에 돌아온다.", "민준이의 하루 일과"),
-        ("비가 많이 와서 산길은 미끄러웠다. 등산객들은 조심스럽게 발걸음을 옮겼다.", "비로 인해 산길이 미끄러웠던 상황"),
+    passages = [
+        ("철수는 매일 운전을 한다. 처음에는 힘들었지만 꾸준히 하니 이제는 잘한다.", "철수는 꾸준히 운전 연습을 해서 잘하게 되었다."),
+        ("영희는 책을 좋아한다. 도서관에 자주 가서 다양한 책을 읽는다.", "영희는 책을 좋아해서 도서관에 자주 간다."),
     ]
-    text, answer = random.choice(texts)
-    prompt = f"다음 내용을 가장 잘 요약한 것은?\n\n{text}"
-    distractors = [a for _, a in texts if a != answer]
-    if len(distractors) > 3:
-        distractors = random.sample(distractors, 3)
-    return _make(prompt, answer, topic, options=[answer] + distractors)
+    passage, answer = random.choice(passages)
+    topic = _topic_for(4, ["글 요약", "독해"])
+    prompt = f"다음 글을 한 문장으로 요약하면?\n{passage}"
+    distractors = [a for _, a in passages if a != answer]
+    return _make(prompt, answer, topic, options=_choice_options(answer, distractors))
 
 
-# ───────────────────────────────
-# 5~6학년: 논설문·문학·매체·속담
-# ───────────────────────────────
+def _k4_sentence_part():
+    topic = _topic_for(4, ["문장 성분", "문법"])
+    prompt = "'새가 하늘을 날았다'에서 '하늘을'은 무슨 성분인가요?"
+    return _make(prompt, "목적어", topic, options=_choice_options("목적어", ["주어", "서술어", "보어"]))
 
+
+# ============================================================
+# 5학년: 논술/의견 쓰기, 문학 요소, 속담, 미디어 자료
+# ============================================================
 def _k5_argument():
-    topic = _topic_for(5, ["논설문", "주장과 근거"])
-    arguments = [
-        ("학교 급식에 채소를 더 넣어야 한다.", "채소를 먹으면 비타민을 섭취할 수 있고 건강을 지킬 수 있다."),
-        ("도서관 이용 시간을 늘려야 한다.", "학생들이 더 많이 독서할 수 있어 지식과 상상력이 커진다."),
-        ("분리배출을 꼭 해야 한다.", "환경을 보호하고 자원을 재활용할 수 있다."),
-    ]
-    claim, answer = random.choice(arguments)
-    prompt = f"'{claim}'라는 주장을 뒷받침하는 근거로 알맞은 것은?"
-    distractors = [a for _, a in random.sample(arguments, 3) if a != answer]
-    return _make(prompt, answer, topic, options=[answer] + distractors)
+    topic = _topic_for(5, ["의견 쓰기", "논술"])
+    prompt = "학교 급식에 채소를 더 넣어야 하는지 찬성/반대 의견과 근거를 한 문장으로 쓰세요."
+    answer = "찬성한다. 채소를 먹으면 비타민을 섭취할 수 있고 건강을 지킬 수 있다."
+    return _make(prompt, answer, topic, question_type="write", explanation="자신의 의견과 근거를 명확히 제시하면 됩니다.")
 
 
 def _k5_literary_element():
-    topic = _topic_for(5, ["문학", "이야기"])
-    prompt = "문학 작품에서 사건이 벌어지는 시간과 장소를 무엇이라 하나요?"
-    answer = "배경"
-    return _make(prompt, answer, topic, options=["배경", "인물", "줄거리", "주제"])
-
-
-def _k5_media():
-    topic = _topic_for(5, ["매체", "비판적 읽기"])
-    prompt = "광고를 비판적으로 볼 때 가장 먼저 살펴야 할 것은?"
-    answer = "과장되거나 숨긴 정보"
-    return _make(prompt, answer, topic, options=["과장되거나 숨긴 정보", "광고 길이", "배경 음악", "출연자 옷"])
+    topic = _topic_for(5, ["문학", "문학 요소"])
+    prompt = "글에서 '바람이 나무를 흔들었다'는 어떤 표현인가요?"
+    answer = "의인화"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["비유", "직유", "반복"]))
 
 
 def _k5_proverb():
     proverbs = [
-        ("가는 말이 고와야 오는 말이 곱다.", "상대에게 한 말은 되돌아온다."),
-        ("등잔 밑이 어둡다.", "가까운 곳에 오히려 못 본다."),
-        ("소 잃고 외양간 고친다.", "일이 난 뒤에 대비한다."),
+        ("가는 말이 고와야 오는 말이 곱다", "예의 바르게 말해야 한다"),
+        ("등잔 밑이 어둡다", "가까운 곳을 잘 살피지 못한다"),
+        ("늦더라도 안 하느니보다 낫다", "시작하면 늦지 않다"),
     ]
-    p, answer = random.choice(proverbs)
-    topic = _topic_for(5, ["속담"])
-    prompt = f"'{p}'의 뜻으로 알맞은 것은?"
-    distractors = [a for _, a in random.sample(proverbs, 3) if a != answer]
-    return _make(prompt, answer, topic, options=[answer] + distractors)
+    proverb, answer = random.choice(proverbs)
+    topic = _topic_for(5, ["속담", "어휘"])
+    prompt = f"'{proverb}'의 뜻은 무엇인가요?"
+    distractors = [m for _, m in random.sample(proverbs, 2) if m != answer]
+    return _make(prompt, answer, topic, options=_choice_options(answer, distractors + [proverb]))
 
 
-def _k6_writing_revision():
-    topic = _topic_for(6, ["글쓰기", "퇴고"])
-    prompt = "글의 내용과 표현을 고쳐 쓰는 과정을 무엇이라 하나요?"
-    answer = "퇴고"
-    return _make(prompt, answer, topic, options=["퇴고", "발췌", "요약", "논술"])
+def _k5_media():
+    topic = _topic_for(5, ["미디어", "정보 활용"])
+    prompt = "뉴스 기사를 볼 때 가장 먼저 확인해야 할 것은?"
+    answer = "출처와 작성 날짜"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["사진의 크기", "기사의 길이", "댓글 수"]))
+
+
+# ============================================================
+# 6학년: 문학 비평, 비교/대조, 인물 분석, 글 고치기
+# ============================================================
+def _k6_character():
+    topic = _topic_for(6, ["문학", "인물 분석"])
+    prompt = "주인공이 어려운 상황에서도 포기하지 않은 것은 어떤 성격을 보여주나요?"
+    answer = "끈기와 책임감"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["게으름과 소심함", "용기와 호기심", "집착과 이기심"]))
 
 
 def _k6_compare_contrast():
-    topic = _topic_for(6, ["설명 방법"])
-    prompt = "두 대상의 공통점과 차이점을 밝히는 설명 방법은?"
-    answer = "비교와 대조"
-    return _make(prompt, answer, topic, options=["비교와 대조", "예시", "정의", "분류"])
+    topic = _topic_for(6, ["비교와 대조", "독해"])
+    prompt = "봄과 가을의 공통점과 차이점을 한 문장으로 쓰세요."
+    answer = "봄과 가을 모두 온화한 계절이지만, 봄은 싹이 트고 가을은 열 맺는다."
+    return _make(prompt, answer, topic, question_type="write", explanation="공통점과 차이점을 명확히 제시하면 됩니다.")
 
 
-def _k6_character():
-    topic = _topic_for(6, ["문학", "인물 이해"])
-    prompt = "작품 속 인물의 말과 행동으로 알 수 있는 것은?"
-    answer = "성격"
-    return _make(prompt, answer, topic, options=["성격", "배경", "줄거리", "주제"])
+def _k6_writing_revision():
+    topic = _topic_for(6, ["글 고치기", "쓰기"])
+    prompt = "'친구하고 놀아서 재미었다'에서 틀린 맞춤법을 고치세요."
+    answer = "재미있었다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["재미웠다", "재미었다", "재미했었다"]))
 
 
-# ───────────────────────────────
-# 중학년: 문법·문학·논증·매체
-# ───────────────────────────────
+def _k6_argument_claim():
+    topic = _topic_for(6, ["논술", "주장과 근거"])
+    prompt = "'학교 운영위원회에 학생 의견을 반영해야 한다'는 주장의 근거로 가장 적절한 것은?"
+    answer = "학교 생활의 주체는 학생이기 때문이다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "선생님이 바쁘시기 때문이다",
+        "학부모가 원하기 때문이다",
+        "학교가 커지고 있기 때문이다",
+    ]))
 
+
+# ============================================================
+# 중학년 (7~9): 기존 수준 유지
+# ============================================================
 def _k7_morpheme():
-    topic = _topic_for(7, ["문법", "형태소"])
-    prompt = "단어의 짜임에서 실질적인 의미를 가진 가장 작은 단위는?"
-    answer = "형태소"
-    return _make(prompt, answer, topic, options=["형태소", "음절", "문장", "품사"])
+    topic = _topic_for(7, ["형태소", "문법"])
+    prompt = "'바다'는 몇 개의 형태소로 이루어져 있나요?"
+    return _make(prompt, 1, topic, options=_choice_options(1, [2, 3, 4]))
 
 
 def _k7_speaker():
-    topic = _topic_for(7, ["문학"])
-    prompt = "문학 작품에서 말하는 이를 무엇이라 하나요?"
-    answer = "화자"
-    return _make(prompt, answer, topic, options=["화자", "독자", "작가", "인물"])
+    topic = _topic_for(7, ["화자", "문학"])
+    prompt = "시에서 '나'는 보통 무엇을 의미하나요?"
+    answer = "시를 쓴 사람의 마음"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["독자", "주인공", "역사적 인물"]))
 
 
 def _k7_argument_essay():
-    topic = _topic_for(7, ["논설문"])
-    prompt = "주장과 근거를 중심으로 상대를 설득하는 글은?"
-    answer = "논설문"
-    return _make(prompt, answer, topic, options=["논설문", "설명문", "수필", "일기"])
+    topic = _topic_for(7, ["논술", "주장 글쓰기"])
+    prompt = "'청소년에게 스마트폰 사용 시간을 제한해야 한다'는 주장에 대한 자신의 의견을 한 문장으로 쓰세요."
+    answer = "찬성한다. 과도한 스마트폰 사용은 수면과 학업에 부정적인 영향을 미칠 수 있다."
+    return _make(prompt, answer, topic, question_type="write")
 
 
 def _k8_novel_element():
-    topic = _topic_for(8, ["소설"])
-    prompt = "소설의 구성 요소가 아닌 것은?"
-    answer = "운율"
-    return _make(prompt, answer, topic, options=["인물", "사건", "배경", "운율"])
+    topic = _topic_for(8, ["소설", "문학 요소"])
+    prompt = "소설에서 사건이 전개되는 곳을 무엇이라 하나요?"
+    answer = "배경"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["주제", "서사", "인물"]))
 
 
 def _k8_voice():
-    topic = _topic_for(8, ["문법"])
-    prompt = "문장의 주체가 스스로 행동하는 표현은?"
-    answer = "능동 표현"
-    return _make(prompt, answer, topic, options=["능동 표현", "수동 표현", "피동 표현", "사동 표현"])
+    topic = _topic_for(8, ["문체", "문학"])
+    prompt = "작품에 작가의 감정과 태도가 드러나는 말투를 무엇이라 하나요?"
+    answer = "어조"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["리듬", "운율", "구절"]))
 
 
 def _k8_debate():
-    topic = _topic_for(8, ["토론"])
-    prompt = "상대의 주장을 인정하면서 다른 의견을 제시하는 것은?"
-    answer = "반론"
-    return _make(prompt, answer, topic, options=["반론", "입론", "결론", "요약"])
+    topic = _topic_for(8, ["토론", "의사소통"])
+    prompt = "상대방 의견을 반박할 때 가장 중요한 것은?"
+    answer = "근거를 제시하는 것"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["목소리를 높이는 것", "말을 빨리 하는 것", "감정적으로 호소하는 것"]))
 
 
 def _k9_literary_value():
-    topic = _topic_for(9, ["문학"])
-    prompt = "문학 작품이 독자에게 주는 아름다움과 감동의 성질은?"
-    answer = "문학성"
-    return _make(prompt, answer, topic, options=["문학성", "논리성", "사실성", "객관성"])
+    topic = _topic_for(9, ["문학", "문학의 가치"])
+    prompt = "고전 문학을 읽는 가장 큰 의미는 무엇인가요?"
+    answer = "우리 문화와 정서를 이해할 수 있다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["시험에 잘 볼 수 있다", "외국어를 배울 수 있다", "신조어를 많이 알 수 있다"]))
 
 
 def _k9_phonological_change():
-    topic = _topic_for(9, ["음운"])
-    prompt = "같은 음운 환경에서 소리가 달라지는 현상은?"
-    answer = "음운 변동"
-    return _make(prompt, answer, topic, options=["음운 변동", "음운 규칙", "형태 변화", "어휘 변화"])
+    topic = _topic_for(9, ["음운", "국어의 특성"])
+    prompt = "'불+빛'이 '불빛'으로 발음되는 현상은?"
+    answer = "음운 규칙"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["어원", "사전적 의미", "방언"]))
 
 
 def _k9_argument_claim():
-    topic = _topic_for(9, ["논증"])
-    prompt = "글쓴이가 문제에 대해 내세우는 핵심 생각은?"
-    answer = "주장"
-    return _make(prompt, answer, topic, options=["주장", "근거", "예시", "반론"])
+    topic = _topic_for(9, ["논술", "논증"])
+    prompt = "'민주주의 사회에서 표현의 자유는 제한되어야 한다'는 주장에 대해 찬반 의견과 근거를 한 문장으로 쓰세요."
+    answer = "반대한다. 표현의 자유는 민주주의의 핵심 가치이지만 타인의 권리를 침해해서는 안 된다."
+    return _make(prompt, answer, topic, question_type="write")
 
-
-# ───────────────────────────────
-# 풀이형 문제
-# ───────────────────────────────
 
 SOLUTION_BANKS = {
     1: [
-        ("'바다', '하늘', '산' 중 가장 넓어 보이는 것은 무엇일까요? 이유를 한 문장으로 써 보세요.", "하늘이 가장 넓다. 땅 위 모든 것을 덮기 때문이다.", "관찰과 표현"),
-        ("'봄'에 대해 한 문장으로 느낌을 써 보세요.", "봄에는 따뜻한 바람이 불고 꽃이 핀다.", "계절 표현"),
+        ("'가족'에 대해 한 문장으로 느낌을 써 보세요.", "가족은 서로 사랑하고 돕는 사람들이다.", "자유 표현"),
     ],
     2: [
         ("친구에게 책을 빌려 달라고 부탁하는 문장을 써 보세요.", "친구야, 내일까지 이 책 좀 빌려 줄 수 있어?", "바른 표현"),
-        ("'우리 반'을 한 문장으로 소개해 보세요.", "우리 반은 친구들이 서로 도와주는 따뜻한 반이에요.", "문장 쓰기"),
     ],
     3: [
         ("'독서'의 좋은 점을 두 가지 이상 써 보세요.", "독서는 지식을 넓히고 상상력을 키워 준다.", "설명 쓰기"),
-        ("'친구와 싸웠을 때' 화해할 수 있는 방법을 써 보세요.", "먼저 사과하고 서로의 마음을 이야기하면서 화해한다.", "의견 쓰기"),
     ],
     4: [
         ("'노력'의 의미를 예를 들어 설명해 보세요.", "노력은 목표를 위해 힘쓰는 것이다. 매일 연습해서 피아노를 잘 치게 된 것이 노력의 예이다.", "개념 설명"),
-        ("길을 가다가 돈을 주웠다면 어떻게 할 것인지 이유와 함께 써 보세요.", "경찰서에 맡길 것이다. 주인이 찾을 수 있도록 돕는 것이 옳기 때문이다.", "의견 쓰기"),
     ],
     5: [
         ("'독서는 마음의 양식이다.'라는 말의 뜻을 써 보세요.", "책을 읽으면 마음이 풍요로워지고 올바른 가치관을 갖게 된다.", "속담 이해"),
-        ("학교 급식에 채소를 더 넣어야 하는지 찬성/반대 의견과 근거를 써 보세요.", "찬성한다. 채소를 먹으면 비타민을 섭취할 수 있고 건강을 지킬 수 있다.", "의견 쓰기"),
     ],
     6: [
         ("'환경 보호'를 위해 우리가 실천할 수 있는 일 두 가지를 써 보세요.", "분리배출을 하고, 사용하지 않는 전기를 끈다.", "의견 쓰기"),
-        ("'친구'의 의미를 예를 들어 설명해 보세요.", "친구는 어려울 때 서로 돕고 기쁠 때 함께 웃는 사람이다.", "개념 설명"),
     ],
     7: [
         ("'공부'가 중요한 이유를 두 가지 이상 써 보세요.", "공부는 지식을 쌓고 미래에 필요한 능력을 기르는 데 도움이 된다.", "의견 쓰기"),
-        ("좋은 글의 조건 두 가지를 쓰고 설명해 보세요.", "주제가 분명하고 근거가 구체적이어야 한다.", "논술"),
     ],
     8: [
         ("'스마트폰 사용'에 대한 찬성/반대 의견과 근거를 써 보세요.", "적절히 사용하면 정보 검색과 소통에 도움이 되지만, 과하면 학업에 방해가 된다.", "논술"),
-        ("'책 읽기'가 요즘 줄어드는 이유와 해결 방법을 써 보세요.", "스마트폰이 재미있어서 책보다 영상을 보기 때문이다. 학교에서 매일 20분 독서 시간을 가지면 좋겠다.", "문제 해결"),
     ],
     9: [
         ("'인권'의 의미와 중요성을 써 보세요.", "인권은 사람으로서 누구나 갖는 기본 권리이다. 인권을 존중해야 평화로운 사회를 만들 수 있다.", "논술"),
-        ("'미디어'가 우리 생활에 미치는 영향을 긍정적/부정적 측면에서 써 보세요.", "긍정적으로는 빠른 정보 전달이 가능하고, 부정적으로는 가짜 뉴스에 노출될 수 있다.", "논술"),
     ],
 }
 
 
 GENERATORS = {
     1: [_k1_consonant_vowel, _k1_word_reading, _k1_opposite, _k1_sentence_punct],
-    2: [_k2_similar, _k2_sentence_subject, _k1_opposite, _k1_sentence_punct],
-    3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific],
-    4: [_k4_metaphor, _k4_fact_opinion, _k4_summary],
-    5: [_k5_argument, _k5_literary_element, _k5_media, _k5_proverb],
-    6: [_k6_writing_revision, _k6_compare_contrast, _k6_character],
+    2: [_k2_similar, _k2_sentence_subject, _k2_sentence_punct, _k2_opposite],
+    3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific, _k3_word_meaning],
+    4: [_k4_metaphor, _k4_fact_opinion, _k4_summary, _k4_sentence_part],
+    5: [_k5_argument, _k5_literary_element, _k5_proverb, _k5_media],
+    6: [_k6_character, _k6_compare_contrast, _k6_writing_revision, _k6_argument_claim],
     7: [_k7_morpheme, _k7_speaker, _k7_argument_essay],
     8: [_k8_novel_element, _k8_voice, _k8_debate],
     9: [_k9_literary_value, _k9_phonological_change, _k9_argument_claim],
@@ -383,12 +406,10 @@ def _transform_question(prompt, answer, options, topic):
 def generate_korean_set(grade, count=10):
     generators = GENERATORS.get(grade, GENERATORS[9])
     selected = []
-    # 우선 choice/write 유형 채우기
     while len(selected) < count - min(2, len(SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9]))):
         g = random.choice(generators)
         q = g()
         selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
-    # 풀이형 추가
     solution_bank = SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9])
     solution_count = min(2, len(solution_bank), count - len(selected))
     selected += [(prompt, answer, [], topic) for prompt, answer, topic in random.sample(solution_bank, solution_count)]
@@ -398,3 +419,10 @@ def generate_korean_set(grade, count=10):
     for prompt, answer, options, topic in selected:
         questions.append(_transform_question(prompt, answer, options, topic))
     return questions
+
+
+def _choice_options(answer, distractors, shuffle=True):
+    opts = [str(answer)] + [str(d) for d in distractors]
+    if shuffle:
+        random.shuffle(opts)
+    return opts

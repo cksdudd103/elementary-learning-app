@@ -1,27 +1,12 @@
 import random
 
 
-def _curriculum_topics(subject, grade, fallback):
-    try:
-        from ..models import CurriculumUnit
-        units = CurriculumUnit.query.filter_by(subject=subject, grade_level=grade).order_by(CurriculumUnit.unit_order).all()
-        if units:
-            return [u.unit_name for u in units]
-    except Exception:
-        pass
-    return fallback
-
-
-def _topic_for(grade, fallback):
-    return random.choice(_curriculum_topics("social", grade, fallback))
-
-
 def _make(prompt, answer, topic, options=None, question_type=None, explanation=None, image_url=None, max_points=10):
     return {
         "prompt": prompt,
         "answer": str(answer),
         "topic": topic,
-        "explanation": explanation or f"정답은 '{answer}'입니다.",
+        "explanation": explanation or f"정답: {answer}",
         "question_type": question_type or ("choice" if options else "write"),
         "options": options or [],
         "image_url": image_url,
@@ -29,393 +14,347 @@ def _make(prompt, answer, topic, options=None, question_type=None, explanation=N
     }
 
 
-# ───────────────────────────────
-# 1~2학년: 학교·가족·동네·안전
-# ───────────────────────────────
-
-def _s1_school():
-    topic = _topic_for(1, ["학교생활"])
-    prompt = "학교에서 우리를 가르쳐 주시는 분은?"
-    answer = "선생님"
-    return _make(prompt, answer, topic, options=["선생님", "요리사", "운전사", "가수"])
+def _choice_options(answer, distractors, shuffle=True):
+    opts = [str(answer)] + [str(d) for d in distractors]
+    if shuffle:
+        random.shuffle(opts)
+    return opts
 
 
+def _topic_for(grade, fallback):
+    try:
+        from ..models import CurriculumUnit
+        units = CurriculumUnit.query.filter_by(subject="social", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+        if units:
+            return [u.unit_name for u in units]
+    except Exception:
+        pass
+    return random.choice(fallback)
+
+
+# ============================================================
+# 1학년: 안전, 나와 가족, 우리 반/학교
+# ============================================================
 def _s1_safety():
     topic = _topic_for(1, ["안전", "교통안전"])
     prompt = "길을 걷거나 걸어갈 때 반드시 지켜야 하는 것은?"
     answer = "횡단볏도를 이용하고 신호를 지킨다"
-    return _make(prompt, answer, topic, options=[
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
         "횡단볏도를 이용하고 신호를 지킨다",
         "차가 오는 길을 뛰어 걷는다",
         "무단횡단을 한다",
         "핸드폰을 본 채 걷는다",
-    ])
+    ]))
+
+
+def _s1_family():
+    topic = _topic_for(1, ["나와 가족", "가족"])
+    prompt = "가족은 서로 어떤 마음으로 지내야 하나요?"
+    answer = "사랑하고 존중한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "사랑하고 존중한다",
+        "시합에서 이기려 한다",
+        "서로 비교한다",
+        "자기 것만 챙긴다",
+    ]))
+
+
+def _s1_school():
+    topic = _topic_for(1, ["우리 반", "학교 생활"])
+    prompt = "학교에서 친구들과 함께 지낼 때 가장 중요한 것은?"
+    answer = "서로 배려하고 도운다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "서로 배려하고 도운다",
+        "혼자 노는 것",
+        "싸우는 것",
+        "남의 것을 가져오는 것",
+    ]))
 
 
 def _s1_community():
-    topic = _topic_for(1, ["우리 동네", "공공기관"])
-    prompt = "아플 때 가야 하는 곳은?"
-    answer = "병원"
-    return _make(prompt, answer, topic, options=["병원", "도서관", "놀이터", "우체국"])
+    topic = _topic_for(1, ["우리 동네", "지역 사회"])
+    prompt = "우리 동네를 깨끗하게 유지하려면 어떻게 해야 하나요?"
+    answer = "쓰레기를 분리배출한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "쓰레기를 분리배출한다",
+        "길에 쓰레기를 버린다",
+        "남의 집에 들어간다",
+        "소리를 크게 낸다",
+    ]))
 
 
-def _s2_map():
-    topic = _topic_for(2, ["지도", "우리 동네"])
-    prompt = "마을의 중요한 장소와 위치를 간단히 나타낸 그림은?"
-    answer = "지도"
-    return _make(prompt, answer, topic, options=["지도", "달력", "시계", "엽서"])
+# ============================================================
+# 2학년: 공동체, 환경, 전통, 안전
+# ============================================================
+def _s2_community():
+    topic = _topic_for(2, ["공동체", "지역 사회"])
+    prompt = "마을 사람들이 함께 해야 할 일은 무엇인가요?"
+    answer = "서로 돕고 공동체를 지킨다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "서로 돕고 공동체를 지킨다",
+        "각자만 산다",
+        "다른 사람을 외면한다",
+        "규칙을 어긴다",
+    ]))
 
 
 def _s2_environment():
-    topic = _topic_for(2, ["환경"])
-    prompt = "쓰레기를 줄이는 가장 바람직한 방법은?"
-    answer = "재사용하고 분리배출한다"
-    return _make(prompt, answer, topic, options=[
-        "재사용하고 분리배출한다",
-        "아무 데나 버린다",
-        "모두 태운다",
-        "강에 버린다",
-    ])
+    topic = _topic_for(2, ["환경", "자연"])
+    prompt = "깨끗한 환경을 위해 우리가 실천할 수 있는 것은?"
+    answer = "일회용품을 줄이고 분리배출한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "일회용품을 줄이고 분리배출한다",
+        "나무를 마음대로 자른다",
+        "물을 낭비한다",
+        "동물을 괴롭힌다",
+    ]))
 
 
-def _s2_public_order():
-    topic = _topic_for(2, ["공동생활"])
-    prompt = "공공장소에서 다른 사람과 약속한 시간을 지키는 것은 무엇을 보여 주나요?"
-    answer = "책임감"
-    return _make(prompt, answer, topic, options=["책임감", "용기", "사랑", "호기심"])
+def _s2_tradition():
+    topic = _topic_for(2, ["전통", "문화"])
+    prompt = "우리나라의 대표적인 전통 음식은 무엇인가요?"
+    answer = "김치"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["피자", "초밥", "김치", "햄버거"]))
 
 
-# ───────────────────────────────
-# 3~4학년: 지도·역사·경제·환경
-# ───────────────────────────────
-
-def _s3_map_direction():
-    topic = _topic_for(3, ["지도"])
-    prompt = "지도에서 동쪽의 반대 방향은?"
-    answer = "서쪽"
-    return _make(prompt, answer, topic, options=["서쪽", "남쪽", "북쪽", "위쪽"])
-
-
-def _s3_scale():
-    topic = _topic_for(3, ["지도", "축척"])
-    prompt = "지도에서 실제 거리를 줄여 나타낸 정도를 무엇이라 하나요?"
-    answer = "축척"
-    return _make(prompt, answer, topic, options=["축척", "고도", "위도", "경도"])
+def _s2_safety():
+    topic = _topic_for(2, ["안전", "생활 안전"])
+    prompt = "불이 났을 때 가장 먼저 해야 할 것은?"
+    answer = "침착하게 119에 신고한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "침착하게 119에 신고한다",
+        "집 안에 계속 있는다",
+        "물건을 챙기다가 나간다",
+        "엘리베이터를 탄다",
+    ]))
 
 
-def _s3_history_source():
-    topic = _topic_for(3, ["역사", "역사 자료"])
-    prompt = "과거의 사실을 알려 주는 흔적이나 기록은?"
-    answer = "역사 자료"
-    return _make(prompt, answer, topic, options=["역사 자료", "소설", "광고", "동화"])
+# ============================================================
+# 3학년: 고장/지역, 교통·통신, 옛 생활, 지도
+# ============================================================
+def _s3_local():
+    topic = _topic_for(3, ["고장", "지역"])
+    prompt = "우리 고장의 대표적인 명소나 특산물을 아는 대로 쓰세요."
+    answer = "지역에 따라 다름"
+    return _make(prompt, answer, topic, question_type="write", explanation="자신이 사는 지역의 특징을 쓰면 됩니다.")
 
 
-def _s3_economy():
-    topic = _topic_for(3, ["경제"])
-    prompt = "생산한 물건을 사용하는 사람을 무엇이라 하나요?"
-    answer = "소비자"
-    return _make(prompt, answer, topic, options=["소비자", "생산자", "판매자", "노동자"])
+def _s3_transport():
+    topic = _topic_for(3, ["교통", "통신"])
+    prompt = "과거와 현재의 교통수단 차이로 알맞은 것은?"
+    answer = "과거에는 말을 타고 다녔고, 지금은 자동차와 기차를 탄다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "과거에는 말을 타고 다녔고, 지금은 자동차와 기차를 탄다",
+        "과거와 지금이 똑같다",
+        "과거에 비행기가 많았다",
+        "지금은 말을 주로 탄다",
+    ]))
 
 
-def _s3_environment_human():
-    topic = _topic_for(3, ["환경"])
-    prompt = "사람들이 살아가며 만든 환경은?"
-    answer = "인문환경"
-    return _make(prompt, answer, topic, options=["인문환경", "자연환경", "기후", "지형"])
+def _s3_old_life():
+    topic = _topic_for(3, ["옛 생활", "역사"])
+    prompt = "옛날 사람들의 생활 모습으로 알맞은 것은?"
+    answer = "농사를 짓고 직접 만든 도구를 사용했다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "농사를 짓고 직접 만든 도구를 사용했다",
+        "컴퓨터로 공부했다",
+        "자동차를 타고 다녔다",
+        "스마트폰으로 통화했다",
+    ]))
 
 
-def _s4_capital():
-    topic = _topic_for(4, ["대한민국"])
-    prompt = "우리나라의 수도는?"
-    answer = "서울"
-    return _make(prompt, answer, topic, options=["서울", "부산", "인천", "대구"])
+def _s3_map():
+    topic = _topic_for(3, ["지도", "지리"])
+    prompt = "지도에서 위쪽은 보통 어느 방향을 나타낼까요?"
+    answer = "북쪽"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["남쪽", "동쪽", "서쪽", "북쪽"]))
 
 
-def _s4_jeju():
-    topic = _topic_for(4, ["지리"])
-    prompt = "우리나라에서 가장 큰 섬은?"
-    answer = "제주도"
-    return _make(prompt, answer, topic, options=["제주도", "울릉도", "독도", "거제도"])
+# ============================================================
+# 4학년: 자연환경, 인문환경, 지속가능한 세계, 지역사
+# ============================================================
+def _s4_nature():
+    topic = _topic_for(4, ["자연환경", "지리"])
+    prompt = "강이나 산과 같은 자연환경이 사람 생활에 미치는 영향은?"
+    answer = "농사, 교통, 생활에 영향을 준다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "농사, 교통, 생활에 영향을 준다",
+        "아무 영향이 없다",
+        "사람을 위험하게만 한다",
+        "오직 관광용으로만 쓰인다",
+    ]))
 
 
-def _s4_local_gov():
-    topic = _topic_for(4, ["지역 행정"])
-    prompt = "도의 행정을 맡아보는 기관은?"
-    answer = "도청"
-    return _make(prompt, answer, topic, options=["도청", "시청", "군청", "구청"])
+def _s4_culture():
+    topic = _topic_for(4, ["인문환경", "사회·문화"])
+    prompt = "우리나라의 전통 문화유산으로 알맞은 것은?"
+    answer = "경복궁"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["에펠탑", "자유의 여신상", "경복궁", "피사의 사탑"]))
 
 
-def _s4_democracy():
-    topic = _topic_for(4, ["민주주의"])
-    prompt = "주민이 지역 대표를 직접 뽑는 것은?"
-    answer = "지방 선거"
-    return _make(prompt, answer, topic, options=["지방 선거", "재판", "세금", "법 제정"])
+def _s4_sustainable():
+    topic = _topic_for(4, ["지속가능한 세계", "환경"])
+    prompt = "지속가능한 사회를 만들기 위해 가장 필요한 것은?"
+    answer = "자원을 아끼고 환경을 보호한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "자원을 아끼고 환경을 보호한다",
+        "많이 쓰고 많이 버린다",
+        "자연을 모두 개발한다",
+        "다른 나라만 책임진다",
+    ]))
 
 
-def _s4_cultural_heritage():
-    topic = _topic_for(4, ["문화유산"])
-    prompt = "문화유산 중 형태가 있는 것은?"
-    answer = "유형 문화유산"
-    return _make(prompt, answer, topic, options=["유형 문화유산", "무형 문화유산", "자연유산", "역사유산"])
+def _s4_local_history():
+    topic = _topic_for(4, ["지역사", "역사"])
+    prompt = "우리 지역의 역사를 알 수 있는 방법은?"
+    answer = "유적지나 박물관을 찾아본다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "유적지나 박물관을 찾아본다",
+        "게임을 한다",
+        "무조건 외운다",
+        "신문 광고만 본다",
+    ]))
 
 
-# ───────────────────────────────
-# 5~6학년: 역사·정치·경제·국제
-# ───────────────────────────────
-
-def _s5_asia():
-    topic = _topic_for(5, ["국토"])
-    prompt = "우리나라가 위치한 대륙은?"
-    answer = "아시아"
-    return _make(prompt, answer, topic, options=["아시아", "유럽", "아프리카", "북아메리카"])
-
-
-def _s5_dangun():
-    topic = _topic_for(5, ["고대사"])
-    prompt = "고조선을 세운 인물로 전해지는 사람은?"
-    answer = "단군왕검"
-    return _make(prompt, answer, topic, options=["단군왕검", "왕건", "세종대왕", "이순신"])
+# ============================================================
+# 5학년: 한국사(고조선~통일신라), 정치·법, 경제 기초
+# ============================================================
+def _s5_history():
+    topic = _topic_for(5, ["역사", "한국사"])
+    prompt = "우리나라 최초의 국가로 알려진 것은?"
+    answer = "고조선"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["고려", "조선", "고조선", "백제"]))
 
 
-def _s5_three_kingdoms():
-    topic = _topic_for(5, ["고대사"])
-    prompt = "삼국을 통일한 나라는?"
-    answer = "신라"
-    return _make(prompt, answer, topic, options=["신라", "고구려", "백제", "통일신라"])
+def _s5_politics():
+    topic = _topic_for(5, ["정치", "시민성"])
+    prompt = "민주주의 국가에서 국민이 가져야 할 중요한 자세는?"
+    answer = "서로의 의견을 존중한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "서로의 의견을 존중한다",
+        "힘센 사람의 말만 따른다",
+        "법을 어겨도 된다",
+        "선거에 참여하지 않는다",
+    ]))
 
 
-def _s5_goryeo():
-    topic = _topic_for(5, ["고려"])
-    prompt = "고려를 세운 인물은?"
-    answer = "왕건"
-    return _make(prompt, answer, topic, options=["왕건", "단군왕검", "태조", "세종대왕"])
-
-
-def _s5_sejong():
-    topic = _topic_for(5, ["조선"])
-    prompt = "훈민정음을 창제한 왕은?"
-    answer = "세종대왕"
-    return _make(prompt, answer, topic, options=["세종대왕", "태종", "성종", "영조"])
-
-
-def _s5_constitution():
-    topic = _topic_for(5, ["법", "헌법"])
-    prompt = "국민의 기본권을 보장하는 국가의 최고 법은?"
-    answer = "헌법"
-    return _make(prompt, answer, topic, options=["헌법", "민법", "형법", "행정법"])
-
-
-def _s6_government():
-    topic = _topic_for(6, ["국가기관"])
-    prompt = "행정부를 이끄는 사람은?"
-    answer = "대통령"
-    return _make(prompt, answer, topic, options=["대통령", "국회의장", "대법원장", "총리"])
-
-
-def _s6_court():
-    topic = _topic_for(6, ["국가기관"])
-    prompt = "법에 따라 재판하는 국가기관은?"
-    answer = "법원"
-    return _make(prompt, answer, topic, options=["법원", "국회", "행정부", "선관위"])
-
-
-def _s6_economy_price():
-    topic = _topic_for(6, ["경제"])
+def _s5_economy():
+    topic = _topic_for(5, ["경제", "시장"])
     prompt = "물건의 가격이 오륍면 같은 돈으로 살 수 있는 양은?"
     answer = "줄어든다"
-    return _make(prompt, answer, topic, options=["줄어든다", "늘어난다", "그대로이다", "두 배가 된다"])
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["줄어든다", "늘어난다", "그대로이다", "두 배가 된다"]))
 
 
-def _s6_korean_war():
-    topic = _topic_for(6, ["현대사"])
-    prompt = "6·25 전쟁이 시작된 해는?"
-    answer = "1950"
-    return _make(prompt, answer, topic, options=["1950", "1945", "1948", "1960"])
+def _s5_law():
+    topic = _topic_for(5, ["법", "권리와 의무"])
+    prompt = "다른 사람의 물건을 훔치는 행위는 어떤 문제가 되나요?"
+    answer = "범죄가 되어 처벌받는다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "범죄가 되어 처벌받는다",
+        "아무 문제가 없다",
+        "칭찬받는다",
+        "학교에서 상을 받는다",
+    ]))
 
 
-def _s6_un():
-    topic = _topic_for(6, ["국제 사회"])
-    prompt = "세계 평화와 협력을 위한 국제기구는?"
-    answer = "국제 연합"
-    return _make(prompt, answer, topic, options=["국제 연합", "국회", "대법원", "시청"])
+# ============================================================
+# 6학년: 한국사(고려~현대), 경제, 세계, 인권/다문화
+# ============================================================
+def _s6_history():
+    topic = _topic_for(6, ["역사", "한국사"])
+    prompt = "세종대왕이 만든 우리나라 글자는?"
+    answer = "훈민정음"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["한문", "훈민정음", "라틴어", "영어"]))
 
 
-# ───────────────────────────────
-# 중학년: 지리·역사·정치·경제 심화
-# ───────────────────────────────
-
-def _s7_equator():
-    topic = _topic_for(7, ["지리"])
-    prompt = "위도 0도의 기준선은?"
-    answer = "적도"
-    return _make(prompt, answer, topic, options=["적도", "경도", "본초 자오선", "회귀선"])
+def _s6_modern():
+    topic = _topic_for(6, ["근현대사", "한국사"])
+    prompt = "대한민국이 수립된 해는?"
+    answer = "1948년"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["1910년", "1945년", "1948년", "1950년"]))
 
 
-def _s7_climate():
-    topic = _topic_for(7, ["지리"])
-    prompt = "한 지역의 오랜 기간 동안의 평균적인 날씨 상태는?"
-    answer = "기후"
-    return _make(prompt, answer, topic, options=["기후", "날씨", "계절", "풍향"])
+def _s6_world():
+    topic = _topic_for(6, ["세계", "국제"])
+    prompt = "세계 여러 나라와 평화롭게 지내기 위해 필요한 것은?"
+    answer = "서로의 문화를 존중하고 대화한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "서로의 문화를 존중하고 대화한다",
+        "전쟁으로 해결한다",
+        "자기 나라만 중요하게 여긴다",
+        "다른 나라를 무시한다",
+    ]))
 
 
-def _s7_neolithic():
-    topic = _topic_for(7, ["역사"])
-    prompt = "인류가 농경과 목축을 시작한 시대는?"
-    answer = "신석기 시대"
-    return _make(prompt, answer, topic, options=["신석기 시대", "구석기 시대", "청동기 시대", "철기 시대"])
+def _s6_human_rights():
+    topic = _topic_for(6, ["인권", "다문화"])
+    prompt = "다문화 사회에서 서로 다른 사람을 대하는 바람직한 태도는?"
+    answer = "차이를 존중하고 함께 어울린다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "차이를 존중하고 함께 어울린다",
+        "놀리고 따돌린다",
+        "자기와 똑같아야 한다고 강요한다",
+        "다른 사람의 말을 무시한다",
+    ]))
 
 
-def _s7_demand_supply():
-    topic = _topic_for(7, ["경제"])
-    prompt = "수요가 늘고 공급이 같을 때 가격은 일반적으로?"
+# ============================================================
+# 중학년 (7~9): 기존 수준 유지
+# ============================================================
+def _s7_constitution():
+    topic = _topic_for(7, ["정치", "헌법"])
+    prompt = "대한민국의 국민이 누려야 할 기본권은?"
+    answer = "인권"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["특권", "면제권", "인권", "사유권"]))
+
+
+def _s7_economy_price():
+    topic = _topic_for(7, ["경제", "시장"])
+    prompt = "수요가 많고 공급이 적으면 가격은 어떻게 되나요?"
     answer = "오른다"
-    return _make(prompt, answer, topic, options=["오른다", "내린다", "그대로이다", "변하지 않는다"])
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["내린다", "오른다", "그대로다", "없어진다"]))
 
 
-def _s7_sovereignty():
-    topic = _topic_for(7, ["정치"])
-    prompt = "민주주의에서 국가의 주권을 가진 사람은?"
-    answer = "국민"
-    return _make(prompt, answer, topic, options=["국민", "대통령", "국회", "법원"])
+def _s8_geography():
+    topic = _topic_for(8, ["지리", "세계"])
+    prompt = "한반도의 위치로 알맞은 것은?"
+    answer = "동아시아에 위치한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["유럽에 있다", "동아시아에 위치한다", "아프리카에 있다", "남아메리카에 있다"]))
 
 
-def _s8_industrial_revolution():
-    topic = _topic_for(8, ["세계사"])
-    prompt = "산업 혁명이 처음 시작된 나라는?"
-    answer = "영국"
-    return _make(prompt, answer, topic, options=["영국", "프랑스", "미국", "독일"])
+def _s9_citizen():
+    topic = _topic_for(9, ["시민성", "민주주의"])
+    prompt = "민주주의 사회의 핵심 가치는?"
+    answer = "자유와 평등"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["강제와 복종", "자유와 평등", "차별과 배제", "독점과 억압"]))
 
 
-def _s8_separation_powers():
-    topic = _topic_for(8, ["정치"])
-    prompt = "삼권 분립의 세 권력은?"
-    answer = "입법·행정·사법"
-    return _make(prompt, answer, topic, options=["입법·행정·사법", "국가·사회·개인", "중앙·지방·국제", "행정·입법·재판"])
-
-
-def _s8_market_price():
-    topic = _topic_for(8, ["경제"])
-    prompt = "시장에서 가격을 결정하는 두 힘은?"
-    answer = "수요와 공급"
-    return _make(prompt, answer, topic, options=["수요와 공급", "생산과 소비", "수출과 수입", "세금과 화폐"])
-
-
-def _s8_global_warming():
-    topic = _topic_for(8, ["환경"])
-    prompt = "대기 중 온실가스 증가로 지구 평균 기온이 오르는 현상은?"
-    answer = "지구 온난화"
-    return _make(prompt, answer, topic, options=["지구 온난화", "오존층 파괴", "산성비", "황사"])
-
-
-def _s8_human_rights_commission():
-    topic = _topic_for(8, ["인권"])
-    prompt = "인권 침해를 해결하기 위한 국가기구는?"
-    answer = "국가인권위원회"
-    return _make(prompt, answer, topic, options=["국가인권위원회", "국회", "대법원", "경찰청"])
-
-
-def _s9_inflation():
-    topic = _topic_for(9, ["경제"])
-    prompt = "물가가 지속적으로 상승하는 현상은?"
-    answer = "인플레이션"
-    return _make(prompt, answer, topic, options=["인플레이션", "디플레이션", "경기 침체", "실업"])
-
-
-def _s9_globalization():
-    topic = _topic_for(9, ["사회"])
-    prompt = "국가 간 상호 의존이 깊어지는 현상은?"
-    answer = "세계화"
-    return _make(prompt, answer, topic, options=["세계화", "도시화", "산업화", "민주화"])
-
-
-def _s9_constitutional_court():
-    topic = _topic_for(9, ["법"])
-    prompt = "헌법에 어긋나는 법률인지 심판하는 기관은?"
-    answer = "헌법재판소"
-    return _make(prompt, answer, topic, options=["헌법재판소", "대법원", "국회", "행정안전부"])
-
-
-def _s9_march_1st():
-    topic = _topic_for(9, ["한국사"])
-    prompt = "일제 강점기 3·1 운 동이 일어난 해는?"
-    answer = "1919"
-    return _make(prompt, answer, topic, options=["1919", "1905", "1945", "1920"])
-
-
-def _s9_sustainable():
-    topic = _topic_for(9, ["환경"])
-    prompt = "지속 가능한 발전의 의미로 알맞은 것은?"
-    answer = "미래 세대의 필요를 해치지 않으며 현재의 필요를 충족하는 발전"
-    return _make(prompt, answer, topic, options=[
-        "미래 세대의 필요를 해치지 않으며 현재의 필요를 충족하는 발전",
-        "경제 성장만 추구하는 발전",
-        "개발을 모두 중단하는 것",
-        "자원을 최대한 빨리 쓰는 것",
-    ])
-
-
-GENERATORS = {
-    1: [_s1_school, _s1_safety, _s1_community],
-    2: [_s2_map, _s2_environment, _s2_public_order],
-    3: [_s3_map_direction, _s3_scale, _s3_history_source, _s3_economy, _s3_environment_human],
-    4: [_s4_capital, _s4_jeju, _s4_local_gov, _s4_democracy, _s4_cultural_heritage],
-    5: [_s5_asia, _s5_dangun, _s5_three_kingdoms, _s5_goryeo, _s5_sejong, _s5_constitution],
-    6: [_s6_government, _s6_court, _s6_economy_price, _s6_korean_war, _s6_un],
-    7: [_s7_equator, _s7_climate, _s7_neolithic, _s7_demand_supply, _s7_sovereignty],
-    8: [_s8_industrial_revolution, _s8_separation_powers, _s8_market_price, _s8_global_warming, _s8_human_rights_commission],
-    9: [_s9_inflation, _s9_globalization, _s9_constitutional_court, _s9_march_1st, _s9_sustainable],
+PROBLEM_GENERATORS = {
+    1: [_s1_safety, _s1_family, _s1_school, _s1_community],
+    2: [_s2_community, _s2_environment, _s2_tradition, _s2_safety],
+    3: [_s3_local, _s3_transport, _s3_old_life, _s3_map],
+    4: [_s4_nature, _s4_culture, _s4_sustainable, _s4_local_history],
+    5: [_s5_history, _s5_politics, _s5_economy, _s5_law],
+    6: [_s6_history, _s6_modern, _s6_world, _s6_human_rights],
+    7: [_s7_constitution, _s7_economy_price],
+    8: [_s8_geography, _s7_constitution],
+    9: [_s9_citizen, _s7_economy_price],
 }
 
 
-def _add_solution_questions(questions, grade, count):
-    banks = {
-        3: [
-            ("지도의 축척이 1:10000일 때, 실제 거리 1km는 지도 위에서 몇 cm인가요?", "10", "지도"),
-            ("우리 고장의 문화유산을 보호해야 하는 이유를 한 문장으로 쓰세요.", "역사와 문화를 다음 세대에 전달하기 위해", "문화유산"),
-        ],
-        4: [
-            ("민주적 의사 결정에서 왜 소수 의견도 존중해야 하나요?", "모두의 의견을 반영해야 공동체가 화합할 수 있기 때문에", "민주주의"),
-            ("지역 특산물이 지역 경제에 미치는 긍정적 영향을 한 가지 쓰세요.", "관광객을 끌어들여 지역 소득이 늘어난다", "지역 경제"),
-        ],
-        5: [
-            ("왜 국민의 기본권을 헌법에 보장해야 하나요?", "국민의 자유와 권리를 국가가 침해하지 못하도록 하기 위해", "헌법"),
-            ("다른 문화를 존중해야 하는 이유를 쓰세요.", "서로 다른 가치관과 전통을 인정해야 평화롭게 공존할 수 있다", "문화 다양성"),
-        ],
-        6: [
-            ("인권이 왜 중요한가요?", "모든 사람이 존엄하게 살 기본 권리를 보장하기 위해", "인권"),
-            ("세계 여러 나라가 기후 변화를 함께 해결해야 하는 이유는?", "기후 변화는 한 국가만의 문제가 아니라 지구 전체의 문제이기 때문에", "세계 문제"),
-        ],
-        7: [
-            ("민주주의에서 국민이 주권을 가진다는 것의 의미를 쓰세요.", "국가의 중요한 일을 국민의 의사로 결정한다", "정치"),
-            ("수요와 공급이 가격에 미치는 영향을 간단히 설명하세요.", "수요가 많고 공급이 적으면 가격이 오르고, 그 반대면 가격이 내린다", "경제"),
-        ],
-        8: [
-            ("삼권 분립이 왜 필요한가요?", "권력이 한 곳에 집중되지 않도록 하여 국민의 자유를 지키기 위해", "정치"),
-            ("지구 온난화를 줄이기 위해 우리가 할 수 있는 일을 두 가지 쓰세요.", "대중교통을 이용하고, 에너지 사용을 줄인다", "환경"),
-        ],
-        9: [
-            ("세계화의 긍정적 측면과 부정적 측면을 각각 한 가지씩 쓰세요.", "정보와 물품 교환이 쉬워지지만, 국가 간 격차도 커질 수 있다", "세계화"),
-            ("지속 가능한 발전을 위해 정부와 개인이 각각 해야 할 일을 한 가지씩 쓰세요.", "정부는 환경 법규를 만들고, 개인은 자원을 아껴 쓴다", "환경"),
-        ],
-    }
-    bank = banks.get(grade, [])
-    if not bank:
-        return questions
-    needed = min(count - len(questions), len(bank))
-    for prompt, answer, topic in random.sample(bank, needed):
-        questions.append(_make(prompt, answer, topic, question_type="solution", explanation=f"정답 예시: {answer}", max_points=15))
-    return questions
-
-
 def generate_social_set(grade, count=10):
-    generators = GENERATORS.get(grade, GENERATORS[9])
+    generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
     questions = []
-    # 기본 문제 채우기
-    while len(questions) < count - min(2, grade if grade >= 3 else 0):
-        g = random.choice(generators)
-        questions.append(g())
-    # 3학년 이상은 풀이형 추가
-    if grade >= 3:
-        questions = _add_solution_questions(questions, grade, count)
+    seen = set()
+    attempts = 0
+    while len(questions) < count and attempts < count * 30:
+        q = random.choice(generators)()
+        key = (q["prompt"], q["question_type"])
+        if key not in seen:
+            seen.add(key)
+            questions.append(q)
+        attempts += 1
+    while len(questions) < count:
+        questions.append(random.choice(generators)())
     random.shuffle(questions)
-    return questions[:count]
+    return questions

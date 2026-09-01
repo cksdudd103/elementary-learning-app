@@ -2,28 +2,66 @@ import random
 import re
 
 
+# 2022 개정 교육과정: 영어는 3~4학년군, 5~6학년군으로 운영
+# 3~4학년: 알파벳/파닉스, 기본 어휘, 간단한 문장
+# 5~6학년: 시제, 의문문, 어휘 확장, 문장 확장
+
 VOCABULARY = {
     1: [("cat", "고양이"), ("dog", "개"), ("apple", "사과"), ("red", "빨간색"), ("book", "책"), ("school", "학교"), ("friend", "친구"), ("happy", "행복한")],
     2: [("pencil", "연필"), ("sun", "태양"), ("sister", "여자형제"), ("soccer", "축구"), ("blue", "파란색"), ("breakfast", "아침식사"), ("bird", "새"), ("Monday", "월요일")],
-    3: [("basketball", "농구"), ("classroom", "교실"), ("rabbit", "토끼"), ("teeth", "이"), ("milk", "우유"), ("brother", "남자형제"), ("sunny", "맑은"), ("homework", "숙제")],
-    4: [("science", "과학"), ("museum", "박물관"), ("story", "이야기"), ("library", "도서관"), ("doctor", "의사"), ("heavier", "더 무거운"), ("weekend", "주말"), ("travel", "여행")],
-    5: [("whale", "고래"), ("window", "창문"), ("exercise", "울동"), ("space", "우주"), ("chef", "요리사"), ("exciting", "흥미로운"), ("dolphin", "돌고래"), ("health", "건강")],
-    6: [("festival", "축제"), ("camera", "칩processa"), ("country", "나라"), ("mountain", "산"), ("musician", "음악가"), ("danger", "위험"), ("author", "작가"), ("station", "역")],
+    3: [
+        ("bag", "가방"), ("desk", "책상"), ("chair", "의자"), ("pen", "펜"), ("eraser", "지우개"),
+        ("ruler", "자"), ("door", "문"), ("window", "창문"), ("teacher", "선생님"), ("student", "학생"),
+        ("big", "큰"), ("small", "작은"), ("long", "긴"), ("short", "짧은"),
+    ],
+    4: [
+        ("classroom", "교실"), ("library", "도서관"), ("gym", "체육관"), ("playground", "울장"),
+        ("homework", "숙제"), ("subject", "과목"), ("science", "과학"), ("music", "음악"),
+        ("delicious", "맛있는"), ("beautiful", "아름다운"), ("favorite", "가장 좋아하는"), ("interesting", "흥미로운"),
+    ],
+    5: [
+        ("travel", "여행"), ("hobby", "취미"), ("experience", "경험"), ("environment", "환경"),
+        ("healthy", "건강한"), ("dangerous", "위험한"), ("wonderful", "멋진"), ("terrible", "끔찍한"),
+        ("decide", "결정하다"), ("prepare", "준비하다"), ("improve", "향상시키다"), ("protect", "보호하다"),
+    ],
+    6: [
+        ("confidence", "자신감"), ("challenge", "도전"), ("opportunity", "기회"), ("responsibility", "책임"),
+        ("consider", "고려하다"), ("achieve", "성취하다"), ("contribute", "기여하다"), ("apologize", "사과하다"),
+        ("although", "비록 ~일지라도"), ("however", "그러나"), ("therefore", "따라서"), ("instead", "대신에"),
+    ],
     7: [("helmet", "헬멧"), ("bicycle", "자전거"), ("cousin", "사촌"), ("patience", "인내심"), ("environment", "환경"), ("tourist", "관광객"), ("confident", "자신감 있는"), ("expected", "예상된")],
     8: [("project", "프로젝트"), ("invention", "발명"), ("opinion", "의견"), ("recycling", "재활용"), ("apologized", "사과했다"), ("meeting", "회의"), ("countries", "나라들"), ("practice", "연습")],
     9: [("scientist", "과학자"), ("documentary", "다큐멘터리"), ("climate", "기후"), ("challenges", "도전"), ("speech", "연설"), ("assignment", "과제"), ("opinions", "의견"), ("solutions", "해결책")],
 }
 
 SENTENCES = {
-    1: ["I am happy.", "This is a cat.", "I like apples.", "It is red.", "Good morning.", "Thank you.", "I can run.", "Open the book.", "I see a dog.", "We are friends.", "Sit down, please.", "My name is Mina."],
-    2: ["I have a pencil.", "The sun is bright.", "She is my sister.", "He likes soccer.", "We go to school.", "Can you swim?", "This bag is blue.", "I eat breakfast.", "The bird can fly.", "Today is Monday.", "Please close the door.", "They are very kind."],
-    3: ["I play basketball after school.", "My mother cooks dinner.", "Where is your classroom?", "There are three books.", "We study English together.", "What time is it?", "The rabbit has long ears.", "I brush my teeth every day.", "She does not like milk.", "Do you have a brother?", "It is sunny today.", "Please help me with this."],
-    4: ["I usually get up at seven.", "My favorite subject is science.", "How much is this notebook?", "We visited the museum yesterday.", "He is reading a funny story.", "Would you like some juice?", "The library is next to the bank.", "I want to be a doctor.", "She walks to school every morning.", "What did you do last weekend?", "My family will travel tomorrow.", "This box is heavier than that one."],
-    5: ["I have to finish my homework.", "She was watching television then.", "The blue whale is the largest animal.", "Could you open the window, please?", "I am going to visit my grandparents.", "How often do you exercise?", "We learned about space at school.", "He wants to become a famous chef.", "The movie was more exciting than the book.", "If it rains, we will stay home.", "I have never seen a dolphin.", "Walking is good for your health."],
-    6: ["You should drink enough water every day.", "The festival will be held next Saturday.", "I was surprised to hear the news.", "This is the camera that my uncle gave me.", "Have you ever traveled to another country?", "The mountain is covered with snow in winter.", "She practices the piano to become a musician.", "We need to protect animals in danger.", "The book was written by a young author.", "Please tell me how to get to the station.", "I have lived here for three years.", "Although he was tired, he kept studying."],
-    7: ["I have been interested in science since childhood.", "You must wear a helmet while riding a bicycle.", "The girl who is singing on stage is my cousin.", "If you study regularly, you will improve quickly.", "We decided to collect cans for the environment.", "The concert was canceled because of heavy rain.", "Could you tell me where the post office is?", "Learning another language takes time and patience.", "My teacher advised me to read more books.", "The museum is visited by many tourists every year.", "I was doing my homework when he called.", "This problem is easier than I expected."],
-    8: ["The project was completed earlier than we expected.", "I look forward to meeting students from other countries.", "The man standing by the gate is our new teacher.", "Unless you hurry, you will miss the last bus.", "She has studied English for more than five years.", "The invention made it possible to communicate faster.", "We were asked to share our opinions with the class.", "Recycling is one of the easiest ways to help Earth.", "I am not sure whether he will join the club.", "The more you practice, the more confident you become.", "He apologized for arriving late at the meeting.", "The story was so moving that everyone became quiet."],
-    9: ["If I had more time, I would learn another language.", "The scientist whose work won the prize thanked her team.", "Having finished the assignment, he went out for a walk.", "It is important that everyone respect different opinions.", "The city has changed greatly since I first visited it.", "Not only is exercise healthy, but it also reduces stress.", "The documentary showed how climate change affects wildlife.", "I wish I had listened more carefully to your advice.", "Students are encouraged to develop their own solutions.", "By the time we arrived, the movie had already started.", "What matters most is how we respond to challenges.", "Despite being nervous, she delivered an excellent speech."],
+    1: ["I am happy.", "This is a cat.", "I like apples.", "It is red.", "Good morning.", "Thank you.", "I can run.", "Open the book.", "I see a dog.", "We are friends."],
+    2: ["I have a pencil.", "The sun is bright.", "She is my sister.", "He likes soccer.", "We go to school.", "Can you swim?", "This bag is blue.", "I eat breakfast.", "The bird can fly.", "Today is Monday."],
+    3: [
+        "I go to school every day.", "She has a red bag.", "They are my friends.", "Can I use your pen?",
+        "This is my classroom.", "I like my teacher.", "We play in the playground.", "The desk is clean.",
+        "It is a sunny day.", "He sits on the chair.",
+    ],
+    4: [
+        "I usually get up at seven.", "My favorite subject is science.", "How much is this notebook?",
+        "We visited the museum yesterday.", "He is reading a funny story.", "Would you like some juice?",
+        "The library is next to the bank.", "I want to be a doctor.", "She walks to school every morning.",
+        "What did you do last weekend?",
+    ],
+    5: [
+        "I have to finish my homework.", "She was watching television then.", "Could you open the window, please?",
+        "I am going to visit my grandparents.", "How often do you exercise?", "If it rains, we will stay home.",
+        "Walking is good for your health.", "He wants to become a famous singer.",
+    ],
+    6: [
+        "You should drink enough water every day.", "The festival will be held next Saturday.", "I was surprised to hear the news.",
+        "Have you ever traveled to another country?", "She practices the piano to become a musician.",
+        "We need to protect animals in danger.", "Although he was tired, he kept studying.",
+        "The book was written by a young author.",
+    ],
+    7: ["I have been interested in science since childhood.", "You must wear a helmet while riding a bicycle.", "The girl who is singing on stage is my cousin.", "If you study regularly, you will improve quickly.", "Learning another language takes time and patience."],
+    8: ["The project was completed earlier than we expected.", "I look forward to meeting students from other countries.", "The man standing by the gate is our new teacher.", "Unless you hurry, you will miss the last bus.", "She has studied English for more than five years."],
+    9: ["If I had more time, I would learn another language.", "The scientist whose work won the prize thanked her team.", "Having finished the assignment, he went out for a walk.", "It is important that everyone respect different opinions.", "Despite being nervous, she delivered an excellent speech."],
 }
 
 
@@ -58,11 +96,12 @@ def _make(prompt, answer, topic, options=None, question_type=None, explanation=N
 def _e_vocab_choice(grade):
     topic = _topic_for(grade, ["어휘"])
     word, meaning = random.choice(VOCABULARY[grade])
-    distractors = [m for _, m in random.sample(VOCABULARY[grade], min(4, len(VOCABULARY[grade]))) if m != meaning]
+    all_meanings = [m for _, m in VOCABULARY[grade]]
+    distractors = [m for m in random.sample(all_meanings, min(4, len(all_meanings))) if m != meaning]
     if len(distractors) < 3:
         distractors += ["학교", "집", "책"]
     prompt = f"'{word}'의 뜻은 무엇인가요?"
-    return _make(prompt, meaning, topic, options=[meaning] + distractors[:3])
+    return _make(prompt, meaning, topic, options=_choice_options(meaning, distractors[:3]))
 
 
 def _e_word_scramble(grade):
@@ -89,29 +128,53 @@ def _e_sentence_scramble(grade):
 
 def _e_blank_sentence(grade):
     templates = {
-        1: [("I ___ happy.", "am"), ("This ___ a cat.", "is"), ("I can ___.", "run")],
-        2: [("She ___ my sister.", "is"), ("He ___ soccer.", "likes"), ("We ___ to school.", "go")],
-        3: [("My mother ___ dinner.", "cooks"), ("There ___ three books.", "are"), ("She does not ___ milk.", "like")],
-        4: [("We ___ the museum yesterday.", "visited"), ("I want to ___ a doctor.", "be"), ("This box is ___ than that one.", "heavier")],
-        5: [("She ___ watching television then.", "was"), ("If it ___, we will stay home.", "rains"), ("I have never ___ a dolphin.", "seen")],
-        6: [("The festival will be ___ next Saturday.", "held"), ("The book was ___ by a young author.", "written"), ("I have ___ here for three years.", "lived")],
-        7: [("You ___ wear a helmet while riding a bicycle.", "must"), ("The concert was ___ because of heavy rain.", "canceled"), ("This problem is easier than I ___.", "expected")],
-        8: [("I look forward to ___ students from other countries.", "meeting"), ("She has studied English for more than five ___.", "years"), ("He apologized for ___ late at the meeting.", "arriving")],
-        9: [("If I had more time, I ___ learn another language.", "would"), ("Not only is exercise healthy, but it also ___ stress.", "reduces"), ("Despite being nervous, she ___ an excellent speech.", "delivered")],
+        3: [
+            ("I ___ to school every day.", "go", ["goes", "going", "went"]),
+            ("She ___ a red bag.", "has", ["have", "had", "having"]),
+            ("They ___ my friends.", "are", ["is", "was", "were"]),
+        ],
+        4: [
+            ("I usually ___ up at seven.", "get", ["gets", "got", "getting"]),
+            ("He ___ a funny story.", "is reading", ["reads", "read", "was read"]),
+            ("The library ___ next to the bank.", "is", ["are", "was", "were"]),
+        ],
+        5: [
+            ("She ___ watching television then.", "was", ["is", "were", "be"]),
+            ("If it ___, we will stay home.", "rains", ["rain", "rained", "raining"]),
+            ("I ___ never seen a dolphin.", "have", ["has", "had", "having"]),
+        ],
+        6: [
+            ("The festival ___ be held next Saturday.", "will", ["is", "was", "were"]),
+            ("The book ___ written by a young author.", "was", ["is", "were", "be"]),
+            ("I have lived here ___ three years.", "for", ["since", "at", "on"]),
+        ],
+        7: [
+            ("You ___ wear a helmet while riding a bicycle.", "must", ["can", "may", "will"]),
+            ("The concert was canceled ___ of heavy rain.", "because", ["so", "but", "and"]),
+            ("This problem is easier than I ___.", "expected", ["expect", "expecting", "had expected"]),
+        ],
+        8: [
+            ("I look forward to ___ students from other countries.", "meeting", ["meet", "met", "meets"]),
+            ("She has studied English for more than five ___.", "years", ["year", "year's", "years'"]),
+            ("He apologized for ___ late at the meeting.", "arriving", ["arrive", "arrived", "arrives"]),
+        ],
+        9: [
+            ("If I had more time, I ___ learn another language.", "would", ["will", "can", "may"]),
+            ("Not only is exercise healthy, but it also ___ stress.", "reduces", ["reduce", "reducing", "reduced"]),
+            ("Despite being nervous, she ___ an excellent speech.", "delivered", ["deliver", "delivering", "was delivered"]),
+        ],
     }
     topic = _topic_for(grade, ["문법"])
-    sentence, answer = random.choice(templates.get(grade, templates[9]))
-    distractors = [a for _, a in random.sample(templates.get(grade, templates[9]), min(4, len(templates.get(grade, templates[9])))) if a != answer]
-    if len(distractors) < 3:
-        distractors += ["is", "are", "was"]
-    return _make(f"빈칸에 알맞은 말을 고르세요.\n{sentence}", answer, topic, options=[answer] + distractors[:3])
+    bank = templates.get(grade, templates[9])
+    sentence, answer, distractors = random.choice(bank)
+    prompt = f"빈칸에 알맞은 말을 고르세요.\n{sentence}"
+    return _make(prompt, answer, topic, options=_choice_options(answer, distractors))
 
 
 def _e_tense_question(grade):
     topic = _topic_for(grade, ["시제", "문법"])
     templates = {
-        3: [("I ___ (brush) my teeth every day.", "brush"), ("She ___ (do) not like milk.", "does")],
-        4: [("We ___ (visit) the museum yesterday.", "visited"), ("My family ___ (travel) tomorrow.", "will travel")],
+        4: [("I ___ (get) up at seven every day.", "get"), ("She ___ (walk) to school every morning.", "walks")],
         5: [("She ___ (watch) television then.", "was watching"), ("If it rains, we ___ (stay) home.", "will stay")],
         6: [("The festival ___ (hold) next Saturday.", "will be held"), ("I ___ (live) here for three years.", "have lived")],
         7: [("The concert ___ (cancel) because of heavy rain.", "was canceled"), ("I ___ (do) my homework when he called.", "was doing")],
@@ -126,39 +189,19 @@ def _e_tense_question(grade):
     return _make(prompt, answer, topic)
 
 
-def _e_listening_or_speaking(grade):
-    topic = _topic_for(grade, ["듣기·말하기"])
-    sentence = random.choice(SENTENCES[grade])
-    question_type = random.choice(["listening", "speaking"])
-    if question_type == "listening":
-        return _make("문장을 듣고 그대로 입력하세요.", sentence, topic, question_type="listening")
-    return _make(sentence, sentence, topic, question_type="speaking")
-
-
 def _e_translation(grade):
     topic = _topic_for(grade, ["쓰기", "번역"])
     sentence = random.choice(SENTENCES[grade])
-    # 간단한 한국어 해석 제공
     translations = {
-        "I am happy.": "나는 행복해.",
-        "This is a cat.": "이것은 고양이야.",
-        "I like apples.": "나는 사과를 좋아해.",
-        "Good morning.": "좋은 아침이야.",
-        "I have a pencil.": "나는 연필을 가지고 있어.",
-        "The sun is bright.": "태양이 밝아.",
-        "She is my sister.": "그녀는 내 여동생이야.",
-        "I play basketball after school.": "나는 방과 후에 농구를 해.",
-        "My mother cooks dinner.": "우리 엄마는 저녁을 요리해.",
-        "Where is your classroom?": "너의 교실은 어디에 있니?",
-        "I usually get up at seven.": "나는 보통 일곱 시에 일어나.",
-        "My favorite subject is science.": "내가 가장 좋아하는 과목은 과학이야.",
-        "I have to finish my homework.": "나는 숙제를 끝내야 해.",
-        "She was watching television then.": "그녀는 그때 TV를 보고 있었어.",
-        "You should drink enough water every day.": "너는 매일 충분한 물을 마셔야 해.",
-        "The festival will be held next Saturday.": "축제는 다음 주 토요일에 열릴 거야.",
-        "I have been interested in science since childhood.": "나는 어릴 때부터 과학에 관심이 있었어.",
-        "The project was completed earlier than we expected.": "그 프로젝트는 예상보다 일찍 완료되었어.",
-        "If I had more time, I would learn another language.": "시간이 더 있었다면 다른 언어를 배웠을 텐데.",
+        "I go to school every day.": "나는 매일 학교에 간다.",
+        "She has a red bag.": "그녀는 빨간 가방을 가지고 있다.",
+        "They are my friends.": "그들은 내 친구들이다.",
+        "I usually get up at seven.": "나는 보통 일곱 시에 일어난다.",
+        "He is reading a funny story.": "그는 재미있는 이야기를 읽고 있다.",
+        "I have to finish my homework.": "나는 숙제를 끝내야 한다.",
+        "She was watching television then.": "그녀는 그때 TV를 보고 있었다.",
+        "You should drink enough water every day.": "너는 매일 충분한 물을 마셔야 한다.",
+        "The festival will be held next Saturday.": "축제는 다음 주 토요일에 열릴 것이다.",
     }
     meaning = translations.get(sentence, "(한국어 뜻)")
     prompt = f"다음 한국어 문장을 영어로 쓰세요.\n'{meaning}'"
@@ -166,32 +209,30 @@ def _e_translation(grade):
 
 
 GENERATORS = {
-    1: [_e_vocab_choice, _e_word_scramble, _e_sentence_scramble, _e_listening_or_speaking],
-    2: [_e_vocab_choice, _e_word_scramble, _e_sentence_scramble, _e_listening_or_speaking],
-    3: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_listening_or_speaking],
-    4: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation, _e_listening_or_speaking],
-    5: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation, _e_listening_or_speaking],
-    6: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation, _e_listening_or_speaking],
-    7: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation, _e_listening_or_speaking],
-    8: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation, _e_listening_or_speaking],
-    9: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation, _e_listening_or_speaking],
+    1: [_e_vocab_choice, _e_word_scramble],
+    2: [_e_vocab_choice, _e_word_scramble],
+    3: [_e_vocab_choice, _e_blank_sentence, _e_sentence_scramble, _e_word_scramble],
+    4: [_e_vocab_choice, _e_blank_sentence, _e_sentence_scramble, _e_tense_question, _e_translation],
+    5: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation],
+    6: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation],
+    7: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation],
+    8: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation],
+    9: [_e_vocab_choice, _e_blank_sentence, _e_tense_question, _e_sentence_scramble, _e_translation],
 }
 
 
 def generate_english_set(grade, count=10):
     generators = GENERATORS.get(grade, GENERATORS[9])
     questions = []
-    # 듣기/말하기는 각각 1~2개 보장
-    min_speaking_listening = 2 if grade >= 3 else 1
-    listening_speaking = 0
-    target_ls = min(min_speaking_listening, count // 3)
-    while listening_speaking < target_ls:
-        q = _e_listening_or_speaking(grade)
-        questions.append(q)
-        if q["question_type"] in ("listening", "speaking"):
-            listening_speaking += 1
     while len(questions) < count:
         g = random.choice(generators)
         questions.append(g(grade))
     random.shuffle(questions)
     return questions[:count]
+
+
+def _choice_options(answer, distractors, shuffle=True):
+    opts = [str(answer)] + [str(d) for d in distractors]
+    if shuffle:
+        random.shuffle(opts)
+    return opts
