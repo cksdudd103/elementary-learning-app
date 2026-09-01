@@ -1,8 +1,8 @@
-import base64
+import base64 as _base64
 
 
 def _svg_data_uri(svg_body):
-    encoded = base64.b64encode(svg_body.encode("utf-8")).decode("ascii")
+    encoded = _base64.b64encode(svg_body.encode("utf-8")).decode("ascii")
     return f"data:image/svg+xml;base64,{encoded}"
 
 
