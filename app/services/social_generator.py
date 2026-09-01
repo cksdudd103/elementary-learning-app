@@ -15,7 +15,12 @@ def _make(prompt, answer, topic, options=None, question_type=None, explanation=N
 
 
 def _choice_options(answer, distractors, shuffle=True):
-    opts = [str(answer)] + [str(d) for d in distractors]
+    answer_str = str(answer)
+    opts = [answer_str]
+    for d in distractors:
+        ds = str(d)
+        if ds != answer_str and ds not in opts:
+            opts.append(ds)
     if shuffle:
         random.shuffle(opts)
     return opts
@@ -26,7 +31,7 @@ def _topic_for(grade, fallback):
         from ..models import CurriculumUnit
         units = CurriculumUnit.query.filter_by(subject="social", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
         if units:
-            return [u.unit_name for u in units]
+            return random.choice([u.unit_name for u in units])
     except Exception:
         pass
     return random.choice(fallback)
@@ -38,9 +43,8 @@ def _topic_for(grade, fallback):
 def _s1_safety():
     topic = _topic_for(1, ["안전", "교통안전"])
     prompt = "길을 걷거나 걸어갈 때 반드시 지켜야 하는 것은?"
-    answer = "횡단볏도를 이용하고 신호를 지킨다"
+    answer = "횡단보도를 이용하고 신호를 지킨다"
     return _make(prompt, answer, topic, options=_choice_options(answer, [
-        "횡단볏도를 이용하고 신호를 지킨다",
         "차가 오는 길을 뛰어 걷는다",
         "무단횡단을 한다",
         "핸드폰을 본 채 걷는다",
@@ -240,7 +244,7 @@ def _s5_politics():
 
 def _s5_economy():
     topic = _topic_for(5, ["경제", "시장"])
-    prompt = "물건의 가격이 오륍면 같은 돈으로 살 수 있는 양은?"
+    prompt = "물건의 가격이 오르면 같은 돈으로 살 수 있는 양은?"
     answer = "줄어든다"
     return _make(prompt, answer, topic, options=_choice_options(answer, ["줄어든다", "늘어난다", "그대로이다", "두 배가 된다"]))
 
@@ -329,13 +333,117 @@ def _s9_citizen():
     return _make(prompt, answer, topic, options=_choice_options(answer, ["강제와 복종", "자유와 평등", "차별과 배제", "독점과 억압"]))
 
 
+
+def _s1_polite():
+    topic = _topic_for(1, ["바른 생활", "예의"])
+    prompt = "친구와 대화할 때 바른 태도는 무엇인가요?"
+    answer = "상대방의 말을 끝까지 듣는다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "끊고 자기 말만 한다",
+        "소리를 지르며 말한다",
+        "등을 돌린 채 말한다",
+    ]))
+
+
+def _s1_traffic_sign():
+    topic = _topic_for(1, ["교통안전", "안전"])
+    prompt = "빨간불이 켜진 횡단보도에서 해야 할 것은?"
+    answer = "멈춰서 신호가 바뀔 때까지 기다린다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "빨리 뛰어 걷는다",
+        "차가 없으면 그냥 걷는다",
+        "친구를 밀고 먼저 걷는다",
+    ]))
+
+
+def _s2_recycle():
+    topic = _topic_for(2, ["환경", "자원 절약"])
+    prompt = "다음 중 올바른 분리배출 방법은?"
+    answer = "플라스틱은 깨끗이 씻어서 배출한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "음식물이 묻은 용기를 그대로 버린다",
+        "유리와 플라스틱을 함께 넣는다",
+        "모든 쓰레기를 한 종류로 버린다",
+    ]))
+
+
+def _s2_map_symbol():
+    topic = _topic_for(2, ["지도", "지리"])
+    prompt = "지도에서 ㅇㅇ 모양으로 나타내는 것은?"
+    answer = "학교"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["산", "강", "병원", "학교"]))
+
+
+def _s3_communication():
+    topic = _topic_for(3, ["통신", "과거와 현재"])
+    prompt = "과거 사람들이 먼 곳에 소식을 전할 때 사용한 것은?"
+    answer = "편지"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["휴대전화", "이메일", "비디오 통화", "편지"]))
+
+
+def _s3_food():
+    topic = _topic_for(3, ["지역", "문화"])
+    prompt = "전라도 지역의 대표적인 음식은 무엇인가요?"
+    answer = "비빔밥"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["냉면", "비빔밥", "핫도그", "초밥"]))
+
+
+def _s4_climate():
+    topic = _topic_for(4, ["기후", "지리"])
+    prompt = "우리나라의 여름철 날씨 특징은?"
+    answer = "덥고 비가 많이 온다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "춥고 눈이 많이 온다",
+        "바람이 강하게 분다",
+        "건조하고 안개가 짙다",
+    ]))
+
+
+def _s4_job():
+    topic = _topic_for(4, ["직업", "경제"])
+    prompt = "우리 지역에서 사람들의 안전을 지키는 직업은?"
+    answer = "경찰관"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["화가", "경찰관", "운동선수", "요리사"]))
+
+
+def _s5_invention():
+    topic = _topic_for(5, ["과학문화", "역사"])
+    prompt = "세종대왕이 백성들을 위해 만든 것은?"
+    answer = "훈민정음"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["삼국사기", "훈민정음", "동의보감", "직지심체요절"]))
+
+
+def _s5_geography():
+    topic = _topic_for(5, ["지리", "한국"])
+    prompt = "우리나라에서 가장 높은 산은?"
+    answer = "한라산"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["한라산", "지리산", "북한산", "금강산"]))
+
+
+def _s6_election():
+    topic = _topic_for(6, ["선거", "민주주의"])
+    prompt = "민주주의 국가에서 국민이 직접 뽑는 대표는?"
+    answer = "대통령"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["대통령", "판사", "공무원", "경찰관"]))
+
+
+def _s6_culture():
+    topic = _topic_for(6, ["세계", "문화"])
+    prompt = "다른 나라의 문화를 존중하는 이유는?"
+    answer = "모든 사람은 존중받을 가치가 있기 때문이다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "우리 문화가 더 우수하기 때문이다",
+        "다른 나라를 무시하면 싸움이 나기 때문이다",
+        "관광객을 많이 받기 때문이다",
+    ]))
+
 PROBLEM_GENERATORS = {
-    1: [_s1_safety, _s1_family, _s1_school, _s1_community],
-    2: [_s2_community, _s2_environment, _s2_tradition, _s2_safety],
-    3: [_s3_local, _s3_transport, _s3_old_life, _s3_map],
-    4: [_s4_nature, _s4_culture, _s4_sustainable, _s4_local_history],
-    5: [_s5_history, _s5_politics, _s5_economy, _s5_law],
-    6: [_s6_history, _s6_modern, _s6_world, _s6_human_rights],
+    1: [_s1_safety, _s1_family, _s1_school, _s1_community, _s1_polite, _s1_traffic_sign],
+    2: [_s2_community, _s2_environment, _s2_tradition, _s2_safety, _s2_recycle, _s2_map_symbol],
+    3: [_s3_local, _s3_transport, _s3_old_life, _s3_map, _s3_communication, _s3_food],
+    4: [_s4_nature, _s4_culture, _s4_sustainable, _s4_local_history, _s4_climate, _s4_job],
+    5: [_s5_history, _s5_politics, _s5_economy, _s5_law, _s5_invention, _s5_geography],
+    6: [_s6_history, _s6_modern, _s6_world, _s6_human_rights, _s6_election, _s6_culture],
     7: [_s7_constitution, _s7_economy_price],
     8: [_s8_geography, _s7_constitution],
     9: [_s9_citizen, _s7_economy_price],

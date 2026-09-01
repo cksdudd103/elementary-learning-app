@@ -378,13 +378,127 @@ SOLUTION_BANKS = {
 }
 
 
+
+def _k1_rhyme():
+    items = [("바", "나", "ㅏ"), ("고", "토", "ㅗ"), ("우", "주", "ㅜ")]
+    a, b, vowel = random.choice(items)
+    topic = _topic_for(1, ["글자 익히기", "모음"])
+    prompt = f"'{a}'와 '{b}'에 같은 모음이 들어 있나요?"
+    answer = "예"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["아니오", "모름"]))
+
+
+def _k1_picture_word():
+    words = [("사과", "과일"), ("고양이", "동물"), ("책", "물건"), ("태양", "하늘")]
+    word, category = random.choice(words)
+    topic = _topic_for(1, ["낱말 익히기", "어휘"])
+    prompt = f"'{word}'는 어떤 그룹에 속하나요?"
+    distractors = [c for _, c in random.sample(words, 3) if c != category]
+    return _make(prompt, category, topic, options=_choice_options(category, distractors), explanation=f"'{word}'는 {category}에 속합니다.")
+
+
+def _k2_word_order():
+    topic = _topic_for(2, ["문장의 순서", "글쓰기"])
+    prompt = "다음 문장을 바른 순서로 배열하면?\\n① 책을 읽는다 ② 도서관에 간다 ③ 책을 고른다"
+    answer = "② → ③ → ①"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "① → ② → ③",
+        "③ → ② → ①",
+        "② → ① → ③",
+    ]))
+
+
+def _k2_spelling():
+    topic = _topic_for(2, ["맞춤법", "글쓰기"])
+    prompt = "다음 중 맞춤법이 올바른 문장은?"
+    answer = "친구와 함께 학교에 갔다."
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "친구와 함께 학교에 갓다.",
+        "친구와 함께 학교에 갔따.",
+        "친구와 함께 학교에 갓따.",
+    ]))
+
+
+def _k3_idiom():
+    idioms = [
+        ("발이 넓다", "아는 사람이 많다"),
+        ("귀가 밝다", "소리를 잘 듣는다"),
+        ("손이 크다", "쓰는 것이 크다"),
+    ]
+    idiom, answer = random.choice(idioms)
+    topic = _topic_for(3, ["관용 표현", "어휘"])
+    prompt = f"'{idiom}'의 뜻은 무엇인가요?"
+    distractors = [m for _, m in random.sample(idioms, 2) if m != answer]
+    return _make(prompt, answer, topic, options=_choice_options(answer, distractors + [idiom]))
+
+
+def _k3_sentence_part():
+    topic = _topic_for(3, ["문장 성분", "문법"])
+    prompt = "'민수가 공을 던진다'에서 '공을'은 무슨 성분인가요?"
+    answer = "목적어"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["주어", "서술어", "보어"]))
+
+
+def _k4_cause_effect():
+    topic = _topic_for(4, ["인과 관계", "독해"])
+    prompt = "'비가 많이 왔다. 길이 미끄러웠다.'에서 '비가 많이 왔다'는 무엇인가요?"
+    answer = "원인"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["결과", "방법", "의견"]))
+
+
+def _k4_paragraph_topic():
+    topic = _topic_for(4, ["문단의 주제", "독해"])
+    prompt = "다음 글의 주제로 알맞은 것은?\n우리 학교에는 다양한 동아리가 있다. 합창부, 축구부, 과학부 등 많은 학생들이 자신의 재능을 키우고 있다."
+    answer = "학교 동아리 활동"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "학교 급식",
+        "체육 대회",
+        "방과 후 수업",
+    ]))
+
+
+def _k5_outline():
+    topic = _topic_for(5, ["글의 구조", "쓰기"])
+    prompt = "글을 쓸 때 본론 다음에 오는 부분은?"
+    answer = "결론"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["도입", "서론", "줄거리"]))
+
+
+def _k5_debate():
+    topic = _topic_for(5, ["토론", "의사소통"])
+    prompt = "상대방 의견에 반대할 때 가장 먼저 해야 할 것은?"
+    answer = "상대 의견을 정확히 파악한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "목소리를 높인다",
+        "상대를 비난한다",
+        "자신만의 예시를 든다",
+    ]))
+
+
+def _k6_emotion():
+    topic = _topic_for(6, ["인물의 감정", "문학"])
+    prompt = "주인공이 떨리는 손으로 편지를 열었다. 이때 주인공의 감정으로 가장 알맞은 것은?"
+    answer = "기대와 설렘"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "분노와 후회",
+        "지루함과 싫증",
+        "피곤함과 졸음",
+    ]))
+
+
+def _k6_topic_sentence():
+    topic = _topic_for(6, ["주제문", "독해"])
+    prompt = "다음 문단에서 주제문을 고르세요.\n(1) 우리 반은 환경 보호를 실천하고 있다. (2) 분리배출을 꼼꼼히 하고 종이를 아껴 쓴다. (3) 또한 텃밭에서 채소를 기른다."
+    answer = "(1)"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["(2)", "(3)", "(1)과 (2)"]))
+
 GENERATORS = {
-    1: [_k1_consonant_vowel, _k1_word_reading, _k1_opposite, _k1_sentence_punct],
-    2: [_k2_similar, _k2_sentence_subject, _k2_sentence_punct, _k2_opposite],
-    3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific, _k3_word_meaning],
-    4: [_k4_metaphor, _k4_fact_opinion, _k4_summary, _k4_sentence_part],
-    5: [_k5_argument, _k5_literary_element, _k5_proverb, _k5_media],
-    6: [_k6_character, _k6_compare_contrast, _k6_writing_revision, _k6_argument_claim],
+    1: [_k1_consonant_vowel, _k1_word_reading, _k1_opposite, _k1_sentence_punct, _k1_rhyme, _k1_picture_word],
+    2: [_k2_similar, _k2_sentence_subject, _k2_sentence_punct, _k2_opposite, _k2_word_order, _k2_spelling],
+    3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific, _k3_word_meaning, _k3_idiom, _k3_sentence_part],
+    4: [_k4_metaphor, _k4_fact_opinion, _k4_summary, _k4_sentence_part, _k4_cause_effect, _k4_paragraph_topic],
+    5: [_k5_argument, _k5_literary_element, _k5_proverb, _k5_media, _k5_outline, _k5_debate],
+    6: [_k6_character, _k6_compare_contrast, _k6_writing_revision, _k6_argument_claim, _k6_emotion, _k6_topic_sentence],
     7: [_k7_morpheme, _k7_speaker, _k7_argument_essay],
     8: [_k8_novel_element, _k8_voice, _k8_debate],
     9: [_k9_literary_value, _k9_phonological_change, _k9_argument_claim],
@@ -422,7 +536,12 @@ def generate_korean_set(grade, count=10):
 
 
 def _choice_options(answer, distractors, shuffle=True):
-    opts = [str(answer)] + [str(d) for d in distractors]
+    answer_str = str(answer)
+    opts = [answer_str]
+    for d in distractors:
+        ds = str(d)
+        if ds != answer_str and ds not in opts:
+            opts.append(ds)
     if shuffle:
         random.shuffle(opts)
     return opts
