@@ -87,12 +87,14 @@ def _ensure_user_reset_token_column():
 def _ensure_user_reset_token_expires_column():
     """User 테이블에 reset_token_expires_at 컬럼이 없으면 추가합니다."""
     from sqlalchemy import text
+    is_postgres = db.engine.dialect.name == "postgresql"
+    ts_type = "TIMESTAMP WITH TIME ZONE" if is_postgres else "TIMESTAMP"
     try:
         db.session.execute(text("SELECT reset_token_expires_at FROM \"user\" LIMIT 1"))
     except Exception:
         db.session.rollback()
         db.session.execute(
-            text("ALTER TABLE \"user\" ADD COLUMN reset_token_expires_at TIMESTAMP WITH TIME ZONE")
+            text(f"ALTER TABLE \"user\" ADD COLUMN reset_token_expires_at {ts_type}")
         )
         db.session.commit()
 
