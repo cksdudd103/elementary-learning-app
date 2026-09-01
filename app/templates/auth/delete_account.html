@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}회원 탈퇴 · {{ t('app_name') }}{% endblock %}
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card wide">
+        <span class="eyebrow">정말로 탈퇴하시겠어요?</span>
+        <h1>회원 탈퇴</h1>
+        <p class="muted">탈퇴하면 내 학습 기록과 데이터가 모두 삭제됩니다. 다시 복구할 수 없어요.</p>
+
+        <form method="post" class="stack-form" data-delete-account>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <p class="muted">안전한 탈퇴를 위해 현재 로그인한 아이디를 한 번 더 입력해 주세요.</p>
+            <label>아이디 (현재 아이디: <strong>{{ current_user.username }}</strong>)
+                <input type="text" name="username" required autocomplete="username" placeholder="아이디를 입력하세요">
+            </label>
+            <label>비밀번호
+                <input type="password" name="password" required autocomplete="current-password">
+            </label>
+            <label class="check-row">
+                <input type="checkbox" name="confirm" required data-confirm>
+                위 내용을 이해했으며 회원 탈퇴에 동의합니다.
+            </label>
+            <button class="button danger full" type="submit" data-submit disabled>회원 탈퇴</button>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var form = document.querySelector('[data-delete-account]');
+    if (!form) return;
+    var confirmBox = form.querySelector('[data-confirm]');
+    var submitBtn = form.querySelector('[data-submit]');
+    confirmBox.addEventListener('change', function() {
+        submitBtn.disabled = !confirmBox.checked;
+    });
+    form.addEventListener('submit', function(e) {
+        if (!confirmBox.checked || !confirm('정말로 탈퇴하시겠습니까?')) {
+            e.preventDefault();
+        }
+    });
+})();
+</script>
+{% endblock %}

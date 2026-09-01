@@ -18,6 +18,7 @@
                 <a href="{{ url_for('student.dashboard') }}">{{ t('dashboard') }}</a>
                 <a href="{{ url_for('student.history') }}">{{ t('history') }}</a>
                 <a href="{{ url_for('student.wrong_answers') }}">{{ t('wrong_answers') }}</a>
+                <a href="{{ url_for('auth.delete_account') }}">회원 탈퇴</a>
                 {% if current_user.is_parent %}<a href="{{ url_for('parent.dashboard') }}">학부모 홈</a>{% endif %}
             {% endif %}
             <a href="{{ url_for('language', language='en' if current_language == 'ko' else 'ko') }}">

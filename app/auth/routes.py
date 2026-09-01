@@ -1,5 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
+from secrets import token_urlsafe
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import or_
 
 from ..extensions import db
@@ -85,7 +87,73 @@ def login():
     return render_template("auth/login.html")
 
 
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("student.dashboard"))
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.reset_token = token_urlsafe(32)
+            user.reset_token_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+            db.session.commit()
+            # TODO: 실제 이메일 서비스 연동 시 아래 print 제거
+            reset_url = url_for("auth.reset_password", token=user.reset_token, _external=True)
+            print(f"[PASSWORD RESET] {reset_url}")
+            flash("입력하신 이메일로 재설정 안내를 별냈습니다.", "success")
+        else:
+            # 동일한 메시지로 이메일 존재 여부 노출 방지
+            flash("입력하신 이메일로 재설정 안내를 별냈습니다.", "success")
+    return render_template("auth/forgot_password.html")
+
+
+@auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for("student.dashboard"))
+    user = User.query.filter_by(reset_token=token).first()
+    if not user or not user.reset_token_expires_at or user.reset_token_expires_at < datetime.now(timezone.utc):
+        flash("유효하지 않거나 만료된 링크입니다.", "error")
+        return redirect(url_for("auth.forgot_password"))
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm_password", "")
+        if len(password) < 8:
+            flash("비밀번호는 8자 이상이어야 합니다.", "error")
+        elif password != confirm:
+            flash("비밀번호가 일치하지 않습니다.", "error")
+        else:
+            user.set_password(password)
+            user.reset_token = None
+            user.reset_token_expires_at = None
+            db.session.commit()
+            flash("비밀번호가 변경되었습니다. 다시 로그인하세요.", "success")
+            return redirect(url_for("auth.login"))
+    return render_template("auth/reset_password.html", token=token)
+
+
 @auth_bp.post("/logout")
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
+
+@auth_bp.route("/delete-account", methods=["GET", "POST"])
+@login_required
+def delete_account():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        if username != current_user.username:
+            flash("아이디가 일치하지 않습니다.", "error")
+        elif not current_user.check_password(password):
+            flash("비밀번호를 확인하세요.", "error")
+        else:
+            user = User.query.get(current_user.id)
+            logout_user()
+            db.session.delete(user)
+            db.session.commit()
+            flash("회원 탈퇴가 완료되었습니다.", "success")
+            return redirect(url_for("index"))
+    return render_template("auth/delete_account.html")

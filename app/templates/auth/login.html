@@ -10,7 +10,10 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label>아이디 또는 이메일<input name="identity" required autocomplete="username"></label>
             <label>비밀번호<input type="password" name="password" required autocomplete="current-password"></label>
-            <label class="check-row"><input type="checkbox" name="remember"> 로그인 상태 유지</label>
+            <div class="auth-options">
+                <label class="check-row"><input type="checkbox" name="remember"> 로그인 상태 유지</label>
+                <a href="{{ url_for('auth.forgot_password') }}">비밀번호 찾기</a>
+            </div>
             <button class="button primary full" type="submit">로그인</button>
         </form>
         <p class="form-foot">처음인가요? <a href="{{ url_for('auth.register') }}">회원가입</a></p>
