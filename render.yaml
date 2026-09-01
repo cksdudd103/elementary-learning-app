@@ -12,5 +12,5 @@ services:
         generateValue: true
       - key: FLASK_ENV
         value: production
-      - key: PORT
-        value: 10000
+      # PostgreSQL URL은 Render Dashboard > Environment 탭에서 직접 설정하세요.
+      # DATABASE_URL: postgresql://...
