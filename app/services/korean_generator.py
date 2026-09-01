@@ -46,8 +46,8 @@ def _k1_word_reading():
     word, meaning = random.choice(words)
     topic = _topic_for(1, ["낱말 읽기", "어휘"])
     prompt = f"'{word}'는 다음 중 무엇에 해당하나요?"
-    distractors = [m for _, m in random.sample(words, 3) if m != meaning]
-    return _make(prompt, meaning, topic, options=[meaning] + distractors, explanation=f"'{word}'는 {meaning}에 해당합니다.")
+    distractors = list({m for _, m in words if m != meaning})
+    return _make(prompt, meaning, topic, options=_choice_options(meaning, random.sample(distractors, min(3, len(distractors)))), explanation=f"'{word}'는 {meaning}에 해당합니다.")
 
 
 def _k1_opposite():
@@ -492,16 +492,284 @@ def _k6_topic_sentence():
     answer = "(1)"
     return _make(prompt, answer, topic, options=_choice_options(answer, ["(2)", "(3)", "(1)과 (2)"]))
 
+
+def _k5_poem_element():
+    topic = _topic_for(5, ["시", "문학"])
+    prompt = "시에서 '꽃이 웃는다'와 같이 사람처럼 표현하는 방법은?"
+    answer = "의인화"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["비유", "의인화", "반복", "대조"]))
+
+
+def _k5_news_title():
+    topic = _topic_for(5, ["미디어", "정보"])
+    prompt = "뉴스 기사 제목을 지을 때 가장 중요한 것은?"
+    answer = "기사의 핵심 내용을 짧게 전달한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "재미있는 농담을 넣는다",
+        "기사의 핵심 내용을 짧게 전달한다",
+        "독자의 실수를 지적한다",
+        "길고 어려운 단어를 많이 쓴다",
+    ]))
+
+
+def _k5_sentence_connect():
+    topic = _topic_for(5, ["글쓰기", "문장"])
+    prompt = "문단에서 문장과 문장을 자연스럽게 이어 주는 것은?"
+    answer = "접속어"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["주어", "접속어", "맞춤법", "띄어쓰기"]))
+
+
+def _k5_audience():
+    topic = _topic_for(5, ["글쓰기", "독자"])
+    prompt = "글을 쓸 때 누구에게 쓰는지 미리 정하는 것은?"
+    answer = "독자 설정"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["주제 선정", "독자 설정", "자료 조사", "퇴고"]))
+
+
+def _k6_theme():
+    topic = _topic_for(6, ["문학", "주제"])
+    prompt = "글쓴이가 작품을 통해 전하고 싶은 메시지를 무엇이라 하나요?"
+    answer = "주제"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["배경", "주제", "인물", "사건"]))
+
+
+def _k6_evidence():
+    topic = _topic_for(6, ["논술", "근거"])
+    prompt = "주장을 뒷받침하기 위해 드는 구체적인 사례는?"
+    answer = "근거"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["의견", "근거", "반론", "결론"]))
+
+
+def _k6_purpose():
+    topic = _topic_for(6, ["독해", "글의 목적"])
+    prompt = "광고 글의 주된 목적은 무엇인가요?"
+    answer = "상품이나 서비스를 알리고 권유한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "독자의 비밀을 알린다",
+        "상품이나 서비스를 알리고 권유한다",
+        "역사적 사실만 전달한다",
+        "시를 감상하게 한다",
+    ]))
+
+
+def _k6_revision2():
+    topic = _topic_for(6, ["글 고치기", "쓰기"])
+    prompt = "'오늘은 정말 재미없는 날이다'보다 구체적으로 쓴 문장은?"
+    answer = "오늘은 친구들과 놀이공원에 가서 신나게 놀았다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "오늘은 매우 지루했다",
+        "오늘은 친구들과 놀이공원에 가서 신나게 놀았다",
+        "오늘은 별일 없었다",
+        "오늘은 정말 재미없는 날이다",
+    ]))
+
+
+def _k7_metaphor():
+    topic = _topic_for(7, ["문학", "비유"])
+    prompt = "'세상은 물결과 같다'에서 '물결'은 무엇을 나타낼까요?"
+    answer = "변화하는 세상"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "실제 바다",
+        "변화하는 세상",
+        "작가의 고향",
+        "친구와의 우정",
+    ]))
+
+
+def _k7_text_type():
+    topic = _topic_for(7, ["문법", "문장"])
+    prompt = "상대에게 부탁하거나 제안할 때 쓰는 문장은?"
+    answer = "청유문"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["평서문", "의문문", "청유문", "감탄문"]))
+
+
+def _k7_classical():
+    topic = _topic_for(7, ["고전", "문학"])
+    prompt = "고전 소설에서 주인공이 어려움을 극복하는 이야기를 통해 전하는 바람직한 삶은?"
+    answer = "정의와 인정"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["정의와 인정", "부와 명예", "힘과 권력", "복수와 원망"]))
+
+
+def _k7_media_bias():
+    topic = _topic_for(7, ["미디어", "정보"])
+    prompt = "신문 기사를 읽을 때 객관성을 판단하는 기준은?"
+    answer = "사실과 의견이 구분되어 있는지"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "사실과 의견이 구분되어 있는지",
+        "사진이 많은지",
+        "기자의 이름이 있는지",
+        "기사가 짧은지",
+    ]))
+
+
+def _k8_modern_novel():
+    topic = _topic_for(8, ["소설", "문학"])
+    prompt = "근대 소설에서 자주 나타나는 주제는?"
+    answer = "개인의 삶과 사회 문제"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "신화적 영웅의 모험",
+        "개인의 삶과 사회 문제",
+        "외계 생물의 이야기",
+        "역사적 전쟁의 승패",
+    ]))
+
+
+def _k8_text_structure():
+    topic = _topic_for(8, ["글쓰기", "구조"])
+    prompt = "논설문에서 자신의 주장을 뒷받침하는 부분은?"
+    answer = "본론"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["도입", "본론", "결론", "서론"]))
+
+
+def _k8_hangul_history():
+    topic = _topic_for(8, ["국어", "역사"])
+    prompt = "훈민정음이 창제된 시기는?"
+    answer = "조선 세종대"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["고조선", "삼국 시대", "조선 세종대", "근대"]))
+
+
+def _k8_debate_ethics():
+    topic = _topic_for(8, ["토론", "의사소통"])
+    prompt = "토론에서 상대방의 인격이 아닌 의견을 반박해야 하는 이유는?"
+    answer = "건설적인 토론을 위해서이다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "상대를 화나게 하기 위해서이다",
+        "건설적인 토론을 위해서이다",
+        "자신만의 의견을 강요하기 위해서이다",
+        "토론을 빨리 끝내기 위해서이다",
+    ]))
+
+
+def _k9_modern_poetry():
+    topic = _topic_for(9, ["현대시", "문학"])
+    prompt = "현대 시에서 '비'가 자주 상징하는 것은?"
+    answer = "슬픔이나 정화"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "농사의 풍년",
+        "슬픔이나 정화",
+        "전쟁의 시작",
+        "여행의 즐거움",
+    ]))
+
+
+def _k9_criticism():
+    topic = _topic_for(9, ["비평", "문학"])
+    prompt = "작품 비평에서 가장 중요한 것은?"
+    answer = "작품의 내용과 형식을 근거로 평가한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "작가의 사생활을 논한다",
+        "작품의 내용과 형식을 근거로 평가한다",
+        "개인의 취향만 말한다",
+        "줄거리를 길게 요약한다",
+    ]))
+
+
+def _k9_speech():
+    topic = _topic_for(9, ["화법", "국어"])
+    prompt = "듣는 사람의 마음을 헤아려 공손하게 말하는 화법은?"
+    answer = "경어체"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["해체", "경어체", "비격식체", "방언"]))
+
+
+def _k9_media_literacy():
+    topic = _topic_for(9, ["미디어", "정보"])
+    prompt = "SNS 정보를 공유하기 전에 가장 먼저 확인해야 할 것은?"
+    answer = "정보의 출처와 사실 여부"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "정보의 출처와 사실 여부",
+        "좋아요 수",
+        "친구들의 반응",
+        "업로드 시간",
+    ]))
+
+
+def _k7_summary():
+    topic = _topic_for(7, ["독해", "요약"])
+    prompt = "다음 글의 중심 내용을 고르세요.\n책을 읽으면 다양한 세계를 경험할 수 있다. 독서는 지식을 넓히고 공감 능력을 키워 준다."
+    answer = "독서는 지식과 공감 능력을 키워 준다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "책은 비싸다",
+        "독서는 지식과 공감 능력을 키워 준다",
+        "모든 책을 읽어야 한다",
+        "독서는 재미없는 활동이다",
+    ]))
+
+
+def _k7_word_class():
+    topic = _topic_for(7, ["문법", "품사"])
+    prompt = "'빠르게'의 품사는?"
+    answer = "부사"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["형용사", "부사", "명사", "동사"]))
+
+
+def _k7_sentence_type():
+    topic = _topic_for(7, ["문법", "문장"])
+    prompt = "'오늘 날씨가 참 좋구나!'는 어떤 문장인가요?"
+    answer = "감탄문"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["의문문", "감탄문", "명령문", "청유문"]))
+
+
+def _k8_character2():
+    topic = _topic_for(8, ["소설", "인물"])
+    prompt = "소설 인물의 말과 행동을 통해 알 수 있는 것은?"
+    answer = "인물의 성격과 심리"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "저자의 출신지",
+        "인물의 성격과 심리",
+        "책의 판매 부수",
+        "인쇄한 날짜",
+    ]))
+
+
+def _k8_novel_setting():
+    topic = _topic_for(8, ["소설", "문학 요소"])
+    prompt = "소설에서 인물이 살아가는 시대와 장소를 무엇이라 하나요?"
+    answer = "배경"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["주제", "배경", "서사", "화자"]))
+
+
+def _k8_argument_type():
+    topic = _topic_for(8, ["논술", "주장"])
+    prompt = "상대방의 주장을 부정하는 글을 무엇이라 하나요?"
+    answer = "반론문"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["설명문", "반론문", "서신문", "보고문"]))
+
+
+def _k9_modern_poet():
+    topic = _topic_for(9, ["현대시", "문학"])
+    prompt = "현대 시에서 작가의 감정을 압축하여 나타내는 것은?"
+    answer = "심상"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["리듬", "심상", "운율", "구절"]))
+
+
+def _k9_grammar():
+    topic = _topic_for(9, ["문법", "국어"])
+    prompt = "'책을 읽는 학생'에서 '읽는'의 문법적 기능은?"
+    answer = "관형어"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["주어", "관형어", "부사어", "서술어"]))
+
+
+def _k9_classic_value():
+    topic = _topic_for(9, ["고전", "문학"])
+    prompt = "고전 문학을 읽는 가장 큰 의미는?"
+    answer = "우리의 전통과 정서를 이해할 수 있다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "시험 문제를 맞힐 수 있다",
+        "우리의 전통과 정서를 이해할 수 있다",
+        "최신 유행어를 배울 수 있다",
+        "외국어 실력을 키울 수 있다",
+    ]))
+
 GENERATORS = {
     1: [_k1_consonant_vowel, _k1_word_reading, _k1_opposite, _k1_sentence_punct, _k1_rhyme, _k1_picture_word],
     2: [_k2_similar, _k2_sentence_subject, _k2_sentence_punct, _k2_opposite, _k2_word_order, _k2_spelling],
     3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific, _k3_word_meaning, _k3_idiom, _k3_sentence_part],
     4: [_k4_metaphor, _k4_fact_opinion, _k4_summary, _k4_sentence_part, _k4_cause_effect, _k4_paragraph_topic],
-    5: [_k5_argument, _k5_literary_element, _k5_proverb, _k5_media, _k5_outline, _k5_debate],
-    6: [_k6_character, _k6_compare_contrast, _k6_writing_revision, _k6_argument_claim, _k6_emotion, _k6_topic_sentence],
-    7: [_k7_morpheme, _k7_speaker, _k7_argument_essay],
-    8: [_k8_novel_element, _k8_voice, _k8_debate],
-    9: [_k9_literary_value, _k9_phonological_change, _k9_argument_claim],
+    5: [_k5_argument, _k5_literary_element, _k5_proverb, _k5_media, _k5_outline, _k5_debate, _k5_poem_element, _k5_news_title, _k5_sentence_connect, _k5_audience],
+    6: [_k6_character, _k6_compare_contrast, _k6_writing_revision, _k6_argument_claim, _k6_emotion, _k6_topic_sentence, _k6_theme, _k6_evidence, _k6_purpose, _k6_revision2],
+    7: [_k7_morpheme, _k7_speaker, _k7_argument_essay, _k7_metaphor, _k7_text_type, _k7_classical, _k7_media_bias, _k7_summary, _k7_word_class, _k7_sentence_type],
+    8: [_k8_novel_element, _k8_voice, _k8_debate, _k8_modern_novel, _k8_text_structure, _k8_hangul_history, _k8_debate_ethics, _k8_character2, _k8_novel_setting, _k8_argument_type],
+    9: [_k9_literary_value, _k9_phonological_change, _k9_argument_claim, _k9_modern_poetry, _k9_criticism, _k9_speech, _k9_media_literacy, _k9_modern_poet, _k9_grammar, _k9_classic_value],
 }
 
 
@@ -520,7 +788,20 @@ def _transform_question(prompt, answer, options, topic):
 def generate_korean_set(grade, count=10):
     generators = GENERATORS.get(grade, GENERATORS[9])
     selected = []
-    while len(selected) < count - min(2, len(SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9]))):
+    seen = set()
+    attempts = 0
+    target = count - min(2, len(SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9])))
+    while len(selected) < target and attempts < count * 50:
+        g = random.choice(generators)
+        q = g()
+        # 같은 문항(프롬프트+유형)이 중복되어 출제되지 않도록 관리합니다.
+        key = (q["prompt"], q.get("question_type", "choice"))
+        if key not in seen:
+            seen.add(key)
+            selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
+        attempts += 1
+    # 유일한 문항이 부족하면 기존 문항을 허용하며 채웁니다.
+    while len(selected) < target:
         g = random.choice(generators)
         q = g()
         selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
