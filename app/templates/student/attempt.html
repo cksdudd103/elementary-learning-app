@@ -36,7 +36,7 @@
             <h2>{{ item.prompt }}</h2>
             <p class="hint">문장을 소리 내어 읽으세요.</p>
             <button type="button" class="audio-button" data-recognize data-target="answer-{{ item.id }}">🎙 말하기 시작</button>
-        {% elif attempt.subject == 'english' %}
+        {% elif attempt.subject == 'english' and ' / ' in item.prompt %}
             <h2>낱말을 바르게 배열해 문장을 완성하세요.</h2>
             <p class="word-hint">{{ item.prompt }}</p>
         {% else %}

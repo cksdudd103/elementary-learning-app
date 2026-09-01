@@ -17,7 +17,7 @@ VOCABULARY = {
         ("big", "큰"), ("small", "작은"), ("long", "긴"), ("short", "짧은"),
     ],
     4: [
-        ("classroom", "교실"), ("library", "도서관"), ("gym", "체육관"), ("playground", "울장"),
+        ("classroom", "교실"), ("library", "도서관"), ("gym", "체육관"), ("playground", "운동장"),
         ("homework", "숙제"), ("subject", "과목"), ("science", "과학"), ("music", "음악"),
         ("delicious", "맛있는"), ("beautiful", "아름다운"), ("favorite", "가장 좋아하는"), ("interesting", "흥미로운"),
     ],
@@ -276,6 +276,16 @@ GENERATORS = {
 def generate_english_set(grade, count=10):
     generators = GENERATORS.get(grade, GENERATORS[9])
     questions = []
+    seen = set()
+    attempts = 0
+    while len(questions) < count and attempts < count * 50:
+        g = random.choice(generators)
+        q = g(grade)
+        key = (q["prompt"], q.get("question_type", "write"))
+        if key not in seen:
+            seen.add(key)
+            questions.append(q)
+        attempts += 1
     while len(questions) < count:
         g = random.choice(generators)
         questions.append(g(grade))
@@ -284,7 +294,12 @@ def generate_english_set(grade, count=10):
 
 
 def _choice_options(answer, distractors, shuffle=True):
-    opts = [str(answer)] + [str(d) for d in distractors]
+    answer_str = str(answer)
+    opts = [answer_str]
+    for d in distractors:
+        ds = str(d)
+        if ds != answer_str and ds not in opts:
+            opts.append(ds)
     if shuffle:
         random.shuffle(opts)
     return opts
