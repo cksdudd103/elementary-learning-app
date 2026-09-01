@@ -45,6 +45,8 @@ def register():
             db.session.add(user)
             db.session.flush()
             if role == "parent":
+                linked = 0
+                skipped = 0
                 for index in range(1, 5):
                     child_name = request.form.get(f"child_name_{index}", "").strip()
                     if not child_name:
@@ -55,20 +57,26 @@ def register():
                         child_grade = 1
                     if not 1 <= child_grade <= 9:
                         child_grade = 1
-                    child = User(
-                        username=f"{user.username}_child_{index}",
-                        email=f"{user.email}.child{index}@parent.local",
-                        display_name=child_name,
-                        role="student",
-                        grade_level=child_grade,
-                        ui_language=user.ui_language,
-                        parent_id=user.id,
-                    )
-                    child.set_password(password)
-                    db.session.add(child)
+                    child = User.query.filter(
+                        User.role == "student",
+                        User.display_name == child_name,
+                        User.grade_level == child_grade,
+                        User.parent_id.is_(None),
+                    ).first()
+                    if child:
+                        child.parent_id = user.id
+                        linked += 1
+                    else:
+                        skipped += 1
+                if skipped:
+                    flash(f"{linked}명의 자녀와 연동되었습니다. 일치하는 학생 계정이 없거나 이미 연동된 항목은 제외되었습니다.", "info")
+                elif linked:
+                    flash(f"{linked}명의 자녀와 연동되었습니다.", "success")
             db.session.commit()
             login_user(user)
             flash("회원가입이 완료되었습니다.", "success")
+            if role == "parent" and linked:
+                return redirect(url_for("parent.dashboard"))
             return redirect(url_for("student.dashboard"))
     return render_template("auth/register.html")
 

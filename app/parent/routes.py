@@ -57,7 +57,7 @@ def dashboard():
 @parent_required
 def child_new():
     if len(current_user.children) >= 4:
-        flash("학생은 최대 4명까지 등록할 수 있습니다.", "error")
+        flash("학생은 최대 4명까지 연동할 수 있습니다.", "error")
         return redirect(url_for("parent.dashboard"))
     if request.method == "POST":
         display_name = request.form.get("display_name", "").strip()
@@ -65,77 +65,49 @@ def child_new():
             grade_level = int(request.form.get("grade_level", 1))
         except ValueError:
             grade_level = 1
-        difficulty = request.form.get("difficulty", "medium")
-        if difficulty not in ("low", "medium", "high"):
-            difficulty = "medium"
         if not display_name:
             flash("학생 이름을 입력하세요.", "error")
         elif not 1 <= grade_level <= 9:
             flash("올바른 학년을 선택하세요.", "error")
         else:
-            index = len(current_user.children) + 1
-            child = User(
-                username=f"{current_user.username}_child_{index}",
-                email=f"{current_user.email}.child{index}@parent.local",
-                display_name=display_name,
-                role="student",
-                grade_level=grade_level,
-                ui_language=current_user.ui_language,
-                difficulty=difficulty,
-                parent_id=current_user.id,
-            )
-            child.set_password(current_user.password_hash)
-            db.session.add(child)
-            db.session.commit()
-            flash("학생을 등록했습니다.", "success")
-            return redirect(url_for("parent.dashboard"))
+            child = User.query.filter(
+                User.role == "student",
+                User.display_name == display_name,
+                User.grade_level == grade_level,
+                User.parent_id.is_(None),
+            ).first()
+            if child:
+                child.parent_id = current_user.id
+                db.session.commit()
+                flash("자녀와 연동되었습니다.", "success")
+                return redirect(url_for("parent.dashboard"))
+            flash("일치하는 학생 계정을 찾을 수 없거나 이미 다른 학부모와 연동되어 있습니다.", "error")
     return render_template("parent/child_form.html", child=None)
+
+
+@parent_bp.post("/children/<int:child_id>/unlink")
+@parent_required
+def child_unlink(child_id):
+    child = db.get_or_404(User, child_id)
+    if child.parent_id != current_user.id:
+        abort(403)
+    child.parent_id = None
+    db.session.commit()
+    flash("자녀 연동을 해제했습니다.", "success")
+    return redirect(url_for("parent.dashboard"))
 
 
 @parent_bp.route("/children/<int:child_id>/edit", methods=["GET", "POST"])
 @parent_required
 def child_edit(child_id):
-    child = db.get_or_404(User, child_id)
-    if child.parent_id != current_user.id:
-        abort(403)
-    if request.method == "POST":
-        display_name = request.form.get("display_name", "").strip()
-        try:
-            grade_level = int(request.form.get("grade_level", 1))
-        except ValueError:
-            grade_level = 1
-        try:
-            time_limit_minutes = int(request.form.get("time_limit_minutes", 60))
-        except ValueError:
-            time_limit_minutes = 60
-        time_limit_minutes = max(1, min(180, time_limit_minutes))
-        difficulty = request.form.get("difficulty", "medium")
-        if difficulty not in ("low", "medium", "high"):
-            difficulty = "medium"
-        if not display_name:
-            flash("학생 이름을 입력하세요.", "error")
-        elif not 1 <= grade_level <= 9:
-            flash("올바른 학년을 선택하세요.", "error")
-        else:
-            child.display_name = display_name
-            child.grade_level = grade_level
-            child.time_limit_seconds = time_limit_minutes * 60
-            child.difficulty = difficulty
-            db.session.commit()
-            flash("학생 정보를 수정했습니다.", "success")
-            return redirect(url_for("parent.dashboard"))
-    return render_template("parent/child_form.html", child=child)
+    flash("학년은 학생 계정의 가입 정보에 따라 자동으로 관리됩니다.", "info")
+    return redirect(url_for("parent.dashboard"))
 
 
 @parent_bp.post("/children/<int:child_id>/delete")
 @parent_required
 def child_delete(child_id):
-    child = db.get_or_404(User, child_id)
-    if child.parent_id != current_user.id:
-        abort(403)
-    db.session.delete(child)
-    db.session.commit()
-    flash("학생을 삭제했습니다.", "success")
+    flash("학생 계정 삭제는 학생 본인이 회원 탈퇴 메뉴에서 진행할 수 있습니다.", "info")
     return redirect(url_for("parent.dashboard"))
 
 

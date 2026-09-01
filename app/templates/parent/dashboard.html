@@ -1,33 +1,69 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="page-heading"><span class="eyebrow">학부모 홈</span><h1>{{ current_user.display_name }}님의 자녀 학습 현황</h1><p>자녀별 학습 기록과 학년을 관리할 수 있습니다.</p></section>
+<section class="page-heading"><span class="eyebrow">학부모 홈</span><h1>{{ current_user.display_name }}님의 자녀 학습 현황</h1><p>자녀별 학습 기록을 확인하고 연동을 관리할 수 있습니다.</p></section>
 
-<section class="stats-grid four"><article><span>자녀 수</span><strong>{{ children|length }}명</strong></article><article><span>총 학습</span><strong>{{ stats.count }}회</strong></article><article><span>평균 점수</span><strong>{{ stats.average }}점</strong></article><article><span>최고 점수</span><strong>{{ stats.best }}점</strong></article></section>
+<section class="stats-grid four">
+    <article><span>자녀 수</span><strong>{{ children|length }}명</strong></article>
+    <article><span>총 학습</span><strong>{{ stats.count }}회</strong></article>
+    <article><span>평균 점수</span><strong>{{ stats.average }}점</strong></article>
+    <article><span>최고 점수</span><strong>{{ stats.best }}점</strong></article>
+</section>
 
 <div class="admin-actions">
-    {% if children|length < 4 %}<a class="button primary" href="{{ url_for('parent.child_new') }}">+ 자녀 등록</a>{% endif %}
-    <span class="muted">최대 4명까지 등록할 수 있습니다.</span>
+    {% if children|length < 4 %}
+    <a class="button primary" href="{{ url_for('parent.child_new') }}">+ 자녀 연동</a>
+    {% endif %}
+    <span class="muted">최대 4명까지 연동할 수 있습니다. 학생 계정의 이름과 학년이 일치해야 합니다.</span>
 </div>
 
 <section class="panel">
     <div class="section-head"><h2>자녀 목록</h2></div>
-    <div class="table-wrap"><table><thead><tr><th>이름</th><th>학년</th><th>완료 시험</th><th>관리</th></tr></thead><tbody>
-    {% for child in children %}
-    <tr><td><a href="{{ url_for('parent.child_detail', child_id=child.id) }}"><strong>{{ child.display_name }}</strong></a></td><td>{{ grade_name(child.grade_level) }}</td><td>{{ child.attempts|selectattr('completed_at')|list|length }}회</td><td><div class="row-actions"><a href="{{ url_for('parent.child_edit', child_id=child.id) }}">수정</a><form method="post" action="{{ url_for('parent.child_delete', child_id=child.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">삭제</button></form></div></td></tr>
-    {% else %}
-    <tr><td colspan="4" class="empty">등록된 자녀가 없습니다.</td></tr>
-    {% endfor %}
-    </tbody></table></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>이름</th><th>학년</th><th>완료 시험</th><th>관리</th></tr></thead>
+            <tbody>
+            {% for child in children %}
+            <tr>
+                <td><a href="{{ url_for('parent.child_detail', child_id=child.id) }}"><strong>{{ child.display_name }}</strong></a></td>
+                <td>{{ grade_name(child.grade_level) }}</td>
+                <td>{{ child.attempts|selectattr('completed_at')|list|length }}회</td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{{ url_for('parent.child_detail', child_id=child.id) }}">상세</a>
+                        <form method="post" action="{{ url_for('parent.child_unlink', child_id=child.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit">연동 해제</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="empty">등록된 자녀가 없습니다. 상단의 "자녀 연동" 버튼을 눌러 학생 계정을 연결하세요.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 
 <section class="panel">
     <div class="section-head"><h2>최근 학습 기록</h2></div>
-    <div class="table-wrap"><table><thead><tr><th>자녀</th><th>과목</th><th>학년</th><th>점수</th><th>완료</th></tr></thead><tbody>
-    {% for attempt in attempts %}
-    <tr><td>{{ attempt.user.display_name }}</td><td>{{ subject_name(attempt.subject) }}</td><td>{{ grade_name(attempt.grade_level) }}</td><td><strong>{{ attempt.score }}점</strong></td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
-    {% else %}
-    <tr><td colspan="5" class="empty">학습 기록이 없습니다.</td></tr>
-    {% endfor %}
-    </tbody></table></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>자녀</th><th>과목</th><th>학년</th><th>점수</th><th>완료</th></tr></thead>
+            <tbody>
+            {% for attempt in attempts %}
+            <tr>
+                <td>{{ attempt.user.display_name }}</td>
+                <td>{{ subject_name(attempt.subject) }}</td>
+                <td>{{ grade_name(attempt.grade_level) }}</td>
+                <td><strong>{{ attempt.score }}점</strong></td>
+                <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="empty">학습 기록이 없습니다.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 {% endblock %}
