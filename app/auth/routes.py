@@ -81,6 +81,8 @@ def login():
         identity = request.form.get("identity", "").strip()
         user = User.query.filter(or_(User.username == identity, User.email == identity.lower())).first()
         if user and user.check_password(request.form.get("password", "")):
+            if user.update_grade_annually():
+                db.session.commit()
             login_user(user, remember=bool(request.form.get("remember")))
             return redirect(url_for("student.dashboard"))
         flash("아이디 또는 비밀번호를 확인하세요.", "error")

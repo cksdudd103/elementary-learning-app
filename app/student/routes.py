@@ -19,6 +19,7 @@ from ..services.math_generator import generate_math_set
 from ..services.math_review import generate_math_review
 from ..services.social_generator import generate_social_set
 from ..services.social_review import generate_social_review
+from .. import grade_name
 
 student_bp = Blueprint("student", __name__, url_prefix="/learn")
 
@@ -26,6 +27,9 @@ student_bp = Blueprint("student", __name__, url_prefix="/learn")
 @student_bp.route("/")
 @login_required
 def dashboard():
+    if current_user.update_grade_annually():
+        db.session.commit()
+        flash(f"학년이 {grade_name(current_user.grade_level)}(으)로 자동 업데이트되었습니다.", "success")
     completed = Attempt.query.filter_by(user_id=current_user.id).filter(Attempt.completed_at.isnot(None))
     recent_attempts = completed.order_by(Attempt.completed_at.desc()).limit(6).all()
     stats = {
@@ -39,14 +43,7 @@ def dashboard():
 @student_bp.post("/settings")
 @login_required
 def settings():
-    try:
-        grade_level = int(request.form.get("grade_level", current_user.grade_level))
-    except ValueError:
-        grade_level = current_user.grade_level
-    if 1 <= grade_level <= 9:
-        current_user.grade_level = grade_level
-        db.session.commit()
-        flash("학년 설정을 저장했습니다.", "success")
+    flash("학년은 가입 시 선택한 값에 따라 자동으로 관리됩니다.", "info")
     return redirect(url_for("student.dashboard"))
 
 

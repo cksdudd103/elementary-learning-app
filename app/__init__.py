@@ -67,8 +67,24 @@ def create_app(config_class=Config):
         _ensure_user_difficulty_column()
         _ensure_user_reset_token_column()
         _ensure_user_reset_token_expires_column()
+        _ensure_user_grade_updated_at_column()
 
     return app
+
+
+def _ensure_user_grade_updated_at_column():
+    """User 테이블에 grade_updated_at 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    is_postgres = db.engine.dialect.name == "postgresql"
+    ts_type = "TIMESTAMP WITH TIME ZONE" if is_postgres else "TIMESTAMP"
+    try:
+        db.session.execute(text("SELECT grade_updated_at FROM \"user\" LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text(f"ALTER TABLE \"user\" ADD COLUMN grade_updated_at {ts_type} NOT NULL DEFAULT CURRENT_TIMESTAMP")
+        )
+        db.session.commit()
 
 
 def _ensure_user_reset_token_column():

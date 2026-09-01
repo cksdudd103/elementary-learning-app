@@ -19,6 +19,7 @@ class User(UserMixin, db.Model):
     display_name = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="student")
     grade_level = db.Column(db.Integer, nullable=False, default=1)
+    grade_updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
     ui_language = db.Column(db.String(2), nullable=False, default="ko")
     time_limit_seconds = db.Column(db.Integer, nullable=False, default=3600)
     difficulty = db.Column(db.String(10), nullable=False, default="medium")
@@ -40,6 +41,19 @@ class User(UserMixin, db.Model):
     @property
     def is_parent(self):
         return self.role == "parent"
+
+    def update_grade_annually(self):
+        """가입일 기준 1년이 지날 때마다 학년을 1씩 올립니다 (최대 9학년)."""
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        last = self.grade_updated_at or self.created_at or now
+        years_passed = (now - last).days // 365
+        if years_passed >= 1 and self.grade_level < 9:
+            new_grade = min(9, self.grade_level + years_passed)
+            self.grade_level = new_grade
+            self.grade_updated_at = now
+            return True
+        return False
 
 
 class Question(db.Model):
