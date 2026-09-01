@@ -54,7 +54,7 @@ def _distractors(answer, count=3, min_val=None, max_val=None, step=1, exclude=No
             val = answer + sign * delta * step
             if str(val) not in exclude and (min_val is None or val >= min_val) and (max_val is None or val <= max_val):
                 candidates.add(val)
-    return list(candidates)[:count]
+    return [str(v) for v in list(candidates)[:count]]
 
 
 def _arithmetic_choices(answer, count=4, span=10):

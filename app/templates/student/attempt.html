@@ -44,7 +44,7 @@
         {% if item.options %}
         <div class="options">
             {% for option in item.options %}
-            {% if option.startswith('IMG|') %}
+            {% if option is string and option.startswith('IMG|') %}
             {% set parts = option.split('|') %}
             <label class="image-option">
                 <input type="radio" name="answer_{{ item.id }}" value="{{ parts[2] }}">
