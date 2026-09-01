@@ -1,9 +1,9 @@
-import urllib.parse
+import base64
 
 
 def _svg_data_uri(svg_body):
-    encoded = urllib.parse.quote(svg_body)
-    return f"data:image/svg+xml;charset=utf-8,{encoded}"
+    encoded = base64.b64encode(svg_body.encode("utf-8")).decode("ascii")
+    return f"data:image/svg+xml;base64,{encoded}"
 
 
 def placeholder_image(text, color="#4a7c59", bg="#eef5f0", width=120, height=120):
