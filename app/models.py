@@ -20,6 +20,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False, default="student")
     grade_level = db.Column(db.Integer, nullable=False, default=1)
     ui_language = db.Column(db.String(2), nullable=False, default="ko")
+    time_limit_seconds = db.Column(db.Integer, nullable=False, default=3600)
     parent_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True, index=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
 

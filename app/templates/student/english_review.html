@@ -7,6 +7,12 @@
 </section>
 
 <section class="panel">
+    <div class="section-head"><h2>문장 · 단어 암기</h2></div>
+    <p class="muted">체크리스트로 문장과 단어를 외우고, 완료하면 받아쓰기에 도전하세요.</p>
+    <a class="button secondary" href="{{ url_for('student.english_memorize') }}">암기 페이지로 →</a>
+</section>
+
+<section class="panel">
     <div class="section-head"><h2>오늘의 단어장 (10개)</h2></div>
     <form method="post" action="{{ url_for('student.english_word_check') }}" class="vocab-list" data-vocab-form>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

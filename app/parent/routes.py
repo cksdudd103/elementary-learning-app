@@ -100,6 +100,11 @@ def child_edit(child_id):
             grade_level = int(request.form.get("grade_level", 1))
         except ValueError:
             grade_level = 1
+        try:
+            time_limit_minutes = int(request.form.get("time_limit_minutes", 60))
+        except ValueError:
+            time_limit_minutes = 60
+        time_limit_minutes = max(1, min(180, time_limit_minutes))
         if not display_name:
             flash("학생 이름을 입력하세요.", "error")
         elif not 1 <= grade_level <= 9:
@@ -107,6 +112,7 @@ def child_edit(child_id):
         else:
             child.display_name = display_name
             child.grade_level = grade_level
+            child.time_limit_seconds = time_limit_minutes * 60
             db.session.commit()
             flash("학생 정보를 수정했습니다.", "success")
             return redirect(url_for("parent.dashboard"))

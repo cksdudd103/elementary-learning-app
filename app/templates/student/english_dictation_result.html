@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">영어 받아쓰기 결과</span>
+    <h1>{{ score }}점</h1>
+    <p>틀린 부분을 확인하고 다시 도전해 보세요.</p>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>내 답안</h2></div>
+    <div class="result-list">
+        {% for answer, correct in items %}
+        <article class="result-item {{ 'correct' if answer|trim == correct|trim else 'wrong' }}">
+            <div class="result-icon">{{ 'O' if answer|trim == correct|trim else 'X' }}</div>
+            <div>
+                <h3>정답: {{ correct }}</h3>
+                <p>내 답: {{ answer or '(미입력)' }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<div class="center-actions">
+    <a class="button primary" href="{{ url_for('student.english_dictation') }}">다시 받아쓰기</a>
+    <a class="button secondary" href="{{ url_for('student.english_memorize') }}">암기 페이지로</a>
+</div>
+{% endblock %}

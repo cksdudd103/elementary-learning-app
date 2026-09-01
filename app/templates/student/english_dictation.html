@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">{{ grade_name(grade) }} 영어</span>
+    <h1>긴 문장 받아쓰기</h1>
+    <p>🔊 버튼을 눌러 문장을 듣고, 아래 칸에 정확히 적은 뒤 제출하세요.</p>
+</section>
+
+<form method="post" class="quiz-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for sentence in long_sentences %}
+    <article class="question-card">
+        <div class="question-meta">
+            <span class="question-number">{{ loop.index }}</span>
+            <span>받아쓰기</span>
+        </div>
+        <button type="button" class="audio-button" data-speak="{{ sentence }}">🔊 문장 듣기</button>
+        <input type="hidden" name="correct" value="{{ sentence }}">
+        <input class="answer-input" name="answer" placeholder="들은 문장을 그대로 적으세요" autocomplete="off">
+    </article>
+    {% endfor %}
+    <div class="submit-panel">
+        <p>제출하면 채점 결과를 확인할 수 있습니다.</p>
+        <button class="button primary" type="submit">제출하고 채점하기</button>
+    </div>
+</form>
+
+<section class="panel">
+    <div class="section-head"><h2>복습 문장</h2></div>
+    <ul class="memorize-list">
+        {% for sentence in sentences %}
+        <li class="memorize-item">
+            <span>{{ sentence }}</span>
+            <button type="button" class="audio-button small" data-speak="{{ sentence }}">🔊</button>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

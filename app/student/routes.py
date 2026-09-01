@@ -8,7 +8,7 @@ from sqlalchemy import func
 
 from ..extensions import db
 from ..models import Attempt, AttemptItem, Question, CurriculumUnit
-from ..services.english_generator import SENTENCES, generate_english_set
+from ..services.english_generator import SENTENCES, VOCABULARY, generate_english_set
 from ..services.english_review import generate_conversation_review, generate_word_set
 from ..services.grading import grade_answer
 from ..services.korean_generator import generate_korean_set
@@ -78,7 +78,7 @@ def select_questions(subject, grade, count=10):
 def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
     grade = current_user.grade_level
     count = count or 10
-    time_limit = time_limit or 3600
+    time_limit = time_limit or current_user.time_limit_seconds or 3600
     attempt = Attempt(
         user_id=current_user.id,
         subject=subject,
@@ -321,3 +321,55 @@ def wrong_answers():
         .all()
     )
     return render_template("student/wrong_answers.html", items=items)
+
+
+@student_bp.route("/english/memorize")
+@login_required
+def english_memorize():
+    grade = current_user.grade_level
+    sentences = SENTENCES.get(grade, SENTENCES[9])
+    words = [word for word, _ in VOCABULARY.get(grade, VOCABULARY[9])]
+    return render_template(
+        "student/english_memorize.html",
+        sentences=sentences,
+        words=words,
+        grade=grade,
+    )
+
+
+@student_bp.route("/english/dictation", methods=["GET", "POST"])
+@login_required
+def english_dictation():
+    grade = current_user.grade_level
+    if request.method == "POST":
+        answers = request.form.getlist("answer")
+        correct = request.form.getlist("correct")
+        score = 0
+        for ans, cor in zip(answers, correct):
+            if grade_answer(ans.strip(), cor, "write", grade, max_points=10) >= 7:
+                score += 1
+        total = len(correct) if correct else 1
+        return render_template(
+            "student/english_dictation_result.html",
+            score=round(score / total * 100),
+            items=list(zip(answers, correct)),
+        )
+
+    sentences = SENTENCES.get(grade, SENTENCES[9])
+    words = [word for word, _ in VOCABULARY.get(grade, VOCABULARY[9])]
+    # 긴 문장 5개 생성: 기존 문장 2~3개를 이어붙임
+    import random
+
+    long_sentences = []
+    seeds = list(sentences)
+    random.shuffle(seeds)
+    for i in range(5):
+        parts = random.sample(seeds, min(3, len(seeds)))
+        long = " ".join(parts)
+        long_sentences.append(long)
+    return render_template(
+        "student/english_dictation.html",
+        sentences=sentences,
+        words=words,
+        long_sentences=long_sentences,
+    )

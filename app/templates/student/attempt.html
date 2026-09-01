@@ -15,6 +15,7 @@
         <span data-time-left>--:--:--</span>
     </div>
 </section>
+<div class="attempt-layout{% if attempt.subject == 'math' %} with-notepad{% endif %}">
 <form method="post" class="quiz-form" data-quiz data-auto-submit>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="auto_submit" value="0" data-auto-submit-flag>
@@ -68,4 +69,35 @@
         <button class="button primary" type="submit">제출하고 채점하기</button>
     </div>
 </form>
+{% if attempt.subject == 'math' %}
+<aside class="math-notepad" data-math-notepad>
+    <div class="notepad-head">
+        <strong>📝 풀이 메모장</strong>
+        <button type="button" class="button small secondary" data-clear-notepad>지우기</button>
+    </div>
+    <textarea placeholder="여기에 계산 과정이나 메모를 자유롭게 적으세요. 페이지를 새로고침해도 남아 있습니다."></textarea>
+</aside>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var notepad = document.querySelector('[data-math-notepad] textarea');
+    if (!notepad) return;
+    var key = 'math-notepad-' + location.pathname;
+    var saved = localStorage.getItem(key);
+    if (saved) notepad.value = saved;
+    notepad.addEventListener('input', function() {
+        localStorage.setItem(key, notepad.value);
+    });
+    document.querySelector('[data-clear-notepad]')?.addEventListener('click', function() {
+        if (confirm('메모장을 비우시겠어요?')) {
+            notepad.value = '';
+            localStorage.removeItem(key);
+        }
+    });
+})();
+</script>
 {% endblock %}
