@@ -335,21 +335,17 @@ def wrong_answers():
 @student_bp.route("/english/memorize")
 @login_required
 def english_memorize():
-    try:
-        grade = current_user.grade_level
-        sentences = SENTENCES.get(grade, SENTENCES[9])
-        words = VOCABULARY.get(grade, VOCABULARY[9])
-        word_images = {word: placeholder_image(word, width=100, height=100) for word, _ in words}
-        return render_template(
-            "student/english_memorize.html",
-            sentences=sentences,
-            words=words,
-            word_images=word_images,
-            grade=grade,
-        )
-    except Exception as e:
-        import traceback
-        return f"<pre>{traceback.format_exc()}</pre>", 500
+    grade = current_user.grade_level
+    sentences = SENTENCES.get(grade, SENTENCES[9])
+    words = VOCABULARY.get(grade, VOCABULARY[9])
+    word_images = {word: placeholder_image(word, width=100, height=100) for word, _ in words}
+    return render_template(
+        "student/english_memorize.html",
+        sentences=sentences,
+        words=words,
+        word_images=word_images,
+        grade=grade,
+    )
 
 
 @student_bp.route("/english/dictation", methods=["GET", "POST"])

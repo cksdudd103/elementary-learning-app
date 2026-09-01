@@ -25,7 +25,7 @@ def placeholder_image(text, color="#4a7c59", bg="#eef5f0", width=120, height=120
         for i, line in enumerate(lines)
     )
     svg = (
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}"'>
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">'
         f'<rect width="{width}" height="{height}" rx="16" fill="{bg}"/>'
         f'{text_elements}'
         f'</svg>'
