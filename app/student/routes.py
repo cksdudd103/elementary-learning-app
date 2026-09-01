@@ -174,7 +174,7 @@ def english_review():
         "student/english_review.html",
         words=generate_word_set(grade),
         conversations=generate_conversation_review(grade),
-        sentences=random.sample(SENTENCES[grade], min(10, len(SENTENCES[grade]))),
+        sentences=[s for s, _ in random.sample(SENTENCES[grade], min(10, len(SENTENCES[grade])))],
         units=units,
     )
 
@@ -328,7 +328,7 @@ def wrong_answers():
 def english_memorize():
     grade = current_user.grade_level
     sentences = SENTENCES.get(grade, SENTENCES[9])
-    words = [word for word, _ in VOCABULARY.get(grade, VOCABULARY[9])]
+    words = VOCABULARY.get(grade, VOCABULARY[9])
     return render_template(
         "student/english_memorize.html",
         sentences=sentences,
@@ -355,8 +355,8 @@ def english_dictation():
             items=list(zip(answers, correct)),
         )
 
-    sentences = SENTENCES.get(grade, SENTENCES[9])
-    words = [word for word, _ in VOCABULARY.get(grade, VOCABULARY[9])]
+    sentences = [s for s, _ in SENTENCES.get(grade, SENTENCES[9])]
+    words = [w for w, _ in VOCABULARY.get(grade, VOCABULARY[9])]
     # 긴 문장 5개 생성: 기존 문장 2~3개를 이어붙임
     import random
 

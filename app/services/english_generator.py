@@ -35,33 +35,95 @@ VOCABULARY = {
 }
 
 SENTENCES = {
-    1: ["I am happy.", "This is a cat.", "I like apples.", "It is red.", "Good morning.", "Thank you.", "I can run.", "Open the book.", "I see a dog.", "We are friends."],
-    2: ["I have a pencil.", "The sun is bright.", "She is my sister.", "He likes soccer.", "We go to school.", "Can you swim?", "This bag is blue.", "I eat breakfast.", "The bird can fly.", "Today is Monday."],
+    1: [
+        ("I am happy.", "나는 행복해요."),
+        ("This is a cat.", "이것은 고양이예요."),
+        ("I like apples.", "나는 사과를 좋아해요."),
+        ("It is red.", "그것은 빨간색이에요."),
+        ("Good morning.", "좋은 아침이에요."),
+        ("Thank you.", "감사해요."),
+        ("I can run.", "나는 뛸 수 있어요."),
+        ("Open the book.", "책을 펼쳐요."),
+        ("I see a dog.", "나는 개를 봐요."),
+        ("We are friends.", "우리는 친구예요."),
+    ],
+    2: [
+        ("I have a pencil.", "나는 연필을 가지고 있어요."),
+        ("The sun is bright.", "태양이 밝아요."),
+        ("She is my sister.", "그녀는 내 여자 형제예요."),
+        ("He likes soccer.", "그는 축구를 좋아해요."),
+        ("We go to school.", "우리는 학교에 가요."),
+        ("Can you swim?", "너는 수영할 수 있니?"),
+        ("This bag is blue.", "이 가방은 파란색이에요."),
+        ("I eat breakfast.", "나는 아침을 먹어요."),
+        ("The bird can fly.", "새는 날 수 있어요."),
+        ("Today is Monday.", "오늘은 월요일이에요."),
+    ],
     3: [
-        "I go to school every day.", "She has a red bag.", "They are my friends.", "Can I use your pen?",
-        "This is my classroom.", "I like my teacher.", "We play in the playground.", "The desk is clean.",
-        "It is a sunny day.", "He sits on the chair.",
+        ("I go to school every day.", "나는 매일 학교에 가요."),
+        ("She has a red bag.", "그녀는 빨간 가방을 가지고 있어요."),
+        ("They are my friends.", "그들은 내 친구들이에요."),
+        ("Can I use your pen?", "네 펜을 써도 될까요?"),
+        ("This is my classroom.", "이것은 내 교실이에요."),
+        ("I like my teacher.", "나는 우리 선생님을 좋아해요."),
+        ("We play in the playground.", "우리는 울장에서 놀아요."),
+        ("The desk is clean.", "책상이 깨끗해요."),
+        ("It is a sunny day.", "오늘은 맑은 날이에요."),
+        ("He sits on the chair.", "그는 의자에 앉아요."),
     ],
     4: [
-        "I usually get up at seven.", "My favorite subject is science.", "How much is this notebook?",
-        "We visited the museum yesterday.", "He is reading a funny story.", "Would you like some juice?",
-        "The library is next to the bank.", "I want to be a doctor.", "She walks to school every morning.",
-        "What did you do last weekend?",
+        ("I usually get up at seven.", "나는 보통 일곱 시에 일어나요."),
+        ("My favorite subject is science.", "내가 가장 좋아하는 과목은 과학이에요."),
+        ("How much is this notebook?", "이 공책은 얼마예요?"),
+        ("We visited the museum yesterday.", "우리는 어제 박물관에 방문했어요."),
+        ("He is reading a funny story.", "그는 재미있는 이야기를 읽고 있어요."),
+        ("Would you like some juice?", "주스를 좀 드릴까요?"),
+        ("The library is next to the bank.", "도서관은 은행 옆에 있어요."),
+        ("I want to be a doctor.", "나는 의사가 되고 싶어요."),
+        ("She walks to school every morning.", "그녀는 매일 아침 학교에 걸어가요."),
+        ("What did you do last weekend?", "지난 주말에 뭐 했어요?"),
     ],
     5: [
-        "I have to finish my homework.", "She was watching television then.", "Could you open the window, please?",
-        "I am going to visit my grandparents.", "How often do you exercise?", "If it rains, we will stay home.",
-        "Walking is good for your health.", "He wants to become a famous singer.",
+        ("I have to finish my homework.", "나는 숙제를 끝내야 해요."),
+        ("She was watching television then.", "그녀는 그때 TV를 보고 있었어요."),
+        ("Could you open the window, please?", "창문을 좀 열어 주시겠어요?"),
+        ("I am going to visit my grandparents.", "나는 조부모님을 뵈러 갈 거예요."),
+        ("How often do you exercise?", "얼마나 자주 울동해요?"),
+        ("If it rains, we will stay home.", "비가 오면 우리는 집에 있을 거예요."),
+        ("Walking is good for your health.", "걷기는 건강에 좋아요."),
+        ("He wants to become a famous singer.", "그는 유명한 가수가 되고 싶어해요."),
     ],
     6: [
-        "You should drink enough water every day.", "The festival will be held next Saturday.", "I was surprised to hear the news.",
-        "Have you ever traveled to another country?", "She practices the piano to become a musician.",
-        "We need to protect animals in danger.", "Although he was tired, he kept studying.",
-        "The book was written by a young author.",
+        ("You should drink enough water every day.", "너는 매일 충분한 물을 마셔야 해요."),
+        ("The festival will be held next Saturday.", "축제는 다음 주 토요일에 열릴 거예요."),
+        ("I was surprised to hear the news.", "그 소식을 듣고 놀랐어요."),
+        ("Have you ever traveled to another country?", "다른 나라에 가 본 적이 있어요?"),
+        ("She practices the piano to become a musician.", "그녀는 음악가가 되기 위해 피아노를 연습해요."),
+        ("We need to protect animals in danger.", "우리는 위험에 처한 동물들을 보호해야 해요."),
+        ("Although he was tired, he kept studying.", "그는 피곤했지만 계속 공부했어요."),
+        ("The book was written by a young author.", "그 책은 젊은 작가에 의해 쓰였어요."),
     ],
-    7: ["I have been interested in science since childhood.", "You must wear a helmet while riding a bicycle.", "The girl who is singing on stage is my cousin.", "If you study regularly, you will improve quickly.", "Learning another language takes time and patience."],
-    8: ["The project was completed earlier than we expected.", "I look forward to meeting students from other countries.", "The man standing by the gate is our new teacher.", "Unless you hurry, you will miss the last bus.", "She has studied English for more than five years."],
-    9: ["If I had more time, I would learn another language.", "The scientist whose work won the prize thanked her team.", "Having finished the assignment, he went out for a walk.", "It is important that everyone respect different opinions.", "Despite being nervous, she delivered an excellent speech."],
+    7: [
+        ("I have been interested in science since childhood.", "나는 어렸을 때부터 과학에 관심이 있었어요."),
+        ("You must wear a helmet while riding a bicycle.", "자전거를 탈 때는 헬멧을 써야 해요."),
+        ("The girl who is singing on stage is my cousin.", "묵대에서 노래하는 소녀는 내 사촌이에요."),
+        ("If you study regularly, you will improve quickly.", "규칙적으로 공부하면 빨리 늘 거예요."),
+        ("Learning another language takes time and patience.", "다른 언어를 배우는 것은 시간과 인내심이 필요해요."),
+    ],
+    8: [
+        ("The project was completed earlier than we expected.", "그 프로젝트는 우리가 예상했던 것보다 일찍 완료되었어요."),
+        ("I look forward to meeting students from other countries.", "다른 나라 학생들을 만나게 되어 기대돼요."),
+        ("The man standing by the gate is our new teacher.", "문 옆에 서 있는 남자는 우리의 새 선생님이에요."),
+        ("Unless you hurry, you will miss the last bus.", "서두르지 않으면 마지막 버스를 놓칠 거예요."),
+        ("She has studied English for more than five years.", "그녀는 영어를 5년 넘게 공부했어요."),
+    ],
+    9: [
+        ("If I had more time, I would learn another language.", "시간이 더 있으면 다른 언어를 배울 텐데요."),
+        ("The scientist whose work won the prize thanked her team.", "상을 받은 연구를 한 과학자는 그녀의 팀에 감사했어요."),
+        ("Having finished the assignment, he went out for a walk.", "과제를 끝낸 후 그는 산책하러 나갔어요."),
+        ("It is important that everyone respect different opinions.", "모두가 다른 의견을 존중하는 것이 중요해요."),
+        ("Despite being nervous, she delivered an excellent speech.", "긴장했음에도 불구하고 그녀는 훌륭한 연설을 했어요."),
+    ],
 }
 
 
@@ -117,13 +179,13 @@ def _e_word_scramble(grade):
 
 def _e_sentence_scramble(grade):
     topic = _topic_for(grade, ["문장 만들기"])
-    sentence = random.choice(SENTENCES[grade])
+    sentence, meaning = random.choice(SENTENCES[grade])
     words = re.findall(r"[A-Za-z']+", sentence)
     shuffled = words[:]
     while shuffled == words and len(words) > 1:
         random.shuffle(shuffled)
     prompt = " / ".join(shuffled)
-    return _make(prompt, sentence, topic)
+    return _make(prompt, sentence, topic, explanation=f"뜻: {meaning}")
 
 
 def _e_blank_sentence(grade):
@@ -191,21 +253,9 @@ def _e_tense_question(grade):
 
 def _e_translation(grade):
     topic = _topic_for(grade, ["쓰기", "번역"])
-    sentence = random.choice(SENTENCES[grade])
-    translations = {
-        "I go to school every day.": "나는 매일 학교에 간다.",
-        "She has a red bag.": "그녀는 빨간 가방을 가지고 있다.",
-        "They are my friends.": "그들은 내 친구들이다.",
-        "I usually get up at seven.": "나는 보통 일곱 시에 일어난다.",
-        "He is reading a funny story.": "그는 재미있는 이야기를 읽고 있다.",
-        "I have to finish my homework.": "나는 숙제를 끝내야 한다.",
-        "She was watching television then.": "그녀는 그때 TV를 보고 있었다.",
-        "You should drink enough water every day.": "너는 매일 충분한 물을 마셔야 한다.",
-        "The festival will be held next Saturday.": "축제는 다음 주 토요일에 열릴 것이다.",
-    }
-    meaning = translations.get(sentence, "(한국어 뜻)")
+    sentence, meaning = random.choice(SENTENCES[grade])
     prompt = f"다음 한국어 문장을 영어로 쓰세요.\n'{meaning}'"
-    return _make(prompt, sentence, topic)
+    return _make(prompt, sentence, topic, explanation=f"해석: {meaning}")
 
 
 GENERATORS = {

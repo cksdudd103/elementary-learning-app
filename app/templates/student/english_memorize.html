@@ -8,15 +8,18 @@
 
 <section class="panel">
     <div class="section-head">
-        <h2>문장 (<span data-sentence-count>0</span>/{{ sentences|length }} 외움)</h2>
+        <h2>📖 문장 암기 (<span data-sentence-count>0</span>/{{ sentences|length }} 외움)</h2>
         <label class="check-row"><input type="checkbox" data-check-all-sentences> 전체 선택/해제</label>
     </div>
     <ul class="memorize-list" data-memorize-sentences>
-        {% for sentence in sentences %}
-        <li class="memorize-item">
+        {% for sentence, meaning in sentences %}
+        <li class="memorize-item memorize-sentence">
             <label class="check-row">
                 <input type="checkbox" data-memorize value="sentence-{{ loop.index0 }}">
-                <span>{{ sentence }}</span>
+                <span>
+                    <strong>{{ sentence }}</strong>
+                    <br><span class="memo-meaning">{{ meaning }}</span>
+                </span>
             </label>
             <button type="button" class="audio-button small" data-speak="{{ sentence }}">🔊 듣기</button>
         </li>
@@ -26,15 +29,18 @@
 
 <section class="panel">
     <div class="section-head">
-        <h2>단어 (<span data-word-count>0</span>/{{ words|length }} 외움)</h2>
+        <h2>🔤 단어 암기 (<span data-word-count>0</span>/{{ words|length }} 외움)</h2>
         <label class="check-row"><input type="checkbox" data-check-all-words> 전체 선택/해제</label>
     </div>
     <ul class="memorize-list word-list" data-memorize-words>
-        {% for word in words %}
-        <li class="memorize-item">
+        {% for word, meaning in words %}
+        <li class="memorize-item memorize-word">
             <label class="check-row">
                 <input type="checkbox" data-memorize value="word-{{ loop.index0 }}">
-                <span>{{ word }}</span>
+                <span>
+                    <strong>{{ word }}</strong>
+                    <br><span class="memo-meaning">{{ meaning }}</span>
+                </span>
             </label>
             <button type="button" class="audio-button small" data-speak="{{ word }}">🔊 듣기</button>
         </li>
