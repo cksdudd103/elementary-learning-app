@@ -62,8 +62,22 @@ def create_app(config_class=Config):
 
     with app.app_context():
         db.create_all()
+        _ensure_user_time_limit_column()
 
     return app
+
+
+def _ensure_user_time_limit_column():
+    """User 테이블에 time_limit_seconds 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT time_limit_seconds FROM \"user\" LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE \"user\" ADD COLUMN time_limit_seconds INTEGER NOT NULL DEFAULT 3600")
+        )
+        db.session.commit()
 
 
 def grade_name(grade):
