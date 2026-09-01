@@ -25,7 +25,12 @@ def make(
 
 
 def _choice_options(answer, distractors, shuffle=True):
-    opts = [str(answer)] + [str(d) for d in distractors]
+    answer_str = str(answer)
+    opts = [answer_str]
+    for d in distractors:
+        ds = str(d)
+        if ds != answer_str and ds not in opts:
+            opts.append(ds)
     if shuffle:
         random.shuffle(opts)
     return opts
@@ -54,7 +59,7 @@ def _distractors(answer, count=3, min_val=None, max_val=None, step=1, exclude=No
             val = answer + sign * delta * step
             if str(val) not in exclude and (min_val is None or val >= min_val) and (max_val is None or val <= max_val):
                 candidates.add(val)
-    return [str(v) for v in list(candidates)[:count]]
+    return list(dict.fromkeys([str(v) for v in candidates]))[:count]
 
 
 def _arithmetic_choices(answer, count=4, span=10):
@@ -67,7 +72,9 @@ def _arithmetic_choices(answer, count=4, span=10):
         for v in (answer + d, answer - d):
             if v >= 0:
                 opts.add(v)
-    opts = list(opts)[:count]
+    # 정답은 반드시 포함되도록 앞에 배치한 뒤 섞습니다.
+    others = [o for o in opts if o != answer]
+    opts = [answer] + random.sample(others, min(count - 1, len(others)))
     random.shuffle(opts)
     return [str(o) for o in opts]
 
@@ -138,7 +145,7 @@ def _g2_addition_no_carry():
     answer = a + b
     topic = _topic_for(2, ["수와 연산", "덧셈"])
     prompt = f"{a} + {b} = ?"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, min_val=10, max_val=99, step=10))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, min_val=10, max_val=99, step=10)))
 
 
 def _g2_subtraction_no_borrow():
@@ -151,7 +158,7 @@ def _g2_subtraction_no_borrow():
     answer = a - b
     topic = _topic_for(2, ["수와 연산", "뺄셈"])
     prompt = f"{a} - {b} = ?"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, min_val=0, max_val=80, step=5))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, min_val=0, max_val=80, step=5)))
 
 
 def _g2_multiplication_intro():
@@ -315,7 +322,7 @@ def _g5_decimal_add():
     answer = round(a + b, 1)
     topic = _topic_for(5, ["수와 연산", "소수"])
     prompt = f"{a} + {b} = ?"
-    return make(prompt, answer, topic, options=_distractors(round(answer, 1), count=3, step=1, exclude=[a, b]))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(round(answer, 1), count=3, step=1, exclude=[a, b])))
 
 
 def _g5_average():
@@ -323,7 +330,7 @@ def _g5_average():
     answer = sum(nums) // len(nums)
     topic = _topic_for(5, ["자료와 가능성", "평균"])
     prompt = f"{', '.join(map(str, nums))}의 평균은? (몫만 쓰세요)"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, step=5))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=5)))
 
 
 # ============================================================
@@ -367,7 +374,7 @@ def _g6_volume():
     answer = l * w * h
     topic = _topic_for(6, ["도형과 측정", "직육면체의 부피"])
     prompt = f"가로 {l}cm, 세로 {w}cm, 높이 {h}cm인 직육면체의 부피는?"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, step=l * w))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=l * w)))
 
 
 def _g6_percent():
@@ -376,7 +383,7 @@ def _g6_percent():
     answer = base * p // 100
     topic = _topic_for(6, ["변화와 관계", "비율"])
     prompt = f"{base}의 {p}%는?"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, step=10))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=10)))
 
 
 # ============================================================
@@ -399,7 +406,7 @@ def _g7_integer():
     answer = a + b if op == "+" else a - b
     topic = _topic_for(7, ["정수"])
     prompt = f"{a} {op} {b} = ?"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, step=3))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=3)))
 
 
 def _g7_linear_equation():
@@ -409,7 +416,7 @@ def _g7_linear_equation():
     c = a * answer + b
     topic = _topic_for(7, ["일차방정식"])
     prompt = f"{a}x + {b} = {c}일 때, x의 값은?"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, step=1))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=1)))
 
 
 def _g7_coordinate():
@@ -426,7 +433,7 @@ def _g7_ratio_word():
     answer = total * a // (a + b)
     topic = _topic_for(7, ["비"])
     prompt = f"두 수의 비가 {a}:{b}이고 합이 {total}일 때, 큰 수는?"
-    return make(prompt, answer, topic, options=_distractors(answer, count=3, step=total // 10))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=total // 10)))
 
 
 PROBLEM_GENERATORS = {
