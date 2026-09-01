@@ -1,39 +1,86 @@
 {% extends "base.html" %}
+{% block title %}영어 듣고 쓰기 - {{ t('app_name') }}{% endblock %}
 {% block content %}
 <section class="page-heading">
     <span class="eyebrow">{{ grade_name(grade) }} 영어</span>
-    <h1>긴 문장 받아쓰기</h1>
-    <p>🔊 버튼을 눌러 문장을 듣고, 아래 칸에 정확히 적은 뒤 제출하세요.</p>
+    <h1>듣고 쓰기 연습</h1>
+    <p>🔊 버튼을 눌러 문장을 듣고, 들은 내용을 적은 뒤 정답을 확인하세요. 단어가 하이라이팅되며 따라 읽기 쉬워요.</p>
 </section>
 
-<form method="post" class="quiz-form">
+<form id="finish-form" method="post" class="hidden">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    {% for sentence in long_sentences %}
-    <article class="question-card">
-        <div class="question-meta">
-            <span class="question-number">{{ loop.index }}</span>
-            <span>받아쓰기</span>
-        </div>
-        <button type="button" class="audio-button" data-speak="{{ sentence }}">🔊 문장 듣기</button>
-        <input type="hidden" name="correct" value="{{ sentence }}">
-        <input class="answer-input" name="answer" placeholder="들은 문장을 그대로 적으세요" autocomplete="off">
-    </article>
-    {% endfor %}
-    <div class="submit-panel">
-        <p>제출하면 채점 결과를 확인할 수 있습니다.</p>
-        <button class="button primary" type="submit">제출하고 채점하기</button>
-    </div>
+    <div id="finish-inputs"></div>
 </form>
 
-<section class="panel">
-    <div class="section-head"><h2>복습 문장</h2></div>
-    <ul class="memorize-list">
-        {% for sentence in sentences %}
-        <li class="memorize-item">
-            <span>{{ sentence }}</span>
-            <button type="button" class="audio-button small" data-speak="{{ sentence }}">🔊</button>
-        </li>
-        {% endfor %}
-    </ul>
+<section class="listen-write-panel" data-listen-write data-lessons='{{ lessons | tojson }}'>
+    <div class="listen-write-toolbar">
+        <div class="listen-write-filters">
+            <label>
+                레벨
+                <select id="level-select" name="level" data-filter="level">
+                    <option value="elementary" {% if current_level == 'elementary' %}selected{% endif %}>초등</option>
+                    <option value="middle" {% if current_level == 'middle' %}selected{% endif %}>중등</option>
+                    <option value="all" {% if current_level == 'all' %}selected{% endif %}>전체</option>
+                </select>
+            </label>
+            <label>
+                주제
+                <select id="category-select" name="category" data-filter="category">
+                    <option value="all" {% if current_category == 'all' %}selected{% endif %}>전체</option>
+                    {% for c in categories %}
+                    <option value="{{ c }}" {% if current_category == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="listen-write-score">
+            <span>점수: <strong data-score="0">0</strong> / <span data-attempts="0">0</span></span>
+        </div>
+    </div>
+
+    <div class="listen-write-progress">
+        <div class="progress-track"><div class="progress-bar" data-progress style="width: 0%"></div></div>
+        <span class="progress-text"><span data-current>1</span> / <span data-total>0</span></span>
+    </div>
+
+    <article class="listen-write-card" data-card>
+        <div class="listen-write-meta">
+            <span class="tag" data-category>주제</span>
+            <span class="level-badge" data-level>초등</span>
+        </div>
+
+        <div class="listen-write-play">
+            <button type="button" class="button dark" data-listen>
+                <span>🔊</span> 듣기
+            </button>
+            <button type="button" class="button secondary" data-toggle-text>글 숨기기</button>
+        </div>
+
+        <div class="listen-write-sentence" data-sentence-box>
+            <p class="sentence-text" data-sentence></p>
+            <p class="sentence-meaning" data-meaning></p>
+            <div class="grammar-tags" data-grammar></div>
+        </div>
+
+        <div class="listen-write-answer">
+            <label for="answer-input">들은 내용을 적어보세요</label>
+            <input id="answer-input" class="answer-input" type="text" data-answer placeholder="문장을 입력하세요" autocomplete="off">
+        </div>
+
+        <div class="listen-write-feedback hidden" data-feedback></div>
+
+        <div class="listen-write-nav">
+            <button type="button" class="button secondary" data-prev disabled>← 이전</button>
+            <button type="button" class="button primary" data-check>정답 확인</button>
+            <button type="button" class="button primary hidden" data-next>다음 →</button>
+            <button type="button" class="button primary hidden" data-finish>결과 보기</button>
+        </div>
+    </article>
+
+    <p class="listen-write-empty hidden" data-empty>선택한 레벨과 주제에 맞는 문장이 없어요.</p>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/listen-write.js') }}"></script>
 {% endblock %}

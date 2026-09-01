@@ -8,6 +8,7 @@ from sqlalchemy import func
 
 from ..extensions import db
 from ..models import Attempt, AttemptItem, Question, CurriculumUnit
+from ..services.english_listen_write import CATEGORIES, LEVELS, get_lessons, is_correct
 from ..services.english_generator import SENTENCES, VOCABULARY, generate_english_set
 from ..services.english_review import generate_conversation_review, generate_word_set
 from ..services.grading import grade_answer
@@ -352,36 +353,33 @@ def english_memorize():
 @login_required
 def english_dictation():
     grade = current_user.grade_level
+    level = request.args.get("level", "elementary")
+    category = request.args.get("category", "all")
+
     if request.method == "POST":
         answers = request.form.getlist("answer")
         correct = request.form.getlist("correct")
+        items = []
         score = 0
         for ans, cor in zip(answers, correct):
-            if grade_answer(ans.strip(), cor, "write", grade, max_points=10) >= 7:
+            ok = is_correct(ans, cor)
+            if ok:
                 score += 1
+            items.append({"answer": ans, "correct": cor, "is_correct": ok})
         total = len(correct) if correct else 1
         return render_template(
             "student/english_dictation_result.html",
             score=round(score / total * 100),
-            items=list(zip(answers, correct)),
+            items=items,
         )
 
-    sentences = [s for s, _ in SENTENCES.get(grade, SENTENCES[9])]
-    words = [w for w, _ in VOCABULARY.get(grade, VOCABULARY[9])]
-    # 긴 문장 5개 생성: 기존 문장 2~3개를 이어붙임
-    import random
-
-    long_sentences = []
-    seeds = list(sentences)
-    random.shuffle(seeds)
-    for i in range(5):
-        parts = random.sample(seeds, min(3, len(seeds)))
-        long = " ".join(parts)
-        long_sentences.append(long)
+    lessons = get_lessons()
     return render_template(
         "student/english_dictation.html",
         grade=grade,
-        sentences=sentences,
-        words=words,
-        long_sentences=long_sentences,
+        lessons=lessons,
+        categories=CATEGORIES,
+        levels=LEVELS,
+        current_level=level,
+        current_category=category,
     )

@@ -151,6 +151,59 @@ h1, h2, h3, p { margin-top: 0; }
     .welcome-row, .attempt-head, .result-hero, .submit-panel { align-items: stretch; flex-direction: column; }.grade-picker { width: 100%; }.stats-grid, .stats-grid.four { grid-template-columns: 1fr 1fr; }.two-column { grid-template-columns: 1fr; }.form-span { grid-column: auto; }.options { grid-template-columns: 1fr; }
 }
 
+.listen-write-panel { margin-top: 24px; }
+.listen-write-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.listen-write-filters { display: flex; gap: 12px; flex-wrap: wrap; }
+.listen-write-filters label { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: .92rem; }
+.listen-write-filters select { min-width: 130px; }
+.listen-write-score { font-size: 1.05rem; color: var(--muted); }
+.listen-write-score strong { color: var(--ink); font-size: 1.3rem; }
+
+.listen-write-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.progress-track { flex: 1; height: 10px; background: #eef0f5; border-radius: 999px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--green); border-radius: 999px; transition: width .25s ease; }
+.progress-text { font-size: .9rem; font-weight: 800; color: var(--muted); min-width: 48px; text-align: right; }
+
+.listen-write-card { background: white; border: 1px solid var(--line); border-radius: 22px; padding: 28px; box-shadow: 0 8px 24px rgba(27,45,77,.04); }
+.listen-write-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.listen-write-meta .tag { margin: 0; }
+.level-badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: .78rem; font-weight: 800; border: 1px solid transparent; }
+.level-badge.elementary { color: #2b6cb0; background: #e2eefc; border-color: #bee3f8; }
+.level-badge.middle { color: #6b46c1; background: #f0e6ff; border-color: #d6bcfa; }
+
+.listen-write-play { display: flex; gap: 10px; margin-bottom: 18px; }
+.listen-write-sentence { background: #f8f9fc; border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-bottom: 20px; }
+.sentence-text { font-size: 1.6rem; font-weight: 700; line-height: 1.6; margin: 0 0 10px; letter-spacing: .02em; }
+.sentence-text .word { display: inline-block; padding: 2px 5px; border-radius: 6px; margin: 1px; transition: background .15s, color .15s; }
+.sentence-text .word.active { background: var(--green); color: white; }
+.sentence-text .word.hidden-text { color: var(--ink); background: #e2e4ea; }
+.sentence-meaning { color: #4a5a78; font-size: 1rem; margin: 0 0 12px; }
+.grammar-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.grammar-tag { display: inline-block; padding: 5px 11px; border-radius: 999px; font-size: .8rem; font-weight: 700; color: #4a5568; background: #edf2f7; border: 1px solid #e2e8f0; }
+
+.listen-write-answer { margin-bottom: 16px; }
+.listen-write-answer label { display: block; font-weight: 800; margin-bottom: 8px; }
+.listen-write-answer input.correct { border-color: var(--green); background: #f0fdf9; }
+.listen-write-answer input.wrong { border-color: var(--orange); background: #fff7f5; }
+
+.listen-write-feedback { padding: 14px 18px; border-radius: 12px; font-weight: 800; margin-bottom: 18px; }
+.listen-write-feedback.correct { background: var(--mint); color: var(--green-dark); }
+.listen-write-feedback.wrong { background: #ffece8; color: #9c4221; }
+
+.listen-write-nav { display: flex; justify-content: space-between; gap: 10px; }
+.listen-write-empty { text-align: center; padding: 60px 20px; color: var(--muted); background: white; border: 1px solid var(--line); border-radius: 22px; }
+
+@media (max-width: 600px) {
+    .listen-write-toolbar { flex-direction: column; align-items: flex-start; }
+    .listen-write-filters { width: 100%; }
+    .listen-write-filters label { flex: 1; }
+    .listen-write-filters select { width: 100%; }
+    .sentence-text { font-size: 1.3rem; }
+    .listen-write-nav { flex-wrap: wrap; }
+    .listen-write-nav .button { flex: 1; }
+}
+
 @media (max-width: 480px) {
     .hero h1 { font-size: 2.55rem; }.hero-actions .button { width: 100%; }.hero-visual { height: 290px; }.mascot { width: 150px; height: 175px; font-size: 3.6rem; }.floating-card { padding: 10px 12px; }.subject-preview article { grid-template-columns: auto 1fr; }.stats-grid { grid-template-columns: 1fr; }.learn-card, .question-card, .auth-card { padding: 22px; }.review-card { grid-template-columns: 1fr; }.result-hero { text-align: center; align-items: center; }.split-actions .button { flex-basis: 100%; }
 }
+
