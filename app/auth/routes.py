@@ -86,6 +86,25 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for("student.dashboard"))
     if request.method == "POST":
+        # 학생 간편 로그인 (이름 + 학년)
+        display_name = request.form.get("display_name", "").strip()
+        if display_name:
+            try:
+                grade_level = int(request.form.get("grade_level", 1))
+            except ValueError:
+                grade_level = 1
+            user = User.query.filter_by(
+                role="student", display_name=display_name, grade_level=grade_level
+            ).first()
+            if user:
+                if user.update_grade_annually():
+                    db.session.commit()
+                login_user(user, remember=False)
+                return redirect(url_for("student.dashboard"))
+            flash("일치하는 학생 계정을 찾을 수 없습니다. 이름과 학년을 확인하세요.", "error")
+            return render_template("auth/login.html", tab="student")
+
+        # 일반 로그인 (아이디/이메일 + 비밀번호)
         identity = request.form.get("identity", "").strip()
         user = User.query.filter(or_(User.username == identity, User.email == identity.lower())).first()
         if user and user.check_password(request.form.get("password", "")):
@@ -94,7 +113,7 @@ def login():
             login_user(user, remember=bool(request.form.get("remember")))
             return redirect(url_for("student.dashboard"))
         flash("아이디 또는 비밀번호를 확인하세요.", "error")
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", tab="general")
 
 
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
