@@ -79,7 +79,9 @@ class Attempt(db.Model):
     question_count = db.Column(db.Integer, nullable=False, default=10)
     is_comprehensive = db.Column(db.Boolean, nullable=False, default=False)
     auto_submitted = db.Column(db.Boolean, nullable=False, default=False)
-    user = db.relationship("User", backref=db.backref("attempts", lazy=True))
+    user = db.relationship(
+        "User", backref=db.backref("attempts", lazy=True, cascade="all, delete-orphan")
+    )
     items = db.relationship(
         "AttemptItem", backref="attempt", cascade="all, delete-orphan", order_by="AttemptItem.position"
     )
