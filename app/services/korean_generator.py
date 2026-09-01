@@ -760,11 +760,140 @@ def _k9_classic_value():
         "외국어 실력을 키울 수 있다",
     ]))
 
+
+def _k1_number():
+    topic = _topic_for(1, ["숫자", "수"])
+    prompt = "다음 중 숫자를 읽는 방법으로 올바른 것은?"
+    answer = "1은 하나, 2는 둘, 3은 셋"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "1은 일, 2는 이, 3은 삼",
+        "1은 하나, 2는 둘, 3은 셋",
+        "1은 첫째, 2는 둘째, 3은 셋째",
+    ]))
+
+
+def _k1_greeting():
+    topic = _topic_for(1, ["인사", "바른 표현"])
+    prompt = "아침에 만난 친구에게 하는 올바른 인사는?"
+    answer = "안녕! 좋은 아침이야."
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "야! 어디 갔다 왔어?",
+        "안녕! 좋은 아침이야.",
+        "왜 이렇게 늦었어?",
+    ]))
+
+
+def _k1_final_consonant():
+    topic = _topic_for(1, ["받침", "글자"])
+    prompt = "'강', '산', '물'에 공통으로 들어 있는 것은?"
+    answer = "받침이 있다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "받침이 없다",
+        "받침이 있다",
+        "모음이 없다",
+    ]))
+
+
+def _k2_homonym():
+    topic = _topic_for(2, ["낱말", "어휘"])
+    prompt = "'봄'이 '꽃이 피는 계절'과 '실을 감는 도구' 둘 다 의미할 때 이를 무엇이라 하나요?"
+    answer = "동음이의어"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["다의어", "동음이의어", "반의어", "유의어"]))
+
+
+def _k2_sentence_complete():
+    topic = _topic_for(2, ["문장", "쓰기"])
+    prompt = "'_____ 가/이 하늘을 난다.'에 알맞은 말을 고르세요."
+    answer = "새"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["책상", "새", "사과", "연필"]))
+
+
+def _k2_polite():
+    topic = _topic_for(2, ["바른 표현", "의사소통"])
+    prompt = "선생님께 부탁할 때 가장 예의 바른 말은?"
+    answer = "선생님, 잠깐 도와주시겠어요?"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "야, 여기 좀 봐!",
+        "선생님, 잠깐 도와주시겠어요?",
+        "저기요, 빨리요!",
+    ]))
+
+
+def _k3_synonym():
+    topic = _topic_for(3, ["비슷한말", "어휘"])
+    prompt = "'소중하다'와 비슷한 말은?"
+    answer = "귀중하다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["흔하다", "귀중하다", "값싸다", "쉽다"]))
+
+
+def _k3_antonym():
+    topic = _topic_for(3, ["반대말", "어휘"])
+    prompt = "'조용하다'의 반대말은?"
+    answer = "시끄럽다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["고요하다", "시끄럽다", "편안하다", "깨끗하다"]))
+
+
+def _k3_subject_object():
+    topic = _topic_for(3, ["문장 성분", "문법"])
+    prompt = "'민수가 책을 읽는다'에서 '민수가'는 무슨 성분인가요?"
+    answer = "주어"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["주어", "목적어", "서술어", "보어"]))
+
+
+def _k3_punctuation():
+    topic = _topic_for(3, ["문장 부호", "글쓰기"])
+    prompt = "'우와 정말 멋지다' 끝에 올 문장 부호는?"
+    answer = "!"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [".", "?", "!", ","]))
+
+
+def _k4_inference():
+    topic = _topic_for(4, ["추론", "독해"])
+    prompt = "'철수는 우산을 챙겼다'에서 알 수 있는 것은?"
+    answer = "비가 올 것 같다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "비가 올 것 같다",
+        "철수가 우산을 좋아한다",
+        "날씨가 맑다",
+        "철수가 집에 있다",
+    ]))
+
+
+def _k4_purpose():
+    topic = _topic_for(4, ["글의 목적", "독해"])
+    prompt = "'분리배출 방법'이라는 제목의 글의 목적로 가장 알맞은 것은?"
+    answer = "올바른 분리배출을 안내한다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "쓰레기를 많이 버리는 방법을 알려준다",
+        "올바른 분리배출을 안내한다",
+        "쓰레기 수거 시간을 알려준다",
+        "새로운 쓰레기통을 소개한다",
+    ]))
+
+
+def _k4_audience():
+    topic = _topic_for(4, ["독자", "글쓰기"])
+    prompt = "친구에게 편지를 쓸 때 가장 중요한 것은?"
+    answer = "친구가 이해하기 쉽게 정성껏 쓴다"
+    return _make(prompt, answer, topic, options=_choice_options(answer, [
+        "어려운 단어를 많이 쓴다",
+        "친구가 이해하기 쉽게 정성껏 쓴다",
+        "남의 이야기를 많이 넣는다",
+        "짧게 한 문장으로만 쓴다",
+    ]))
+
+
+def _k4_comparison():
+    topic = _topic_for(4, ["비교", "독해"])
+    prompt = "'고양이는 조용하지만 강아지는 활발하다'에서 사용한 글쓰기 방법은?"
+    answer = "비교"
+    return _make(prompt, answer, topic, options=_choice_options(answer, ["비유", "비교", "반복", "의인화"]))
+
 GENERATORS = {
-    1: [_k1_consonant_vowel, _k1_word_reading, _k1_opposite, _k1_sentence_punct, _k1_rhyme, _k1_picture_word],
-    2: [_k2_similar, _k2_sentence_subject, _k2_sentence_punct, _k2_opposite, _k2_word_order, _k2_spelling],
-    3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific, _k3_word_meaning, _k3_idiom, _k3_sentence_part],
-    4: [_k4_metaphor, _k4_fact_opinion, _k4_summary, _k4_sentence_part, _k4_cause_effect, _k4_paragraph_topic],
+    1: [_k1_consonant_vowel, _k1_word_reading, _k1_opposite, _k1_sentence_punct, _k1_rhyme, _k1_picture_word, _k1_number, _k1_greeting, _k1_final_consonant],
+    2: [_k2_similar, _k2_sentence_subject, _k2_sentence_punct, _k2_opposite, _k2_word_order, _k2_spelling, _k2_homonym, _k2_sentence_complete, _k2_polite],
+    3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific, _k3_word_meaning, _k3_idiom, _k3_sentence_part, _k3_synonym, _k3_antonym, _k3_subject_object, _k3_punctuation],
+    4: [_k4_metaphor, _k4_fact_opinion, _k4_summary, _k4_sentence_part, _k4_cause_effect, _k4_paragraph_topic, _k4_inference, _k4_purpose, _k4_audience, _k4_comparison],
     5: [_k5_argument, _k5_literary_element, _k5_proverb, _k5_media, _k5_outline, _k5_debate, _k5_poem_element, _k5_news_title, _k5_sentence_connect, _k5_audience],
     6: [_k6_character, _k6_compare_contrast, _k6_writing_revision, _k6_argument_claim, _k6_emotion, _k6_topic_sentence, _k6_theme, _k6_evidence, _k6_purpose, _k6_revision2],
     7: [_k7_morpheme, _k7_speaker, _k7_argument_essay, _k7_metaphor, _k7_text_type, _k7_classical, _k7_media_bias, _k7_summary, _k7_word_class, _k7_sentence_type],
