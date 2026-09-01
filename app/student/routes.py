@@ -369,6 +369,7 @@ def english_dictation():
         long_sentences.append(long)
     return render_template(
         "student/english_dictation.html",
+        grade=grade,
         sentences=sentences,
         words=words,
         long_sentences=long_sentences,
