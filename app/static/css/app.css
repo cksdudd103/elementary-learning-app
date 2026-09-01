@@ -193,8 +193,10 @@ h1, h2, h3, p { margin-top: 0; }
 .listen-write-nav { display: flex; justify-content: space-between; gap: 10px; }
 .listen-write-empty { text-align: center; padding: 60px 20px; color: var(--muted); background: white; border: 1px solid var(--line); border-radius: 22px; }
 
+.memorize-word-span.active { background: var(--green); color: white; border-radius: 6px; }
+.memorize-word-text.active { background: var(--green); color: white; border-radius: 6px; padding: 2px 6px; }
+
 @media (max-width: 600px) {
-    .listen-write-toolbar { flex-direction: column; align-items: flex-start; }
     .listen-write-filters { width: 100%; }
     .listen-write-filters label { flex: 1; }
     .listen-write-filters select { width: 100%; }

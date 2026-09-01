@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% block title %}문장 · 단어 암기 - {{ t('app_name') }}{% endblock %}
 {% block content %}
 <section class="page-heading">
     <span class="eyebrow">{{ grade_name(grade) }} 영어</span>
     <h1>문장 · 단어 암기</h1>
-    <p>외운 문장과 단어에 체크하세요. 모두 외우면 아래의 받아쓰기로 실력을 확인할 수 있어요.</p>
+    <p>🔊 버튼을 눌러 발음을 듣고, 단어/문장이 하이라이팅되며 따라 읽어 보세요. 외운 항목에 체크하세요.</p>
 </section>
 
 <section class="panel">
@@ -13,15 +14,19 @@
     </div>
     <ul class="memorize-list" data-memorize-sentences>
         {% for sentence, meaning in sentences %}
-        <li class="memorize-item memorize-sentence">
+        <li class="memorize-item memorize-sentence" data-speak-row>
             <label class="check-row">
                 <input type="checkbox" data-memorize value="sentence-{{ loop.index0 }}">
                 <span>
-                    <strong>{{ sentence }}</strong>
+                    <strong class="memorize-sentence-text" data-speak-text="{{ sentence }}">
+                        {% for word in sentence.split() %}
+                        <span class="memorize-word-span" data-index="{{ loop.index0 }}">{{ word }}</span>{{ " " if not loop.last else "" }}
+                        {% endfor %}
+                    </strong>
                     <br><span class="memo-meaning">{{ meaning }}</span>
                 </span>
             </label>
-            <button type="button" class="audio-button small" data-speak="{{ sentence }}">🔊 듣기</button>
+            <button type="button" class="audio-button small" data-speak-highlight="{{ sentence }}">🔊 듣기</button>
         </li>
         {% endfor %}
     </ul>
@@ -34,25 +39,25 @@
     </div>
     <ul class="memorize-list word-list" data-memorize-words>
         {% for word, meaning in words %}
-        <li class="memorize-item memorize-word">
+        <li class="memorize-item memorize-word" data-speak-row>
             <img src="{{ word_images[word] }}" alt="{{ word }}" class="memo-thumb">
             <label class="check-row">
                 <input type="checkbox" data-memorize value="word-{{ loop.index0 }}">
                 <span>
-                    <strong>{{ word }}</strong>
+                    <strong class="memorize-word-text" data-speak-text="{{ word }}">{{ word }}</strong>
                     <br><span class="memo-meaning">{{ meaning }}</span>
                 </span>
             </label>
-            <button type="button" class="audio-button small" data-speak="{{ word }}">🔊 듣기</button>
+            <button type="button" class="audio-button small" data-speak-highlight="{{ word }}">🔊 듣기</button>
         </li>
         {% endfor %}
     </ul>
 </section>
 
 <section class="panel">
-    <div class="section-head"><h2>받아쓰기</h2></div>
-    <p class="muted">모든 문장과 단어를 외우면 긴 문장 받아쓰기에 도전할 수 있습니다.</p>
-    <a id="dictation-link" class="button primary" href="{{ url_for('student.english_dictation') }}" style="display:none;">받아쓰기 시작 →</a>
+    <div class="section-head"><h2>듣고 쓰기</h2></div>
+    <p class="muted">모든 문장과 단어를 외우면 듣고 쓰기에 도전할 수 있습니다.</p>
+    <a id="dictation-link" class="button primary" href="{{ url_for('student.english_dictation') }}" style="display:none;">듣고 쓰기 시작 →</a>
     <p id="dictation-locked" class="muted">아직 모든 항목을 외우지 않았어요.</p>
 </section>
 {% endblock %}
@@ -96,6 +101,101 @@
     });
 
     updateCounts();
+
+    // TTS with highlighting
+    var currentTimer = null;
+    var currentRow = null;
+
+    function clearHighlights(row) {
+        if (!row) return;
+        row.querySelectorAll('.memorize-word-span.active, .memorize-word-text.active').forEach(function(el) {
+            el.classList.remove('active');
+        });
+    }
+
+    function stopSpeech() {
+        if (currentTimer) {
+            clearTimeout(currentTimer);
+            currentTimer = null;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        if (currentRow) {
+            clearHighlights(currentRow);
+            currentRow = null;
+        }
+    }
+
+    function speakWithHighlight(text, row) {
+        if (!('speechSynthesis' in window)) {
+            alert('이 브라우저는 영어 듣기를 지원하지 않습니다.');
+            return;
+        }
+        stopSpeech();
+        currentRow = row;
+
+        var spans = row.querySelectorAll('.memorize-word-span');
+        var isSentence = spans.length > 0;
+
+        if (!isSentence) {
+            var wordEl = row.querySelector('.memorize-word-text');
+            if (wordEl) wordEl.classList.add('active');
+        }
+
+        var utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.82;
+
+        utterance.onboundary = function(event) {
+            if (isSentence && event.name === 'word') {
+                var spoken = text.slice(0, event.charIndex);
+                var idx = spoken.trim().split(/\s+/).length - 1;
+                spans.forEach(function(s) { s.classList.remove('active'); });
+                if (spans[idx]) spans[idx].classList.add('active');
+            }
+        };
+
+        utterance.onend = function() {
+            stopSpeech();
+        };
+        utterance.onerror = function() {
+            stopSpeech();
+        };
+
+        window.speechSynthesis.speak(utterance);
+
+        // Fallback timer for browsers without word boundaries
+        if (isSentence) {
+            var words = text.split(/\s+/);
+            var estimatedMs = Math.max((text.length / 5) * 1000 * (1 / utterance.rate), words.length * 120);
+            var step = Math.max(120, estimatedMs / words.length);
+            var i = 0;
+            function next() {
+                spans.forEach(function(s) { s.classList.remove('active'); });
+                if (words[i] && spans[i]) spans[i].classList.add('active');
+                i += 1;
+                if (i < words.length) {
+                    currentTimer = setTimeout(next, step);
+                } else {
+                    currentTimer = setTimeout(function() { stopSpeech(); }, step);
+                }
+            }
+            next();
+        } else {
+            currentTimer = setTimeout(function() { stopSpeech(); }, Math.max(800, text.length * 180));
+        }
+    }
+
+    document.querySelectorAll('[data-speak-highlight]').forEach(function(button) {
+        button.addEventListener('click', function() {
+            var row = button.closest('[data-speak-row]');
+            var text = button.dataset.speakHighlight;
+            speakWithHighlight(text, row);
+        });
+    });
+
+    window.addEventListener('beforeunload', stopSpeech);
 })();
 </script>
 {% endblock %}
