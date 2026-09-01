@@ -35,6 +35,7 @@
     <ul class="memorize-list word-list" data-memorize-words>
         {% for word, meaning in words %}
         <li class="memorize-item memorize-word">
+            <img src="{{ word_images[word] }}" alt="{{ word }}" class="memo-thumb">
             <label class="check-row">
                 <input type="checkbox" data-memorize value="word-{{ loop.index0 }}">
                 <span>

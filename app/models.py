@@ -21,6 +21,7 @@ class User(UserMixin, db.Model):
     grade_level = db.Column(db.Integer, nullable=False, default=1)
     ui_language = db.Column(db.String(2), nullable=False, default="ko")
     time_limit_seconds = db.Column(db.Integer, nullable=False, default=3600)
+    difficulty = db.Column(db.String(10), nullable=False, default="medium")
     parent_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True, index=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
 

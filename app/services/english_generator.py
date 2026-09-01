@@ -1,6 +1,8 @@
 import random
 import re
 
+from .image_helper import placeholder_image, topic_image
+
 
 # 2022 개정 교육과정: 영어는 3~4학년군, 5~6학년군으로 운영
 # 3~4학년: 알파벳/파닉스, 기본 어휘, 간단한 문장
@@ -163,7 +165,7 @@ def _e_vocab_choice(grade):
     if len(distractors) < 3:
         distractors += ["학교", "집", "책"]
     prompt = f"'{word}'의 뜻은 무엇인가요?"
-    return _make(prompt, meaning, topic, options=_choice_options(meaning, distractors[:3]))
+    return _make(prompt, meaning, topic, options=_choice_options(meaning, distractors[:3]), image_url=placeholder_image(word, width=140, height=140))
 
 
 def _e_word_scramble(grade):
@@ -174,7 +176,7 @@ def _e_word_scramble(grade):
     while shuffled == letters and len(letters) > 1:
         random.shuffle(shuffled)
     prompt = f"'{meaning}'의 영어 낱말을 알맞게 배열하세요. ({' '.join(shuffled)})"
-    return _make(prompt, word, topic)
+    return _make(prompt, word, topic, image_url=placeholder_image(word, width=140, height=140))
 
 
 def _e_sentence_scramble(grade):
@@ -185,7 +187,7 @@ def _e_sentence_scramble(grade):
     while shuffled == words and len(words) > 1:
         random.shuffle(shuffled)
     prompt = " / ".join(shuffled)
-    return _make(prompt, sentence, topic, explanation=f"뜻: {meaning}")
+    return _make(prompt, sentence, topic, explanation=f"뜻: {meaning}", image_url=topic_image(topic, width=200, height=120))
 
 
 def _e_blank_sentence(grade):

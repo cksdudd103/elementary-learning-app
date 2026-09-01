@@ -42,6 +42,7 @@ def create_app(config_class=Config):
             "current_language": get_locale(),
             "grade_name": grade_name,
             "subject_name": subject_name,
+            "difficulty_name": difficulty_name,
             "random_count": lambda: random.choice([10, 20, 30]),
         }
 
@@ -63,6 +64,7 @@ def create_app(config_class=Config):
     with app.app_context():
         db.create_all()
         _ensure_user_time_limit_column()
+        _ensure_user_difficulty_column()
 
     return app
 
@@ -80,8 +82,27 @@ def _ensure_user_time_limit_column():
         db.session.commit()
 
 
+def _ensure_user_difficulty_column():
+    """User 테이블에 difficulty 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT difficulty FROM \"user\" LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE \"user\" ADD COLUMN difficulty VARCHAR(10) NOT NULL DEFAULT 'medium'")
+        )
+        db.session.commit()
+
+
 def grade_name(grade):
-    return f"초등 {grade}학년" if grade <= 6 else f"중등 {grade - 6}학년"
+    if 1 <= grade <= 6:
+        return f"초{grade}"
+    return f"중{grade - 6}"
+
+
+def difficulty_name(difficulty):
+    return {"high": "상", "medium": "중", "low": "하"}.get(difficulty, "중")
 
 
 def subject_name(subject):

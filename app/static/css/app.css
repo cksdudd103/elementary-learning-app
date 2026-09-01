@@ -127,6 +127,7 @@ h1, h2, h3, p { margin-top: 0; }
 .memo-meaning { display: block; color: #4a5a78; font-size: .92rem; margin-top: 4px; }
 .memorize-sentence { align-items: flex-start; }
 .memorize-word { align-items: center; }
+.memo-thumb { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); }
 .word-list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 .word-list .memorize-item { flex-direction: column; align-items: stretch; }
 .audio-button.small { padding: 7px 11px; font-size: .85rem; margin: 0; }

@@ -11,6 +11,7 @@ from ..models import Attempt, AttemptItem, Question, CurriculumUnit
 from ..services.english_generator import SENTENCES, VOCABULARY, generate_english_set
 from ..services.english_review import generate_conversation_review, generate_word_set
 from ..services.grading import grade_answer
+from ..services.image_helper import placeholder_image, topic_image
 from ..services.korean_generator import generate_korean_set
 from ..services.korean_review import generate_korean_review
 from ..services.math_generator import generate_math_set
@@ -48,7 +49,7 @@ def settings():
     return redirect(url_for("student.dashboard"))
 
 
-def select_questions(subject, grade, count=10):
+def select_questions(subject, grade, count=10, difficulty="medium"):
     generators = {
         "math": generate_math_set,
         "english": generate_english_set,
@@ -57,7 +58,14 @@ def select_questions(subject, grade, count=10):
     }
     if subject not in generators:
         abort(404)
-    generated = generators[subject](grade, count)
+    # 난이도에 따라 인접 학년 콘텐츠 사용
+    if difficulty == "low":
+        effective_grade = max(1, grade - 1)
+    elif difficulty == "high":
+        effective_grade = min(9, grade + 1)
+    else:
+        effective_grade = grade
+    generated = generators[subject](effective_grade, count)
     custom = Question.query.filter_by(subject=subject, grade_level=grade, active=True).all()
     if custom:
         custom_count = min(len(custom), random.randint(1, max(1, count // 4)))
@@ -77,6 +85,7 @@ def select_questions(subject, grade, count=10):
 
 def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
     grade = current_user.grade_level
+    difficulty = current_user.difficulty or "medium"
     count = count or 10
     time_limit = time_limit or current_user.time_limit_seconds or 3600
     attempt = Attempt(
@@ -90,7 +99,7 @@ def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
     db.session.add(attempt)
     db.session.commit()
     if not is_comprehensive:
-        questions = select_questions(subject, grade, count)
+        questions = select_questions(subject, grade, count, difficulty=difficulty)
         for position, question in enumerate(questions, start=1):
             item = AttemptItem(
                 position=position,
@@ -208,7 +217,7 @@ def start_comprehensive():
     items = []
     for i, subject in enumerate(subjects):
         n = per_subject + (1 if i < extra else 0)
-        items.extend(select_questions(subject, current_user.grade_level, n))
+        items.extend(select_questions(subject, current_user.grade_level, n, difficulty=current_user.difficulty or "medium"))
     random.shuffle(items)
     for position, question in enumerate(items[:30], start=1):
         item = AttemptItem(
@@ -329,10 +338,12 @@ def english_memorize():
     grade = current_user.grade_level
     sentences = SENTENCES.get(grade, SENTENCES[9])
     words = VOCABULARY.get(grade, VOCABULARY[9])
+    word_images = {word: placeholder_image(word, width=100, height=100) for word, _ in words}
     return render_template(
         "student/english_memorize.html",
         sentences=sentences,
         words=words,
+        word_images=word_images,
         grade=grade,
     )
 

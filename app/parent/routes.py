@@ -65,6 +65,9 @@ def child_new():
             grade_level = int(request.form.get("grade_level", 1))
         except ValueError:
             grade_level = 1
+        difficulty = request.form.get("difficulty", "medium")
+        if difficulty not in ("low", "medium", "high"):
+            difficulty = "medium"
         if not display_name:
             flash("학생 이름을 입력하세요.", "error")
         elif not 1 <= grade_level <= 9:
@@ -78,6 +81,7 @@ def child_new():
                 role="student",
                 grade_level=grade_level,
                 ui_language=current_user.ui_language,
+                difficulty=difficulty,
                 parent_id=current_user.id,
             )
             child.set_password(current_user.password_hash)
@@ -105,6 +109,9 @@ def child_edit(child_id):
         except ValueError:
             time_limit_minutes = 60
         time_limit_minutes = max(1, min(180, time_limit_minutes))
+        difficulty = request.form.get("difficulty", "medium")
+        if difficulty not in ("low", "medium", "high"):
+            difficulty = "medium"
         if not display_name:
             flash("학생 이름을 입력하세요.", "error")
         elif not 1 <= grade_level <= 9:
@@ -113,6 +120,7 @@ def child_edit(child_id):
             child.display_name = display_name
             child.grade_level = grade_level
             child.time_limit_seconds = time_limit_minutes * 60
+            child.difficulty = difficulty
             db.session.commit()
             flash("학생 정보를 수정했습니다.", "success")
             return redirect(url_for("parent.dashboard"))
