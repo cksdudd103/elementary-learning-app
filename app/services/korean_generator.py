@@ -47,12 +47,12 @@ def _k1_consonant_vowel():
 
 
 def _k1_word_reading():
-    words = [("나무", "나무", "식물"), ("바다", "바다", "자연"), ("학교", "학교", "장소"), ("친구", "친구", "사람"), ("가방", "가방", "물건"), ("구름", "구름", "자연")]
-    word, answer, hint = random.choice(words)
+    words = [("나무", "식물"), ("바다", "자연"), ("학교", "장소"), ("친구", "사람"), ("가방", "물건"), ("구름", "자연")]
+    word, meaning = random.choice(words)
     topic = _topic_for(1, ["낱말 읽기"])
-    prompt = f"'{word}'의 뜻은 무엇인가요?"
-    distractors = [w for w, _, _ in random.sample(words, 3) if w != word]
-    return _make(prompt, answer, topic, options=[answer] + distractors, explanation=f"'{word}'는 {answer}를 뜻합니다.")
+    prompt = f"'{word}'는 다음 중 무엇에 해당하나요?"
+    distractors = [m for _, m in random.sample(words, 3) if m != meaning]
+    return _make(prompt, meaning, topic, options=[meaning] + distractors, explanation=f"'{word}'는 {meaning}에 해당합니다.")
 
 
 def _k1_opposite():
@@ -357,7 +357,7 @@ SOLUTION_BANKS = {
 
 GENERATORS = {
     1: [_k1_consonant_vowel, _k1_word_reading, _k1_opposite, _k1_sentence_punct],
-    2: [_k2_similar, _k2_sentence_subject, _k1_opposite],
+    2: [_k2_similar, _k2_sentence_subject, _k1_opposite, _k1_sentence_punct],
     3: [_k3_dictionary, _k3_paragraph_main, _k3_honorific],
     4: [_k4_metaphor, _k4_fact_opinion, _k4_summary],
     5: [_k5_argument, _k5_literary_element, _k5_media, _k5_proverb],

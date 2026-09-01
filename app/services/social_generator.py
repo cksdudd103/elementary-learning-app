@@ -42,13 +42,13 @@ def _s1_school():
 
 def _s1_safety():
     topic = _topic_for(1, ["안전", "교통안전"])
-    prompt = "길을 걷거나 건ize_process갈 때 반드시 지켜야 하는 것은?"
-    answer = "횡단볏process도를 이용하고 신호를 지킨다"
+    prompt = "길을 걷거나 걸어갈 때 반드시 지켜야 하는 것은?"
+    answer = "횡단볏도를 이용하고 신호를 지킨다"
     return _make(prompt, answer, topic, options=[
-        "횡단볏process도를 이용하고 신호를 지킨다",
-        "차가 오는 길을 뛰어 건process는다",
+        "횡단볏도를 이용하고 신호를 지킨다",
+        "차가 오는 길을 뛰어 걷는다",
         "무단횡단을 한다",
-        "핸드폰을 본process 채 걷는다",
+        "핸드폰을 본 채 걷는다",
     ])
 
 
@@ -221,7 +221,7 @@ def _s6_court():
 
 def _s6_economy_price():
     topic = _topic_for(6, ["경제"])
-    prompt = "물건의 가격이 오륍process면 같은 돈으로 살 수 있는 양은?"
+    prompt = "물건의 가격이 오륍면 같은 돈으로 살 수 있는 양은?"
     answer = "줄어든다"
     return _make(prompt, answer, topic, options=["줄어든다", "늘어난다", "그대로이다", "두 배가 된다"])
 

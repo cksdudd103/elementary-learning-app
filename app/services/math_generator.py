@@ -268,13 +268,13 @@ def _g2_length():
 
 
 def _g3_multiplication():
-    a, b = random.randint(12, 99), random.randint(2, 9)
+    a, b = random.randint(2, 9), random.randint(2, 9)
     answer = a * b
     topic = _topic_for(3, ["곱셈", "나눗셈"])
     prompt = f"{a} × {b} = ?"
     qtype = random.choice(["choice", "write", "solution"])
     if qtype == "choice":
-        return make(prompt, answer, topic, options=_arithmetic_choices(answer, count=4, span=100))
+        return make(prompt, answer, topic, options=_arithmetic_choices(answer, count=4, span=15))
     if qtype == "solution":
         return make(prompt, answer, topic, question_type="solution", max_points=15)
     return make(prompt, answer, topic)
@@ -398,14 +398,16 @@ def _g5_fraction_calc():
         answer = _format_fraction(num, b)
         prompt = f"{a1}/{b} + {a2}/{b} = ?"
     else:
-        a1, a2 = random.randint(3, 7), random.randint(1, a1 - 1)
+        a1 = random.randint(3, 7)
+        a2 = random.randint(1, a1 - 1)
         b = random.randint(5, 9)
-        answer = _format_fraction(a1 - a2, b)
+        num = a1 - a2
+        answer = _format_fraction(num, b)
         prompt = f"{a1}/{b} - {a2}/{b} = ?"
     return make(prompt, answer, topic, options=_choice_options(answer, [
-        _format_fraction(num + 1, b) if ops == "+" else _format_fraction(a1 - a2 + 1, b),
-        _format_fraction(num - 1, b) if ops == "+" else _format_fraction(a1 - a2 - 1, b),
-        _format_fraction(b, num) if ops == "+" else _format_fraction(b, a1 - a2),
+        _format_fraction(num + 1, b),
+        _format_fraction(num - 1, b),
+        _format_fraction(b, num),
     ]))
 
 
