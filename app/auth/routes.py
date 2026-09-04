@@ -12,6 +12,11 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    return redirect(url_for("auth.register_choice"))
+
+
+@auth_bp.route("/register/student", methods=["GET", "POST"])
+def register_student():
     if current_user.is_authenticated:
         return redirect(url_for("student.dashboard"))
     if request.method == "POST":
@@ -19,17 +24,17 @@ def register():
         email = request.form.get("email", "").strip().lower()
         display_name = request.form.get("display_name", "").strip()
         password = request.form.get("password", "")
-        role = request.form.get("role", "student")
         try:
             grade_level = int(request.form.get("grade_level", 1))
         except ValueError:
             grade_level = 1
+        pin = _normalize_pin(request.form.get("simple_pin", ""))
         if not username or not email or not display_name or len(password) < 8:
             flash("모든 항목을 입력하고 비밀번호는 8자 이상으로 설정하세요.", "error")
-        elif role not in {"student", "parent"}:
-            flash("회원 유형을 선택하세요.", "error")
-        elif role == "student" and not 1 <= grade_level <= 9:
+        elif not 1 <= grade_level <= 9:
             flash("올바른 학년을 선택하세요.", "error")
+        elif not pin or len(pin) != 4 or not pin.isdigit():
+            flash("4자리 PIN을 입력하세요.", "error")
         elif User.query.filter(or_(User.username == username, User.email == email)).first():
             flash("이미 사용 중인 아이디 또는 이메일입니다.", "error")
         else:
@@ -37,48 +42,85 @@ def register():
                 username=username,
                 email=email,
                 display_name=display_name,
-                role=role,
-                grade_level=grade_level if role == "student" else 1,
+                role="student",
+                grade_level=grade_level,
                 ui_language=request.form.get("ui_language", "ko"),
-                simple_pin=_normalize_pin(request.form.get("simple_pin", "")) if role == "student" else None,
+                simple_pin=pin,
+            )
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            flash("회원가입이 완료되었습니다.", "success")
+            return redirect(url_for("student.dashboard"))
+    return render_template("auth/register_student.html")
+
+
+@auth_bp.route("/register/parent", methods=["GET", "POST"])
+def register_parent():
+    if current_user.is_authenticated:
+        return redirect(url_for("student.dashboard"))
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        display_name = request.form.get("display_name", "").strip()
+        password = request.form.get("password", "")
+        if not username or not email or not display_name or len(password) < 8:
+            flash("모든 항목을 입력하고 비밀번호는 8자 이상으로 설정하세요.", "error")
+        elif User.query.filter(or_(User.username == username, User.email == email)).first():
+            flash("이미 사용 중인 아이디 또는 이메일입니다.", "error")
+        else:
+            user = User(
+                username=username,
+                email=email,
+                display_name=display_name,
+                role="parent",
+                grade_level=1,
+                ui_language=request.form.get("ui_language", "ko"),
             )
             user.set_password(password)
             db.session.add(user)
             db.session.flush()
-            if role == "parent":
-                linked = 0
-                skipped = 0
-                for index in range(1, 5):
-                    child_name = request.form.get(f"child_name_{index}", "").strip()
-                    if not child_name:
-                        continue
-                    try:
-                        child_grade = int(request.form.get(f"child_grade_{index}", 1))
-                    except ValueError:
-                        child_grade = 1
-                    if not 1 <= child_grade <= 9:
-                        child_grade = 1
-                    child = User.query.filter(
-                        User.role == "student",
-                        User.display_name == child_name,
-                        User.grade_level == child_grade,
-                        User.parent_id.is_(None),
-                    ).first()
-                    if child:
-                        child.parent_id = user.id
-                        linked += 1
-                    else:
-                        skipped += 1
-                if skipped:
-                    flash(f"{linked}명의 자녀와 연동되었습니다. 일치하는 학생 계정이 없거나 이미 연동된 항목은 제외되었습니다.", "info")
-                elif linked:
-                    flash(f"{linked}명의 자녀와 연동되었습니다.", "success")
+            linked = 0
+            skipped = 0
+            for index in range(1, 5):
+                child_name = request.form.get(f"child_name_{index}", "").strip()
+                if not child_name:
+                    continue
+                try:
+                    child_grade = int(request.form.get(f"child_grade_{index}", 1))
+                except ValueError:
+                    child_grade = 1
+                if not 1 <= child_grade <= 9:
+                    child_grade = 1
+                child = User.query.filter(
+                    User.role == "student",
+                    User.display_name == child_name,
+                    User.grade_level == child_grade,
+                    User.parent_id.is_(None),
+                ).first()
+                if child:
+                    child.parent_id = user.id
+                    linked += 1
+                else:
+                    skipped += 1
+            if skipped:
+                flash(f"{linked}명의 자녀와 연동되었습니다. 일치하는 학생 계정이 없거나 이미 연동된 항목은 제외되었습니다.", "info")
+            elif linked:
+                flash(f"{linked}명의 자녀와 연동되었습니다.", "success")
             db.session.commit()
             login_user(user)
             flash("회원가입이 완료되었습니다.", "success")
-            if role == "parent" and linked:
+            if linked:
                 return redirect(url_for("parent.dashboard"))
             return redirect(url_for("student.dashboard"))
+    return render_template("auth/register_parent.html")
+
+
+@auth_bp.route("/register/choice")
+def register_choice():
+    if current_user.is_authenticated:
+        return redirect(url_for("student.dashboard"))
     return render_template("auth/register.html")
 
 

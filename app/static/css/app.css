@@ -70,6 +70,13 @@ h1, h2, h3, p { margin-top: 0; }
 .auth-tab.active { color: var(--green); border-bottom-color: var(--green); }
 .stack-form.auth-tab-panel { display: none; }
 .stack-form.auth-tab-panel.active { display: grid; }
+.register-choice { display: grid; gap: 14px; margin-top: 24px; }
+.choice-card { display: grid; gap: 6px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; text-decoration: none; background: white; transition: transform .15s, box-shadow .15s; }
+.choice-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.choice-icon { font-size: 1.8rem; }
+.choice-title { font-weight: 800; color: var(--text); }
+.choice-desc { color: var(--muted); font-size: .95rem; }
+
 .muted, .page-heading p, .welcome-row p { color: var(--muted); }
 .stack-form { display: grid; gap: 17px; margin-top: 25px; }
 .two-column { grid-template-columns: 1fr 1fr; }

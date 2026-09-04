@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}학부모 회원가입 · {{ t('app_name') }}{% endblock %}
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card wide">
+        <span class="eyebrow">자녀의 학습을 함께해요</span>
+        <h1>학부모 회원가입</h1>
+        <form method="post" class="stack-form two-column" data-register>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label>아이디<input name="username" required minlength="3" autocomplete="username"></label>
+            <label>이메일<input type="email" name="email" required autocomplete="email"></label>
+            <label>이름 또는 별명<input name="display_name" required></label>
+            <label>비밀번호 (8자 이상)<input type="password" name="password" required minlength="8" autocomplete="new-password"></label>
+            <label>화면 언어
+                <select name="ui_language"><option value="ko">한국어</option><option value="en">English</option></select>
+            </label>
+            <input type="hidden" name="role" value="parent">
+
+            <div class="form-span">
+                <h3>자녀 연동 (최대 4명)</h3>
+                <p class="muted">이미 가입한 학생의 이름과 학년을 입력하면 부모 계정과 바로 연동됩니다. 나중에 학부모 홈에서 추가할 수도 있어요.</p>
+                <div class="child-inputs">
+                    {% for i in range(1, 5) %}
+                    <div class="child-row">
+                        <input name="child_name_{{ i }}" placeholder="자녀 이름">
+                        <select name="child_grade_{{ i }}">
+                            {% for grade in range(1, 10) %}<option value="{{ grade }}">{{ grade_name(grade) }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button class="button primary full form-span" type="submit">가입하고 자녀 관리 시작</button>
+        </form>
+        <p class="form-foot">학생이신가요? <a href="{{ url_for('auth.register_student') }}">학생 회원가입</a> · 이미 계정이 있나요? <a href="{{ url_for('auth.login') }}">로그인</a></p>
+    </div>
+</section>
+{% endblock %}
