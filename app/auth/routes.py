@@ -40,6 +40,7 @@ def register():
                 role=role,
                 grade_level=grade_level if role == "student" else 1,
                 ui_language=request.form.get("ui_language", "ko"),
+                simple_pin=_normalize_pin(request.form.get("simple_pin", "")) if role == "student" else None,
             )
             user.set_password(password)
             db.session.add(user)
@@ -86,22 +87,26 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for("student.dashboard"))
     if request.method == "POST":
-        # 학생 간편 로그인 (이름 + 학년)
+        # 학생 간편 로그인 (이름 + 학년 + PIN)
         display_name = request.form.get("display_name", "").strip()
         if display_name:
             try:
                 grade_level = int(request.form.get("grade_level", 1))
             except ValueError:
                 grade_level = 1
+            pin = _normalize_pin(request.form.get("simple_pin", ""))
+            if not pin or len(pin) != 4 or not pin.isdigit():
+                flash("4자리 PIN을 입력하세요.", "error")
+                return render_template("auth/login.html", tab="student")
             user = User.query.filter_by(
-                role="student", display_name=display_name, grade_level=grade_level
+                role="student", display_name=display_name, grade_level=grade_level, simple_pin=pin
             ).first()
             if user:
                 if user.update_grade_annually():
                     db.session.commit()
                 login_user(user, remember=False)
                 return redirect(url_for("student.dashboard"))
-            flash("일치하는 학생 계정을 찾을 수 없습니다. 이름과 학년을 확인하세요.", "error")
+            flash("이름, 학년, PIN을 확인하세요.", "error")
             return render_template("auth/login.html", tab="student")
 
         # 일반 로그인 (아이디/이메일 + 비밀번호)
@@ -166,6 +171,11 @@ def reset_password(token):
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
+
+def _normalize_pin(pin):
+    """PIN에서 공백을 제거하고 숫자 4자리만 남깁니다."""
+    return "".join(ch for ch in (pin or "") if ch.isdigit())[:4]
 
 
 @auth_bp.route("/delete-account", methods=["GET", "POST"])

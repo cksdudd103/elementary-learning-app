@@ -68,8 +68,22 @@ def create_app(config_class=Config):
         _ensure_user_reset_token_column()
         _ensure_user_reset_token_expires_column()
         _ensure_user_grade_updated_at_column()
+        _ensure_user_simple_pin_column()
 
     return app
+
+
+def _ensure_user_simple_pin_column():
+    """User 테이블에 simple_pin 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT simple_pin FROM \"user\" LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE \"user\" ADD COLUMN simple_pin VARCHAR(20)")
+        )
+        db.session.commit()
 
 
 def _ensure_user_grade_updated_at_column():

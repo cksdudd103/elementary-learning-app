@@ -25,6 +25,7 @@ class User(UserMixin, db.Model):
     difficulty = db.Column(db.String(10), nullable=False, default="medium")
     reset_token = db.Column(db.String(120), unique=True, nullable=True, index=True)
     reset_token_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    simple_pin = db.Column(db.String(20), nullable=True)
     parent_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True, index=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
 

@@ -25,7 +25,7 @@
 
         <form method="post" class="stack-form auth-tab-panel {% if tab == 'student' %}active{% endif %}" id="panel-student">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <p class="muted">학생은 이름과 학년을 입력하면 바로 시작할 수 있어요.</p>
+            <p class="muted">학생은 이름, 학년, PIN을 입력하면 바로 시작할 수 있어요.</p>
             <label>이름<input name="display_name" required autocomplete="name"></label>
             <label>학년
                 <select name="grade_level" required>
@@ -33,6 +33,9 @@
                     <option value="{{ g }}" {% if g == 4 %}selected{% endif %}>{{ g }}학년</option>
                     {% endfor %}
                 </select>
+            </label>
+            <label>PIN (4자리 숫자)
+                <input type="password" name="simple_pin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="4자리 숫자" required>
             </label>
             <button class="button primary full" type="submit">학생 로그인</button>
         </form>
