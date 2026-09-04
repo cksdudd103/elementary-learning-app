@@ -184,7 +184,7 @@ h1, h2, h3, p { margin-top: 0; }
 .button.danger:hover { background: var(--danger-dark); }
 .button.danger:disabled { background: #cbd5e0; cursor: not-allowed; }
 .filter-row { display: flex; gap: 8px; margin-bottom: 12px; }.filter-row a { padding: 8px 15px; border-radius: 10px; background: white; border: 1px solid var(--line); font-weight: 800; }.filter-row a.active { color: white; background: var(--ink); }
-.status.on { color: var(--green-dark); background: var(--mint); }.status.off { color: #8b4242; background: #ffe4e1; }.prompt-cell { min-width: 280px; }.row-actions { display: flex; gap: 10px; }.row-actions a, .row-actions button { border: 0; background: none; color: var(--green-dark); font-weight: 800; padding: 0; }.form-panel { max-width: 850px; }
+.status.on { color: var(--green-dark); background: var(--mint); }.status.off { color: #8b4242; background: #ffe4e1; }.prompt-cell { min-width: 280px; }.row-actions { display: flex; gap: 10px; }.row-actions a, .row-actions button { border: 0; background: none; color: var(--green-dark); font-weight: 800; padding: 0; }.clickable-row { cursor: pointer; transition: background .12s; }.clickable-row:hover { background: var(--mint); }.form-panel { max-width: 850px; }
 
 @media (max-width: 800px) {
     .topbar { height: 64px; padding: 0 20px; }.menu-button { display: block; }.nav { display: none; position: absolute; top: 64px; left: 0; right: 0; padding: 20px; background: white; flex-direction: column; align-items: stretch; border-bottom: 1px solid var(--line); }.nav.open { display: flex; }

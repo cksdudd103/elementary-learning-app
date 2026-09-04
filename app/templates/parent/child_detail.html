@@ -5,7 +5,12 @@
 <section class="panel">
     <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>점수</th><th>완료 시각</th></tr></thead><tbody>
     {% for attempt in attempts %}
-    <tr><td>{{ subject_name(attempt.subject) }}</td><td>{{ grade_name(attempt.grade_level) }}</td><td><strong>{{ attempt.score }}점</strong></td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+    <tr class="clickable-row" data-href="{{ url_for('parent.child_attempt_result', child_id=child.id, attempt_id=attempt.id) }}">
+        <td>{{ subject_name(attempt.subject) }}</td>
+        <td>{{ grade_name(attempt.grade_level) }}</td>
+        <td><strong>{{ attempt.score }}점</strong></td>
+        <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
     {% else %}
     <tr><td colspan="4" class="empty">학습 기록이 없습니다.</td></tr>
     {% endfor %}
@@ -13,4 +18,12 @@
 </section>
 
 <div class="center-actions"><a class="button secondary" href="{{ url_for('parent.dashboard') }}">학부모 홈</a></div>
+
+<script>
+    document.querySelectorAll('[data-href]').forEach(function(row){
+        row.addEventListener('click', function(){
+            window.location.href = row.dataset.href;
+        });
+    });
+</script>
 {% endblock %}

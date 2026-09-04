@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="result-hero">
+    <div class="score-ring"><strong>{{ attempt.score }}</strong><span>/ 100</span></div>
+    <div>
+        <span class="eyebrow">{{ child.display_name }} · {{ subject_name(attempt.subject) }} · {{ grade_name(attempt.grade_level) }}</span>
+        <h1>{% if attempt.score >= 90 %}정말 훌륭해요!{% elif attempt.score >= 70 %}잘했어요!{% else %}조금만 더 연습해요!{% endif %}</h1>
+        <p>{{ attempt.items|selectattr('is_correct')|list|length }}문제를 맞혔어요.
+        {% if attempt.auto_submitted %}<span class="auto-badge">시간 초과로 자동 제출됨</span>{% endif %}
+        </p>
+    </div>
+</section>
+
+<div class="result-list">
+{% for item in attempt.items %}
+<article class="result-item {{ 'correct' if item.is_correct else 'wrong' }}">
+    <div class="result-icon">{{ '✓' if item.is_correct else '×' }}</div>
+    <div>
+        <span class="tag">{{ loop.index }}번 · {{ item.topic }} · {{ item.points }}/{{ item.max_points }}점 · {{ {'write':'주관식','choice':'객관식','solution':'풀이형','listening':'듣기','speaking':'말하기'}.get(item.question_type, item.question_type) }}</span>
+        <h3>{{ item.prompt }}</h3>
+        {% if item.image_url %}<img class="question-image" src="{{ item.image_url }}" alt="문제 그림">{% endif %}
+        <p><b>학생 답:</b> {{ item.student_answer or '(미응답)' }}</p>
+        {% if not item.is_correct or item.question_type == 'solution' %}
+        <p class="correct-answer"><b>정답:</b> {{ item.correct_answer }}</p>
+        {% endif %}
+        <p class="explanation">{{ item.explanation }}</p>
+    </div>
+</article>
+{% endfor %}
+</div>
+
+<div class="center-actions">
+    <a class="button secondary" href="{{ url_for('parent.child_detail', child_id=child.id) }}">학습 기록 목록</a>
+    <a class="button secondary" href="{{ url_for('parent.dashboard') }}">학부모 홈</a>
+</div>
+{% endblock %}

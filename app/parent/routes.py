@@ -144,6 +144,21 @@ def child_delete(child_id):
     return redirect(url_for("parent.dashboard"))
 
 
+@parent_bp.route("/children/<int:child_id>/attempt/<int:attempt_id>")
+@parent_required
+def child_attempt_result(child_id, attempt_id):
+    child = db.get_or_404(User, child_id)
+    if child.parent_id != current_user.id:
+        abort(403)
+    attempt = db.get_or_404(Attempt, attempt_id)
+    if attempt.user_id != child.id:
+        abort(403)
+    if attempt.completed_at is None:
+        flash("아직 완료되지 않은 시험입니다.", "info")
+        return redirect(url_for("parent.child_detail", child_id=child.id))
+    return render_template("parent/child_attempt_result.html", child=child, attempt=attempt)
+
+
 @parent_bp.route("/children/<int:child_id>")
 @parent_required
 def child_detail(child_id):
