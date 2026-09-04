@@ -30,6 +30,7 @@
                 <td>
                     <div class="row-actions">
                         <a href="{{ url_for('parent.child_detail', child_id=child.id) }}">상세</a>
+                        <a href="{{ url_for('parent.child_reset_password', child_id=child.id) }}">비밀번호 재설정</a>
                         <form method="post" action="{{ url_for('parent.child_unlink', child_id=child.id) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit">연동 해제</button>

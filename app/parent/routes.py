@@ -124,3 +124,26 @@ def child_detail(child_id):
         .all()
     )
     return render_template("parent/child_detail.html", child=child, attempts=attempts)
+
+
+@parent_bp.route("/children/<int:child_id>/reset-password", methods=["GET", "POST"])
+@parent_required
+def child_reset_password(child_id):
+    child = db.get_or_404(User, child_id)
+    if child.parent_id != current_user.id:
+        abort(403)
+    if request.method == "POST":
+        new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
+        if not new_password:
+            flash("새 비밀번호를 입력하세요.", "error")
+        elif len(new_password) < 6:
+            flash("비밀번호는 6자 이상이어야 합니다.", "error")
+        elif new_password != confirm_password:
+            flash("비밀번호가 서로 일치하지 않습니다.", "error")
+        else:
+            child.set_password(new_password)
+            db.session.commit()
+            flash(f"{child.display_name} 학생의 비밀번호가 변경되었습니다.", "success")
+            return redirect(url_for("parent.dashboard"))
+    return render_template("parent/child_reset_password.html", child=child)
