@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from secrets import token_urlsafe
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 from sqlalchemy import or_
 
 from ..extensions import db
@@ -20,8 +21,6 @@ def register_student():
     if current_user.is_authenticated:
         return redirect(url_for("student.dashboard"))
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        email = request.form.get("email", "").strip().lower()
         display_name = request.form.get("display_name", "").strip()
         password = request.form.get("password", "")
         try:
@@ -29,15 +28,14 @@ def register_student():
         except ValueError:
             grade_level = 1
         pin = _normalize_pin(request.form.get("simple_pin", ""))
-        if not username or not email or not display_name or len(password) < 8:
-            flash("모든 항목을 입력하고 비밀번호는 8자 이상으로 설정하세요.", "error")
+        if not display_name or len(password) < 8:
+            flash("이름과 비밀번호(8자 이상)를 입력하세요.", "error")
         elif not 1 <= grade_level <= 9:
             flash("올바른 학년을 선택하세요.", "error")
         elif not pin or len(pin) != 4 or not pin.isdigit():
             flash("4자리 PIN을 입력하세요.", "error")
-        elif User.query.filter(or_(User.username == username, User.email == email)).first():
-            flash("이미 사용 중인 아이디 또는 이메일입니다.", "error")
         else:
+            username, email = _generate_unique_student_credentials()
             user = User(
                 username=username,
                 email=email,
@@ -218,6 +216,16 @@ def logout():
 def _normalize_pin(pin):
     """PIN에서 공백을 제거하고 숫자 4자리만 남깁니다."""
     return "".join(ch for ch in (pin or "") if ch.isdigit())[:4]
+
+
+def _generate_unique_student_credentials():
+    """학생 가입 시 자동으로 고유한 아이디와 이메일을 생성합니다."""
+    while True:
+        suffix = uuid4().hex[:12]
+        username = f"stu_{suffix}"
+        email = f"{suffix}@student.harusso.kr"
+        if not User.query.filter(or_(User.username == username, User.email == email)).first():
+            return username, email
 
 
 @auth_bp.route("/delete-account", methods=["GET", "POST"])
