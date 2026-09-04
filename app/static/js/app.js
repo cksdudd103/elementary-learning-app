@@ -116,3 +116,59 @@ if (timerBox) {
     tick();
     setInterval(tick, 1000);
 }
+
+// 글로벌 플로팅 메모장
+const notepadToggle = document.querySelector("[data-notepad-toggle]");
+const notepadDrawer = document.querySelector("[data-notepad-drawer]");
+const notepadOverlay = document.querySelector("[data-notepad-overlay]");
+const notepadClose = document.querySelector("[data-notepad-close]");
+const notepadText = document.querySelector("[data-notepad-text]");
+const notepadClear = document.querySelector("[data-notepad-clear]");
+const notepadSaved = document.querySelector("[data-notepad-saved]");
+
+if (notepadToggle && notepadDrawer && notepadText) {
+    const STORAGE_KEY = "global-student-notepad";
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved !== null) notepadText.value = saved;
+
+    const openNotepad = () => {
+        notepadDrawer.classList.add("open");
+        if (notepadOverlay) notepadOverlay.classList.add("open");
+        notepadText.focus();
+    };
+    const closeNotepad = () => {
+        notepadDrawer.classList.remove("open");
+        if (notepadOverlay) notepadOverlay.classList.remove("open");
+    };
+
+    notepadToggle.addEventListener("click", openNotepad);
+    notepadToggle.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openNotepad();
+        }
+    });
+    notepadClose?.addEventListener("click", closeNotepad);
+    notepadOverlay?.addEventListener("click", closeNotepad);
+
+    let saveTimeout;
+    const updateSavedLabel = (text) => {
+        if (notepadSaved) notepadSaved.textContent = text;
+    };
+    notepadText.addEventListener("input", () => {
+        updateSavedLabel("저장 중...");
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            localStorage.setItem(STORAGE_KEY, notepadText.value);
+            updateSavedLabel("저장됨");
+        }, 400);
+    });
+
+    notepadClear?.addEventListener("click", () => {
+        if (confirm("메모장을 비우시겠어요?")) {
+            notepadText.value = "";
+            localStorage.removeItem(STORAGE_KEY);
+            updateSavedLabel("저장됨");
+        }
+    });
+}

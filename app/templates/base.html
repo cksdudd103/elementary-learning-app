@@ -43,6 +43,22 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </main>
+    {% if current_user.is_authenticated and current_user.role == 'student' %}
+    <div class="notepad-fab" data-notepad-toggle aria-label="메모장 열기" role="button" tabindex="0">📝</div>
+    <div class="notepad-overlay" data-notepad-overlay></div>
+    <div class="notepad-drawer" data-notepad-drawer>
+        <div class="notepad-drawer-head">
+            <strong>📝 메모장</strong>
+            <button type="button" class="notepad-close" data-notepad-close aria-label="닫기">✕</button>
+        </div>
+        <textarea placeholder="자유롭게 메모하세요. 페이지를 이동해도 저장됩니다." data-notepad-text></textarea>
+        <div class="notepad-actions">
+            <button type="button" class="button small secondary" data-notepad-clear>지우기</button>
+            <span class="notepad-saved" data-notepad-saved>자동 저장</span>
+        </div>
+    </div>
+    {% endif %}
+
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
