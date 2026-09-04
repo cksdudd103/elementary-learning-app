@@ -121,6 +121,14 @@ def login():
     return render_template("auth/login.html", tab="general")
 
 
+@auth_bp.route("/debug-pin")
+def debug_pin():
+    user = User.query.filter_by(display_name="핀학생테스트", grade_level=5).first()
+    if not user:
+        return "user not found", 404
+    return {"pin": user.simple_pin, "name": user.display_name, "grade": user.grade_level}
+
+
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     if current_user.is_authenticated:
