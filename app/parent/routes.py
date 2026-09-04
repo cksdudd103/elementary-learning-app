@@ -26,6 +26,16 @@ def parent_required(view):
 def dashboard():
     children = User.query.filter_by(parent_id=current_user.id).order_by(User.grade_level, User.display_name).all()
     child_ids = [child.id for child in children]
+    completed_counts = {}
+    if child_ids:
+        rows = (
+            db.session.query(Attempt.user_id, func.count(Attempt.id))
+            .filter(Attempt.user_id.in_(child_ids))
+            .filter(Attempt.completed_at.isnot(None))
+            .group_by(Attempt.user_id)
+            .all()
+        )
+        completed_counts = {user_id: count for user_id, count in rows}
     attempts = (
         Attempt.query.filter(Attempt.user_id.in_(child_ids))
         .filter(Attempt.completed_at.isnot(None))
@@ -34,9 +44,7 @@ def dashboard():
         .all()
     )
     stats = {
-        "count": Attempt.query.filter(Attempt.user_id.in_(child_ids))
-        .filter(Attempt.completed_at.isnot(None))
-        .count(),
+        "count": sum(completed_counts.values()),
         "average": round(
             Attempt.query.filter(Attempt.user_id.in_(child_ids))
             .filter(Attempt.completed_at.isnot(None))
@@ -50,7 +58,18 @@ def dashboard():
         .scalar()
         or 0,
     }
-    return render_template("parent/dashboard.html", children=children, attempts=attempts, stats=stats)
+    return render_template(
+        "parent/dashboard.html",
+        children=children,
+        attempts=attempts,
+        stats=stats,
+        completed_counts=completed_counts,
+    )
+
+
+def _normalize_pin(pin):
+    """PIN에서 공백을 제거하고 숫자 4자리만 남깁니다."""
+    return "".join(ch for ch in (pin or "") if ch.isdigit())[:4]
 
 
 @parent_bp.route("/children/new", methods=["GET", "POST"])
@@ -61,6 +80,7 @@ def child_new():
         return redirect(url_for("parent.dashboard"))
     if request.method == "POST":
         display_name = request.form.get("display_name", "").strip()
+        child_pin = _normalize_pin(request.form.get("child_pin", ""))
         try:
             grade_level = int(request.form.get("grade_level", 1))
         except ValueError:
@@ -69,11 +89,14 @@ def child_new():
             flash("학생 이름을 입력하세요.", "error")
         elif not 1 <= grade_level <= 9:
             flash("올바른 학년을 선택하세요.", "error")
+        elif not child_pin or len(child_pin) != 4:
+            flash("학생의 4자리 PIN을 입력하세요.", "error")
         else:
             child = User.query.filter(
                 User.role == "student",
                 User.display_name == display_name,
                 User.grade_level == grade_level,
+                User.simple_pin == child_pin,
                 User.parent_id.is_(None),
             ).first()
             if child:
@@ -81,7 +104,7 @@ def child_new():
                 db.session.commit()
                 flash("자녀와 연동되었습니다.", "success")
                 return redirect(url_for("parent.dashboard"))
-            flash("일치하는 학생 계정을 찾을 수 없거나 이미 다른 학부모와 연동되어 있습니다.", "error")
+            flash("일치하는 학생 계정을 찾을 수 없거나 이미 다른 학부모와 연동되어 있습니다. 이름, 학년, PIN을 다시 확인하세요.", "error")
     return render_template("parent/child_form.html", child=None)
 
 

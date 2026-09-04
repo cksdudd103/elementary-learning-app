@@ -26,7 +26,7 @@
             <tr>
                 <td><a href="{{ url_for('parent.child_detail', child_id=child.id) }}"><strong>{{ child.display_name }}</strong></a></td>
                 <td>{{ grade_name(child.grade_level) }}</td>
-                <td>{{ child.attempts|selectattr('completed_at')|list|length }}회</td>
+                <td>{{ completed_counts.get(child.id, 0) }}회</td>
                 <td>
                     <div class="row-actions">
                         <a href="{{ url_for('parent.child_detail', child_id=child.id) }}">상세</a>

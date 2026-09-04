@@ -89,12 +89,14 @@ def register_parent():
                     child_grade = int(request.form.get(f"child_grade_{index}", 1))
                 except ValueError:
                     child_grade = 1
+                child_pin = _normalize_pin(request.form.get(f"child_pin_{index}", ""))
                 if not 1 <= child_grade <= 9:
                     child_grade = 1
                 child = User.query.filter(
                     User.role == "student",
                     User.display_name == child_name,
                     User.grade_level == child_grade,
+                    User.simple_pin == child_pin,
                     User.parent_id.is_(None),
                 ).first()
                 if child:

@@ -88,7 +88,8 @@ h1, h2, h3, p { margin-top: 0; }
 .form-foot { margin: 20px 0 0; text-align: center; color: var(--muted); }.form-foot a { color: var(--green); font-weight: 800; }
 .hidden { display: none !important; }
 .child-inputs { display: grid; gap: 10px; margin-top: 14px; }
-.child-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.child-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .child-row { grid-template-columns: 1fr; } }
 .parent-section { margin-top: 10px; }
 .parent-section h3 { margin-bottom: 8px; }
 .welcome-row, .attempt-head, .result-hero, .section-head { display: flex; align-items: center; justify-content: space-between; gap: 24px; }

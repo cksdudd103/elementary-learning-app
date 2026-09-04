@@ -26,6 +26,7 @@
                         <select name="child_grade_{{ i }}">
                             {% for grade in range(1, 10) %}<option value="{{ grade }}">{{ grade_name(grade) }}</option>{% endfor %}
                         </select>
+                        <input name="child_pin_{{ i }}" placeholder="PIN 4자리" inputmode="numeric" pattern="[0-9]{4}" maxlength="4">
                     </div>
                     {% endfor %}
                 </div>
