@@ -27,15 +27,24 @@ def dashboard():
     children = User.query.filter_by(parent_id=current_user.id).order_by(User.grade_level, User.display_name).all()
     child_ids = [child.id for child in children]
     completed_counts = {}
+    in_progress_counts = {}
     if child_ids:
-        rows = (
+        completed_rows = (
             db.session.query(Attempt.user_id, func.count(Attempt.id))
             .filter(Attempt.user_id.in_(child_ids))
             .filter(Attempt.completed_at.isnot(None))
             .group_by(Attempt.user_id)
             .all()
         )
-        completed_counts = {user_id: count for user_id, count in rows}
+        completed_counts = {user_id: count for user_id, count in completed_rows}
+        in_progress_rows = (
+            db.session.query(Attempt.user_id, func.count(Attempt.id))
+            .filter(Attempt.user_id.in_(child_ids))
+            .filter(Attempt.completed_at.is_(None))
+            .group_by(Attempt.user_id)
+            .all()
+        )
+        in_progress_counts = {user_id: count for user_id, count in in_progress_rows}
     attempts = (
         Attempt.query.filter(Attempt.user_id.in_(child_ids))
         .filter(Attempt.completed_at.isnot(None))
@@ -64,6 +73,7 @@ def dashboard():
         attempts=attempts,
         stats=stats,
         completed_counts=completed_counts,
+        in_progress_counts=in_progress_counts,
     )
 
 

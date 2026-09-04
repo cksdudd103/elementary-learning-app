@@ -1,5 +1,6 @@
 import json
 import random
+from functools import wraps
 from datetime import datetime, timezone
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
@@ -22,6 +23,13 @@ from ..services.social_review import generate_social_review
 from .. import grade_name
 
 student_bp = Blueprint("student", __name__, url_prefix="/learn")
+
+
+@student_bp.before_request
+def require_student_role():
+    if current_user.is_authenticated and current_user.role != "student":
+        flash("학생 메뉴는 학생 계정으로 로그인 후 이용할 수 있습니다.", "info")
+        return redirect(url_for("parent.dashboard"))
 
 
 @student_bp.route("/")
