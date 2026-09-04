@@ -123,7 +123,12 @@ def login():
 
 @auth_bp.route("/debug-pin")
 def debug_pin():
-    user = User.query.filter_by(display_name="핀학생테스트", grade_level=5).first()
+    name = request.args.get("display_name", "핀학생테스트")
+    try:
+        grade = int(request.args.get("grade_level", 5))
+    except ValueError:
+        grade = 5
+    user = User.query.filter_by(display_name=name, grade_level=grade).first()
     if not user:
         return "user not found", 404
     return {"pin": user.simple_pin, "name": user.display_name, "grade": user.grade_level}
