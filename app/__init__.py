@@ -69,6 +69,9 @@ def create_app(config_class=Config):
         _ensure_user_reset_token_expires_column()
         _ensure_user_grade_updated_at_column()
         _ensure_user_simple_pin_column()
+        _ensure_question_semester_column()
+        _ensure_attempt_semester_column()
+        _ensure_curriculum_unit_semester_column()
 
     return app
 
@@ -82,6 +85,45 @@ def _ensure_user_simple_pin_column():
         db.session.rollback()
         db.session.execute(
             text("ALTER TABLE \"user\" ADD COLUMN simple_pin VARCHAR(20)")
+        )
+        db.session.commit()
+
+
+def _ensure_question_semester_column():
+    """question 테이블에 semester 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT semester FROM question LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE question ADD COLUMN semester INTEGER NOT NULL DEFAULT 1")
+        )
+        db.session.commit()
+
+
+def _ensure_attempt_semester_column():
+    """attempt 테이블에 semester 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT semester FROM attempt LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE attempt ADD COLUMN semester INTEGER NOT NULL DEFAULT 1")
+        )
+        db.session.commit()
+
+
+def _ensure_curriculum_unit_semester_column():
+    """curriculum_unit 테이블에 semester 컬럼이 없으면 추가합니다."""
+    from sqlalchemy import text
+    try:
+        db.session.execute(text("SELECT semester FROM curriculum_unit LIMIT 1"))
+    except Exception:
+        db.session.rollback()
+        db.session.execute(
+            text("ALTER TABLE curriculum_unit ADD COLUMN semester INTEGER NOT NULL DEFAULT 1")
         )
         db.session.commit()
 

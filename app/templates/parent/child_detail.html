@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="page-heading"><span class="eyebrow">{{ grade_name(child.grade_level) }}</span><h1>{{ child.display_name }} 학생</h1><p>학습 기록을 확인합니다.</p></section>
+<section class="page-heading"><span class="eyebrow">{{ grade_name(child.grade_level) }}</span><h1>{{ child.display_name }} 학생</h1><p>학습 기록을 확인합니다. 행을 클릭하면 틀린 문제와 정답을 볼 수 있어요.</p></section>
 
 <section class="panel">
-    <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>점수</th><th>완료 시각</th></tr></thead><tbody>
+    <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>학기</th><th>점수</th><th>완료 시각</th></tr></thead><tbody>
     {% for attempt in attempts %}
     <tr class="clickable-row" data-href="{{ url_for('parent.child_attempt_result', child_id=child.id, attempt_id=attempt.id) }}">
         <td>{{ subject_name(attempt.subject) }}</td>
         <td>{{ grade_name(attempt.grade_level) }}</td>
+        <td>{{ attempt.semester }}학기</td>
         <td><strong>{{ attempt.score }}점</strong></td>
         <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
     </tr>
     {% else %}
-    <tr><td colspan="4" class="empty">학습 기록이 없습니다.</td></tr>
+    <tr><td colspan="5" class="empty">학습 기록이 없습니다.</td></tr>
     {% endfor %}
     </tbody></table></div>
 </section>

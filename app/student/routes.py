@@ -38,14 +38,17 @@ def dashboard():
     if current_user.update_grade_annually():
         db.session.commit()
         flash(f"학년이 {grade_name(current_user.grade_level)}(으)로 자동 업데이트되었습니다.", "success")
+    semester = _valid_semester(request.args.get("semester"))
     completed = Attempt.query.filter_by(user_id=current_user.id).filter(Attempt.completed_at.isnot(None))
+    if semester in (1, 2):
+        completed = completed.filter_by(semester=semester)
     recent_attempts = completed.order_by(Attempt.completed_at.desc()).limit(6).all()
     stats = {
         "count": completed.count(),
         "average": round(completed.with_entities(func.avg(Attempt.score)).scalar() or 0),
         "best": completed.with_entities(func.max(Attempt.score)).scalar() or 0,
     }
-    return render_template("student/dashboard.html", recent_attempts=recent_attempts, stats=stats)
+    return render_template("student/dashboard.html", recent_attempts=recent_attempts, stats=stats, semester=semester)
 
 
 @student_bp.post("/settings")
@@ -55,7 +58,7 @@ def settings():
     return redirect(url_for("student.dashboard"))
 
 
-def select_questions(subject, grade, count=10, difficulty="medium"):
+def select_questions(subject, grade, count=10, difficulty="medium", semester=None):
     generators = {
         "math": generate_math_set,
         "english": generate_english_set,
@@ -71,8 +74,11 @@ def select_questions(subject, grade, count=10, difficulty="medium"):
         effective_grade = min(9, grade + 1)
     else:
         effective_grade = grade
-    generated = generators[subject](effective_grade, count)
-    custom = Question.query.filter_by(subject=subject, grade_level=grade, active=True).all()
+    generated = generators[subject](effective_grade, count, semester=semester)
+    custom = Question.query.filter_by(subject=subject, grade_level=grade, active=True)
+    if semester in (1, 2):
+        custom = custom.filter_by(semester=semester)
+    custom = custom.all()
     if custom:
         custom_count = min(len(custom), random.randint(1, max(1, count // 4)))
         for question, position in zip(random.sample(custom, custom_count), random.sample(range(count), custom_count)):
@@ -85,11 +91,12 @@ def select_questions(subject, grade, count=10, difficulty="medium"):
                 "options": question.options,
                 "image_url": question.image_url,
                 "max_points": getattr(question, "max_points", None) or 10,
+                "semester": question.semester,
             }
     return generated
 
 
-def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
+def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False, semester=None):
     grade = current_user.grade_level
     difficulty = current_user.difficulty or "medium"
     count = count or 10
@@ -98,6 +105,7 @@ def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
         user_id=current_user.id,
         subject=subject,
         grade_level=grade,
+        semester=semester if semester in (1, 2) else 1,
         question_count=count,
         time_limit_seconds=time_limit,
         is_comprehensive=is_comprehensive,
@@ -105,7 +113,7 @@ def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
     db.session.add(attempt)
     db.session.commit()
     if not is_comprehensive:
-        questions = select_questions(subject, grade, count, difficulty=difficulty)
+        questions = select_questions(subject, grade, count, difficulty=difficulty, semester=semester)
         for position, question in enumerate(questions, start=1):
             raw_image_url = question.get("image_url")
             # data:image/svg+xml;base64 URI는 길어질 수 있어 String(255) 컬럼에 저장하면
@@ -131,11 +139,16 @@ def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False):
 @login_required
 def math_review():
     grade = current_user.grade_level
-    units = CurriculumUnit.query.filter_by(subject="math", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+    semester = _valid_semester(request.args.get("semester"))
+    units = CurriculumUnit.query.filter_by(subject="math", grade_level=grade)
+    if semester in (1, 2):
+        units = units.filter_by(semester=semester)
+    units = units.order_by(CurriculumUnit.unit_order).all()
     return render_template(
         "student/math_review.html",
         concepts=generate_math_review(grade, 5),
         units=units,
+        semester=semester,
     )
 
 
@@ -143,18 +156,24 @@ def math_review():
 @login_required
 def start_math():
     count = _valid_count(request.args.get("count", "10"))
-    return redirect(url_for("student.attempt", attempt_id=build_attempt("math", count=count).id))
+    semester = _valid_semester(request.args.get("semester"))
+    return redirect(url_for("student.attempt", attempt_id=build_attempt("math", count=count, semester=semester).id))
 
 
 @student_bp.route("/korean/review")
 @login_required
 def korean_review():
     grade = current_user.grade_level
-    units = CurriculumUnit.query.filter_by(subject="korean", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+    semester = _valid_semester(request.args.get("semester"))
+    units = CurriculumUnit.query.filter_by(subject="korean", grade_level=grade)
+    if semester in (1, 2):
+        units = units.filter_by(semester=semester)
+    units = units.order_by(CurriculumUnit.unit_order).all()
     return render_template(
         "student/korean_review.html",
         concepts=generate_korean_review(grade, 5),
         units=units,
+        semester=semester,
     )
 
 
@@ -162,18 +181,24 @@ def korean_review():
 @login_required
 def start_korean():
     count = _valid_count(request.args.get("count", "10"))
-    return redirect(url_for("student.attempt", attempt_id=build_attempt("korean", count=count).id))
+    semester = _valid_semester(request.args.get("semester"))
+    return redirect(url_for("student.attempt", attempt_id=build_attempt("korean", count=count, semester=semester).id))
 
 
 @student_bp.route("/social/review")
 @login_required
 def social_review():
     grade = current_user.grade_level
-    units = CurriculumUnit.query.filter_by(subject="social", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+    semester = _valid_semester(request.args.get("semester"))
+    units = CurriculumUnit.query.filter_by(subject="social", grade_level=grade)
+    if semester in (1, 2):
+        units = units.filter_by(semester=semester)
+    units = units.order_by(CurriculumUnit.unit_order).all()
     return render_template(
         "student/social_review.html",
         concepts=generate_social_review(grade, 5),
         units=units,
+        semester=semester,
     )
 
 
@@ -181,20 +206,26 @@ def social_review():
 @login_required
 def start_social():
     count = _valid_count(request.args.get("count", "10"))
-    return redirect(url_for("student.attempt", attempt_id=build_attempt("social", count=count).id))
+    semester = _valid_semester(request.args.get("semester"))
+    return redirect(url_for("student.attempt", attempt_id=build_attempt("social", count=count, semester=semester).id))
 
 
 @student_bp.route("/english/review")
 @login_required
 def english_review():
     grade = current_user.grade_level
-    units = CurriculumUnit.query.filter_by(subject="english", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+    semester = _valid_semester(request.args.get("semester"))
+    units = CurriculumUnit.query.filter_by(subject="english", grade_level=grade)
+    if semester in (1, 2):
+        units = units.filter_by(semester=semester)
+    units = units.order_by(CurriculumUnit.unit_order).all()
     return render_template(
         "student/english_review.html",
         words=generate_word_set(grade),
         conversations=generate_conversation_review(grade),
         sentences=[s for s, _ in random.sample(SENTENCES[grade], min(10, len(SENTENCES[grade])))],
         units=units,
+        semester=semester,
     )
 
 
@@ -211,7 +242,8 @@ def english_word_check():
 @login_required
 def start_english():
     count = _valid_count(request.args.get("count", "10"))
-    return redirect(url_for("student.attempt", attempt_id=build_attempt("english", count=count).id))
+    semester = _valid_semester(request.args.get("semester"))
+    return redirect(url_for("student.attempt", attempt_id=build_attempt("english", count=count, semester=semester).id))
 
 
 @student_bp.route("/comprehensive/start")
@@ -254,6 +286,14 @@ def _valid_count(value):
     except ValueError:
         return 10
     return count if count in (10, 20, 30) else 10
+
+
+def _valid_semester(value):
+    try:
+        semester = int(value)
+    except (ValueError, TypeError):
+        return None
+    return semester if semester in (1, 2) else None
 
 
 def _check_time_limit(attempt):

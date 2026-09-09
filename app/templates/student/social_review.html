@@ -3,7 +3,16 @@
 <section class="page-heading"><span class="eyebrow">시험 전 준비</span><h1>사회 복습</h1><p>학년별 핵심 키워드를 확인하고 시험을 시작하세요.</p></section>
 
 <section class="panel">
-  <div class="section-head"><h2>이번 학기 교육과정 단원</h2></div>
+  <div class="section-head"><h2>학기 선택</h2></div>
+  <div class="filter-row semester-filter">
+      <a class="{% if not semester %}active{% endif %}" href="{{ url_for('student.social_review') }}">전체</a>
+      <a class="{% if semester == 1 %}active{% endif %}" href="{{ url_for('student.social_review', semester=1) }}">1학기</a>
+      <a class="{% if semester == 2 %}active{% endif %}" href="{{ url_for('student.social_review', semester=2) }}">2학기</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="section-head"><h2>교육과정 단원</h2></div>
   <div class="review-list">
   {% for unit in units %}
   <article class="review-card">
@@ -29,5 +38,5 @@
 </article>
 {% endfor %}
 </div>
-<div class="sticky-action"><a class="button primary" href="{{ url_for('student.start_social') }}">복습 완료, 시험 시작 →</a></div>
+<div class="sticky-action"><a class="button primary" href="{{ url_for('student.start_social', semester=semester) }}">복습 완료, 시험 시작 →</a></div>
 {% endblock %}

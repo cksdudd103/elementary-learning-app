@@ -3,7 +3,7 @@
 <section class="result-hero">
     <div class="score-ring"><strong>{{ attempt.score }}</strong><span>/ 100</span></div>
     <div>
-        <span class="eyebrow">{{ child.display_name }} · {{ subject_name(attempt.subject) }} · {{ grade_name(attempt.grade_level) }}</span>
+        <span class="eyebrow">{{ child.display_name }} · {{ subject_name(attempt.subject) }} · {{ grade_name(attempt.grade_level) }} · {{ attempt.semester }}학기</span>
         <h1>{% if attempt.score >= 90 %}정말 훌륭해요!{% elif attempt.score >= 70 %}잘했어요!{% else %}조금만 더 연습해요!{% endif %}</h1>
         <p>{{ attempt.items|selectattr('is_correct')|list|length }}문제를 맞혔어요.
         {% if attempt.auto_submitted %}<span class="auto-badge">시간 초과로 자동 제출됨</span>{% endif %}

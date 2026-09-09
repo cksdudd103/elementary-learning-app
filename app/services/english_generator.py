@@ -129,10 +129,13 @@ SENTENCES = {
 }
 
 
-def _curriculum_topics(subject, grade, fallback):
+def _curriculum_topics(subject, grade, fallback, semester=None):
     try:
         from ..models import CurriculumUnit
-        units = CurriculumUnit.query.filter_by(subject=subject, grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+        query = CurriculumUnit.query.filter_by(subject=subject, grade_level=grade)
+        if semester in (1, 2):
+            query = query.filter_by(semester=semester)
+        units = query.order_by(CurriculumUnit.unit_order).all()
         if units:
             return [u.unit_name for u in units]
     except Exception:
@@ -140,8 +143,8 @@ def _curriculum_topics(subject, grade, fallback):
     return fallback
 
 
-def _topic_for(grade, fallback):
-    return random.choice(_curriculum_topics("english", grade, fallback))
+def _topic_for(grade, fallback, semester=None):
+    return random.choice(_curriculum_topics("english", grade, fallback, semester=semester))
 
 
 def _make(prompt, answer, topic, options=None, question_type=None, explanation=None, image_url=None, max_points=10):
@@ -273,7 +276,7 @@ GENERATORS = {
 }
 
 
-def generate_english_set(grade, count=10):
+def generate_english_set(grade, count=10, semester=None):
     generators = GENERATORS.get(grade, GENERATORS[9])
     questions = []
     seen = set()
@@ -281,6 +284,9 @@ def generate_english_set(grade, count=10):
     while len(questions) < count and attempts < count * 50:
         g = random.choice(generators)
         q = g(grade)
+        if semester in (1, 2) and q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        q["semester"] = semester if semester in (1, 2) else None
         key = (q["prompt"], q.get("question_type", "write"))
         if key not in seen:
             seen.add(key)
@@ -288,7 +294,11 @@ def generate_english_set(grade, count=10):
         attempts += 1
     while len(questions) < count:
         g = random.choice(generators)
-        questions.append(g(grade))
+        q = g(grade)
+        if semester in (1, 2) and q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        q["semester"] = semester if semester in (1, 2) else None
+        questions.append(q)
     random.shuffle(questions)
     return questions[:count]
 

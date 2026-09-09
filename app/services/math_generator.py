@@ -79,10 +79,13 @@ def _arithmetic_choices(answer, count=4, span=10):
     return [str(o) for o in opts]
 
 
-def _topic_for(grade, fallback):
+def _topic_for(grade, fallback, semester=None):
     try:
         from ..models import CurriculumUnit
-        units = CurriculumUnit.query.filter_by(subject="math", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+        query = CurriculumUnit.query.filter_by(subject="math", grade_level=grade)
+        if semester in (1, 2):
+            query = query.filter_by(semester=semester)
+        units = query.order_by(CurriculumUnit.unit_order).all()
         if units:
             return random.choice([u.unit_name for u in units])
     except Exception:
@@ -90,9 +93,33 @@ def _topic_for(grade, fallback):
     return random.choice(fallback)
 
 
-# ============================================================
-# 1학년: 9까지/50까지/100까지 수, 한 자리 덧셈·뺄셈
-# ============================================================
+def generate_math_set(grade, count=10, semester=None):
+    generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
+    questions = []
+    seen = set()
+    max_attempts = count * 30
+    attempts = 0
+    while len(questions) < count and attempts < max_attempts:
+        q = random.choice(generators)()
+        # 학기가 지정되면 주제를 해당 학기 단원에서 다시 선택
+        if semester in (1, 2) and q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        q["semester"] = semester if semester in (1, 2) else None
+        key = (q["prompt"], q["question_type"])
+        if key not in seen:
+            seen.add(key)
+            questions.append(q)
+        attempts += 1
+    return questions
+
+
+def generate_question(grade, semester=None):
+    generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
+    q = random.choice(generators)()
+    if semester in (1, 2) and q.get("topic"):
+        q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+    q["semester"] = semester if semester in (1, 2) else None
+    return q
 def _g1_addition():
     a, b = random.randint(1, 5), random.randint(1, 4)
     answer = a + b

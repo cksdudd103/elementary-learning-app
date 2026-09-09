@@ -13,10 +13,13 @@ def _make(prompt, answer, topic, options=None, question_type=None, explanation=N
     }
 
 
-def _topic_for(grade, fallback):
+def _topic_for(grade, fallback, semester=None):
     try:
         from ..models import CurriculumUnit
-        units = CurriculumUnit.query.filter_by(subject="korean", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+        query = CurriculumUnit.query.filter_by(subject="korean", grade_level=grade)
+        if semester in (1, 2):
+            query = query.filter_by(semester=semester)
+        units = query.order_by(CurriculumUnit.unit_order).all()
         if units:
             return random.choice([u.unit_name for u in units])
     except Exception:
@@ -24,9 +27,42 @@ def _topic_for(grade, fallback):
     return random.choice(fallback)
 
 
-# ============================================================
-# 1학년: 글자 읽기, 낱말, 문장 부호, 반대말
-# ============================================================
+def generate_korean_set(grade, count=10, semester=None):
+    generators = GENERATORS.get(grade, GENERATORS[9])
+    selected = []
+    seen = set()
+    attempts = 0
+    target = count - min(2, len(SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9])))
+    while len(selected) < target and attempts < count * 50:
+        g = random.choice(generators)
+        q = g()
+        # 학기가 지정되면 주제를 해당 학기 단원에서 다시 선택
+        if semester in (1, 2) and q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        q["semester"] = semester if semester in (1, 2) else None
+        key = (q["prompt"], q.get("question_type", "choice"))
+        if key not in seen:
+            seen.add(key)
+            selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
+        attempts += 1
+    while len(selected) < target:
+        g = random.choice(generators)
+        q = g()
+        if semester in (1, 2) and q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        q["semester"] = semester if semester in (1, 2) else None
+        selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
+    solution_bank = SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9])
+    solution_count = min(2, len(solution_bank), count - len(selected))
+    selected += [(prompt, answer, [], topic) for prompt, answer, topic in random.sample(solution_bank, solution_count)]
+    random.shuffle(selected)
+    selected = selected[:count]
+    questions = []
+    for prompt, answer, options, topic in selected:
+        q = _transform_question(prompt, answer, options, topic)
+        q["semester"] = semester if semester in (1, 2) else None
+        questions.append(q)
+    return questions
 def _k1_consonant_vowel():
     consonants = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     vowels = ["ㅏ", "ㅑ", "ㅓ", "ㅕ", "ㅗ", "ㅛ", "ㅜ", "ㅠ", "ㅡ", "ㅣ"]

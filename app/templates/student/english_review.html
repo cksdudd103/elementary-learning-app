@@ -7,6 +7,15 @@
 </section>
 
 <section class="panel">
+    <div class="section-head"><h2>학기 선택</h2></div>
+    <div class="filter-row semester-filter">
+        <a class="{% if not semester %}active{% endif %}" href="{{ url_for('student.english_review') }}">전체</a>
+        <a class="{% if semester == 1 %}active{% endif %}" href="{{ url_for('student.english_review', semester=1) }}">1학기</a>
+        <a class="{% if semester == 2 %}active{% endif %}" href="{{ url_for('student.english_review', semester=2) }}">2학기</a>
+    </div>
+</section>
+
+<section class="panel">
     <div class="section-head"><h2>문장 · 단어 암기</h2></div>
     <p class="muted">체크리스트로 문장과 단어를 외우고, 완료하면 받아쓰기에 도전하세요.</p>
     <a class="button secondary" href="{{ url_for('student.english_memorize') }}">암기 페이지로 →</a>
@@ -66,7 +75,7 @@
 </section>
 
 <section class="panel">
-    <div class="section-head"><h2>이번 학기 교육과정 단원</h2></div>
+    <div class="section-head"><h2>교육과정 단원</h2></div>
     <div class="review-list">
     {% for unit in units %}
     <article class="review-card">
@@ -98,7 +107,7 @@
     </div>
 </section>
 
-<div class="sticky-action"><a class="button primary" href="{{ url_for('student.start_english') }}">복습 완료, 시험 시작 →</a></div>
+<div class="sticky-action"><a class="button primary" href="{{ url_for('student.start_english', semester=semester) }}">복습 완료, 시험 시작 →</a></div>
 {% endblock %}
 
 {% block scripts %}

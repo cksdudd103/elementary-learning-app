@@ -26,10 +26,13 @@ def _choice_options(answer, distractors, shuffle=True):
     return opts
 
 
-def _topic_for(grade, fallback):
+def _topic_for(grade, fallback, semester=None):
     try:
         from ..models import CurriculumUnit
-        units = CurriculumUnit.query.filter_by(subject="social", grade_level=grade).order_by(CurriculumUnit.unit_order).all()
+        query = CurriculumUnit.query.filter_by(subject="social", grade_level=grade)
+        if semester in (1, 2):
+            query = query.filter_by(semester=semester)
+        units = query.order_by(CurriculumUnit.unit_order).all()
         if units:
             return random.choice([u.unit_name for u in units])
     except Exception:
@@ -37,9 +40,29 @@ def _topic_for(grade, fallback):
     return random.choice(fallback)
 
 
-# ============================================================
-# 1학년: 안전, 나와 가족, 우리 반/학교
-# ============================================================
+def generate_social_set(grade, count=10, semester=None):
+    generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
+    questions = []
+    seen = set()
+    attempts = 0
+    while len(questions) < count and attempts < count * 50:
+        q = random.choice(generators)()
+        if semester in (1, 2) and q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        q["semester"] = semester if semester in (1, 2) else None
+        key = (q["prompt"], q["question_type"])
+        if key not in seen:
+            seen.add(key)
+            questions.append(q)
+        attempts += 1
+    while len(questions) < count:
+        q = random.choice(generators)()
+        if semester in (1, 2) and q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        q["semester"] = semester if semester in (1, 2) else None
+        questions.append(q)
+    random.shuffle(questions)
+    return questions
 def _s1_safety():
     topic = _topic_for(1, ["안전", "교통안전"])
     prompt = "길을 걷거나 걸어갈 때 반드시 지켜야 하는 것은?"

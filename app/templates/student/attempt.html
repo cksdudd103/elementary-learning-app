@@ -2,7 +2,7 @@
 {% block content %}
 <section class="attempt-head">
     <div>
-        <span class="eyebrow">{{ grade_name(attempt.grade_level) }}</span>
+        <span class="eyebrow">{{ grade_name(attempt.grade_level) }}{% if attempt.semester in [1,2] %} · {{ attempt.semester }}학기{% endif %}</span>
         <h1>{{ subject_name(attempt.subject) }} {{ attempt.question_count }}문제</h1>
         <p>모든 문제를 푼 뒤 제출하면 정답과 점수를 확인할 수 있어요.</p>
     </div>

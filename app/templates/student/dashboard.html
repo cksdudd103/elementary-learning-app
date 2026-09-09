@@ -1,7 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="welcome-row">
-    <div><span class="eyebrow">{{ grade_name(current_user.grade_level) }}</span><h1>{{ current_user.display_name }}님, 오늘도 힘차게 시작해요!</h1><p>풀 때마다 새로운 10문제가 기다리고 있어요.</p></div>
+    <div><span class="eyebrow">{{ grade_name(current_user.grade_level) }}</span><h1>{{ current_user.display_name }}님, 오늘도 힘차게 시작해요!</h1><p>학기를 선택하고 풀 때마다 새로운 10문제가 기다리고 있어요.</p></div>
+</section>
+<section class="panel semester-panel">
+    <div class="section-head"><h2>학기 선택</h2></div>
+    <div class="filter-row semester-filter">
+        <a class="{% if not semester %}active{% endif %}" href="{{ url_for('student.dashboard') }}">전체</a>
+        <a class="{% if semester == 1 %}active{% endif %}" href="{{ url_for('student.dashboard', semester=1) }}">1학기</a>
+        <a class="{% if semester == 2 %}active{% endif %}" href="{{ url_for('student.dashboard', semester=2) }}">2학기</a>
+    </div>
+    <p class="muted">학기를 선택하면 복습과 시험이 해당 학기 범위로 제한됩니다.</p>
 </section>
 <section class="stats-grid">
     <article><span>총 학습</span><strong>{{ stats.count }}회</strong></article>
@@ -15,8 +24,8 @@
         <h2>수학 랜덤 문항</h2>
         <p>{{ grade_name(current_user.grade_level) }} 교과 범위에서 골고루 출제해요. 제출 후 정답과 풀이를 확인하세요.</p>
         <div class="split-actions">
-            <a class="button secondary" href="{{ url_for('student.math_review') }}">먼저 복습</a>
-            <a class="button dark" href="{{ url_for('student.start_math', count=random_count()) }}">랜덤 시작 (10~30)</a>
+            <a class="button secondary" href="{{ url_for('student.math_review', semester=semester) }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_math', count=random_count(), semester=semester) }}">랜덤 시작 (10~30)</a>
         </div>
     </article>
     <article class="learn-card english-card">
@@ -25,8 +34,8 @@
         <h2>듣기 · 쓰기 · 말하기</h2>
         <p>영어 문장을 먼저 복습하고 무작위 10문제 시험으로 실력을 확인해요.</p>
         <div class="split-actions">
-            <a class="button secondary" href="{{ url_for('student.english_review') }}">먼저 복습</a>
-            <a class="button dark" href="{{ url_for('student.start_english', count=random_count()) }}">랜덤 시작 (10~30)</a>
+            <a class="button secondary" href="{{ url_for('student.english_review', semester=semester) }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_english', count=random_count(), semester=semester) }}">랜덤 시작 (10~30)</a>
         </div>
         <a class="button secondary full" href="{{ url_for('student.english_memorize') }}" style="margin-top:10px;">📚 문장 · 단어 암기</a>
     </article>
@@ -36,8 +45,8 @@
         <h2>국어 랜덤 문항</h2>
         <p>낱말과 문장부터 문법·문학·논증까지 학년별 국어 실력을 키워요.</p>
         <div class="split-actions">
-            <a class="button secondary" href="{{ url_for('student.korean_review') }}">먼저 복습</a>
-            <a class="button dark" href="{{ url_for('student.start_korean', count=random_count()) }}">랜덤 시작 (10~30)</a>
+            <a class="button secondary" href="{{ url_for('student.korean_review', semester=semester) }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_korean', count=random_count(), semester=semester) }}">랜덤 시작 (10~30)</a>
         </div>
     </article>
     <article class="learn-card social-card">
@@ -46,8 +55,8 @@
         <h2>사회 랜덤 문항</h2>
         <p>생활·지리·역사·정치·경제를 내 학년에 맞는 문제로 학습해요.</p>
         <div class="split-actions">
-            <a class="button secondary" href="{{ url_for('student.social_review') }}">먼저 복습</a>
-            <a class="button dark" href="{{ url_for('student.start_social', count=random_count()) }}">랜덤 시작 (10~30)</a>
+            <a class="button secondary" href="{{ url_for('student.social_review', semester=semester) }}">먼저 복습</a>
+            <a class="button dark" href="{{ url_for('student.start_social', count=random_count(), semester=semester) }}">랜덤 시작 (10~30)</a>
         </div>
     </article>
 </section>
@@ -59,8 +68,8 @@
 <section class="panel">
     <div class="section-head"><h2>최근 학습 기록</h2><a href="{{ url_for('student.history') }}">전체 보기 →</a></div>
     {% if recent_attempts %}
-    <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>점수</th><th>완료</th></tr></thead><tbody>
-    {% for attempt in recent_attempts %}<tr><td><span class="subject-badge {{ attempt.subject }}">{{ subject_name(attempt.subject) }}</span></td><td>{{ grade_name(attempt.grade_level) }}</td><td><strong>{{ attempt.score }}점</strong></td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>{% endfor %}
+    <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>학기</th><th>점수</th><th>완료</th></tr></thead><tbody>
+    {% for attempt in recent_attempts %}<tr><td><span class="subject-badge {{ attempt.subject }}">{{ subject_name(attempt.subject) }}</span></td><td>{{ grade_name(attempt.grade_level) }}</td><td>{{ attempt.semester }}학기</td><td><strong>{{ attempt.score }}점</strong></td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>{% endfor %}
     </tbody></table></div>
     {% else %}<div class="empty">아직 학습 기록이 없어요. 첫 10문제를 시작해 보세요!</div>{% endif %}
 </section>
