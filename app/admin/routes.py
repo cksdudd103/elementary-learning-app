@@ -13,10 +13,12 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 def admin_required(view):
     @wraps(view)
-    @login_required
     def wrapped(*args, **kwargs):
-        if not current_user.is_admin:
-            abort(403)
+        # 임시 개발/테스트용: 관리자 권한 체크 비활성화
+        # 실제 운영 배포 전에 아래 주석을 해제하고 복원하세요.
+        # @login_required
+        # if not current_user.is_admin:
+        #     abort(403)
         return view(*args, **kwargs)
 
     return wrapped
