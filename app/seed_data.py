@@ -245,8 +245,18 @@ def seed_schools():
 
 
 def seed_curriculum_units():
-    if CurriculumUnit.query.first():
+    if not CurriculumUnit.query.first():
+        _insert_curriculum_units()
+        db.session.commit()
         return
+    # 기존 데이터가 학기 정보 없이 1로만 채워져 있으면 단원 순서에 따라 재분배
+    rows = CurriculumUnit.query.all()
+    if all(row.semester == 1 for row in rows):
+        _reassign_semesters(rows)
+        db.session.commit()
+
+
+def _insert_curriculum_units():
     for grade, units in MATH_UNITS.items():
         for order, (name, objective, keywords, semester) in enumerate(units, start=1):
             db.session.add(CurriculumUnit(
@@ -271,7 +281,19 @@ def seed_curriculum_units():
                 subject="english", grade_level=grade, semester=semester, unit_order=order,
                 unit_name=name, learning_objective=objective, keywords=keywords
             ))
-    db.session.commit()
+
+
+def _reassign_semesters(rows):
+    """기존 단원 데이터를 단원 수의 전반/후반으로 1학기/2학기에 재분배합니다."""
+    from collections import defaultdict
+    grouped = defaultdict(list)
+    for row in rows:
+        grouped[(row.subject, row.grade_level)].append(row)
+    for key, group in grouped.items():
+        group.sort(key=lambda r: r.unit_order)
+        mid = (len(group) + 1) // 2
+        for i, row in enumerate(group):
+            row.semester = 1 if i < mid else 2
 
 
 def seed_all():
