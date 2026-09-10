@@ -18,6 +18,19 @@
     <article><span>최고 점수</span><strong>{{ stats.best }}점</strong></article>
 </section>
 <section class="learning-grid">
+    {% if current_user.grade_level in [1, 2] %}
+    <article class="learn-card practice-card">
+        <div class="card-icon">🧮</div>
+        <span class="tag">1~2학년 전용</span>
+        <h2>기초 연습 모음</h2>
+        <p>구구단, 숫자, 한글을 재미있게 반복 연습해요.</p>
+        <div class="practice-links">
+            <a class="button secondary" href="{{ url_for('student.practice_multiplication') }}">구구단</a>
+            <a class="button secondary" href="{{ url_for('student.practice_numbers') }}">숫자</a>
+            <a class="button secondary" href="{{ url_for('student.practice_korean') }}">한글</a>
+        </div>
+    </article>
+    {% endif %}
     <article class="learn-card math-card">
         <div class="card-icon">∑</div>
         <span class="tag">오늘의 수학</span>

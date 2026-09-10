@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}숫자 연습 · {{ t('app_name') }}{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">{{ grade_name(current_user.grade_level) }}</span>
+    <h1>🔢 숫자 연습</h1>
+    <p>숫자를 읽고 쓰고 비교하며 연습해요. "더 큰 수", "더 작은 수"도 찾아보세요.</p>
+</section>
+
+<section class="panel practice-panel">
+    <div class="mode-tabs" id="mode-tabs">
+        <button type="button" class="active" data-mode="read">숫자 읽기</button>
+        <button type="button" data-mode="write">숫자 쓰기</button>
+        <button type="button" data-mode="compare">크기 비교</button>
+        <button type="button" data-mode="before-after">앞뒤 수</button>
+    </div>
+
+    <div class="practice-stats">
+        <div><span>맞힘</span><strong id="score">0</strong></div>
+        <div><span>틀림</span><strong id="wrong">0</strong></div>
+    </div>
+
+    <div class="quiz-card" id="quiz-card">
+        <div class="question-display" id="question">?</div>
+        <input type="text" id="answer" inputmode="numeric" placeholder="정답 입력" autocomplete="off">
+        <div class="compare-options" id="compare-options" style="display:none;">
+            <button type="button" class="button secondary" data-val="left">왼쪽이 커요</button>
+            <button type="button" class="button secondary" data-val="right">오른쪽이 커요>
+            <button type="button" class="button secondary" data-val="same">같아요</button>
+        </div>
+        <div class="button-row">
+            <button type="button" class="button primary" id="submit-btn">제출</button>
+            <button type="button" class="button secondary" id="next-btn">다음</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+</section>
+
+<section class="panel number-board">
+    <div class="section-head"><h2>숫자판 1~100</h2></div>
+    <div class="number-grid" id="number-grid"></div>
+</section>
+
+<div class="center-actions">
+    <a class="button secondary" href="{{ url_for('student.dashboard') }}">학습 홈</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const els = {
+        question: document.getElementById('question'),
+        answer: document.getElementById('answer'),
+        submit: document.getElementById('submit-btn'),
+        next: document.getElementById('next-btn'),
+        feedback: document.getElementById('feedback'),
+        score: document.getElementById('score'),
+        wrong: document.getElementById('wrong'),
+        tabs: document.getElementById('mode-tabs'),
+        compare: document.getElementById('compare-options'),
+        grid: document.getElementById('number-grid'),
+    };
+
+    const koreanNumbers = ['영','일','이','삼','사','오','육','칠','팔','구','십'];
+    const numberNames = {
+        0: '영', 1: '하나', 2: '둘', 3: '셋', 4: '넷', 5: '다섯',
+        6: '여섯', 7: '일곱', 8: '여덟', 9: '아홉', 10: '열',
+        11: '열하나', 12: '엿새', 20: '스물', 21: '스물하나', 30: '서른',
+        40: '마흔', 50: '쉰', 60: '예순', 70: '일흔', 80: '여든', 90: '아흔',
+        100: '백'
+    };
+
+    let state = { mode: 'read', score: 0, wrong: 0, data: {}, answered: false };
+
+    function numberName(n) {
+        if (numberNames[n]) return numberNames[n];
+        if (n < 100) {
+            const tens = Math.floor(n / 10) * 10;
+            const ones = n % 10;
+            return (numberNames[tens] || '') + (ones ? numberNames[ones] : '');
+        }
+        return n.toString();
+    }
+
+    function randomNumber() {
+        const grade = {{ current_user.grade_level }};
+        if (grade === 1) return Math.floor(Math.random() * 50) + 1;
+        return Math.floor(Math.random() * 100) + 1;
+    }
+
+    function newRead() {
+        const n = randomNumber();
+        state.data = { n, name: numberName(n) };
+        els.question.textContent = `${n}`;
+        els.answer.placeholder = '한글로 읽기 (예: 스물셋)';
+    }
+
+    function newWrite() {
+        const n = randomNumber();
+        state.data = { n };
+        els.question.textContent = `${numberName(n)}`;
+        els.answer.placeholder = '숫자로 쓰기 (예: 23)';
+    }
+
+    function newCompare() {
+        const a = randomNumber(), b = randomNumber();
+        state.data = { a, b };
+        els.question.innerHTML = `<span class="big-number">${a}</span> <span>vs</span> <span class="big-number">${b}</span>`;
+        els.answer.style.display = 'none';
+        els.compare.style.display = 'flex';
+    }
+
+    function newBeforeAfter() {
+        const n = randomNumber();
+        const type = Math.random() < 0.5 ? 'before' : 'after';
+        state.data = { n, type };
+        els.question.textContent = type === 'before' ? `${n}의 바로 앞 수는?` : `${n}의 바로 뒤 수는?`;
+        els.answer.placeholder = '숫자 입력';
+    }
+
+    function newQuestion() {
+        state.answered = false;
+        els.answer.style.display = '';
+        els.compare.style.display = 'none';
+        els.answer.value = '';
+        els.feedback.textContent = '';
+        els.feedback.className = 'feedback';
+        if (state.mode === 'read') newRead();
+        else if (state.mode === 'write') newWrite();
+        else if (state.mode === 'compare') newCompare();
+        else if (state.mode === 'before-after') newBeforeAfter();
+        els.answer.focus();
+    }
+
+    function checkRead() {
+        const val = els.answer.value.trim();
+        if (!val) return;
+        const ok = val === state.data.name || val === state.data.n.toString();
+        return { ok, correct: state.data.name };
+    }
+
+    function checkWrite() {
+        const val = parseInt(els.answer.value, 10);
+        if (isNaN(val)) return null;
+        return { ok: val === state.data.n, correct: state.data.n };
+    }
+
+    function checkCompare(choice) {
+        const { a, b } = state.data;
+        let correct = 'same';
+        if (a > b) correct = 'left';
+        else if (a < b) correct = 'right';
+        return { ok: choice === correct, correct };
+    }
+
+    function checkBeforeAfter() {
+        const val = parseInt(els.answer.value, 10);
+        if (isNaN(val)) return null;
+        const correct = state.data.type === 'before' ? state.data.n - 1 : state.data.n + 1;
+        return { ok: val === correct, correct };
+    }
+
+    function check(choice) {
+        if (state.answered) return;
+        let result;
+        if (state.mode === 'read') result = checkRead();
+        else if (state.mode === 'write') result = checkWrite();
+        else if (state.mode === 'compare') result = checkCompare(choice);
+        else if (state.mode === 'before-after') result = checkBeforeAfter();
+        if (!result) return;
+        state.answered = true;
+        if (result.ok) {
+            state.score++;
+            els.feedback.textContent = '정답! 🎉';
+            els.feedback.classList.add('correct');
+        } else {
+            state.wrong++;
+            els.feedback.textContent = `틀렸어요. 정답은 ${result.correct}입니다.`;
+            els.feedback.classList.add('wrong');
+        }
+        updateStats();
+        setTimeout(newQuestion, 1200);
+    }
+
+    function updateStats() {
+        els.score.textContent = state.score;
+        els.wrong.textContent = state.wrong;
+    }
+
+    function buildGrid() {
+        let html = '';
+        for (let i = 1; i <= 100; i++) {
+            html += `<span class="number-cell" data-n="${i}">${i}</span>`;
+        }
+        els.grid.innerHTML = html;
+    }
+
+    function highlightGrid(n) {
+        els.grid.querySelectorAll('.number-cell').forEach(c => c.classList.remove('active'));
+        const cell = els.grid.querySelector(`.number-cell[data-n="${n}"]`);
+        if (cell) cell.classList.add('active');
+    }
+
+    const origNewQuestion = newQuestion;
+    newQuestion = function() {
+        origNewQuestion();
+        if (state.data && state.data.n) highlightGrid(state.data.n);
+    };
+
+    els.tabs.addEventListener('click', e => {
+        if (e.target.tagName !== 'BUTTON') return;
+        state.mode = e.target.dataset.mode;
+        els.tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        newQuestion();
+    });
+
+    els.submit.addEventListener('click', () => check());
+    els.next.addEventListener('click', newQuestion);
+    els.answer.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+    els.compare.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') check(e.target.dataset.val);
+    });
+
+    buildGrid();
+    newQuestion();
+})();
+</script>
+{% endblock %}

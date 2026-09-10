@@ -25,6 +25,39 @@ from .. import grade_name
 student_bp = Blueprint("student", __name__, url_prefix="/learn")
 
 
+def _grade_1_2_required(view):
+    @wraps(view)
+    @login_required
+    def decorated_view(*args, **kwargs):
+        if current_user.grade_level not in (1, 2):
+            flash("이 연습은 1~2학년용입니다.", "info")
+            return redirect(url_for("student.dashboard"))
+        return view(*args, **kwargs)
+
+    return decorated_view
+
+
+@student_bp.route("/practice/multiplication")
+@login_required
+@_grade_1_2_required
+def practice_multiplication():
+    return render_template("student/practice_multiplication.html")
+
+
+@student_bp.route("/practice/numbers")
+@login_required
+@_grade_1_2_required
+def practice_numbers():
+    return render_template("student/practice_numbers.html")
+
+
+@student_bp.route("/practice/korean")
+@login_required
+@_grade_1_2_required
+def practice_korean():
+    return render_template("student/practice_korean.html")
+
+
 @student_bp.before_request
 def require_student_role():
     if current_user.is_authenticated and current_user.role != "student":

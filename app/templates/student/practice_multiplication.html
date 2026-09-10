@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}구구단 연습 · {{ t('app_name') }}{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">{{ grade_name(current_user.grade_level) }}</span>
+    <h1>🧮 구구단 연습</h1>
+    <p>랜덤으로 나오는 구구단 문제를 풀어보세요. 10문제를 모두 맞히면 완성!</p>
+</section>
+
+<section class="panel practice-panel">
+    <div class="practice-stats">
+        <div><span>맞힘</span><strong id="score">0</strong></div>
+        <div><span>틀림</span><strong id="wrong">0</strong></div>
+        <div><span>연속</span><strong id="streak">0</strong></div>
+    </div>
+
+    <div class="quiz-card" id="quiz-card">
+        <div class="question-display" id="question">?</div>
+        <input type="number" id="answer" inputmode="numeric" placeholder="정답 입력" autocomplete="off">
+        <div class="button-row">
+            <button type="button" class="button primary" id="submit-btn">제출</button>
+            <button type="button" class="button secondary" id="skip-btn">넘어가기</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="practice-table">
+        <h3>📋 구구단 표</h3>
+        <div class="times-table" id="times-table"></div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>구구단 노래</h2></div>
+    <p class="chant" id="chant">2단: 2 4 6 8 10 12 14 16 18</p>
+    <button type="button" class="button small secondary" id="speak-btn">🔊 듣기</button>
+</section>
+
+<div class="center-actions">
+    <a class="button secondary" href="{{ url_for('student.dashboard') }}">학습 홈</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const els = {
+        question: document.getElementById('question'),
+        answer: document.getElementById('answer'),
+        submit: document.getElementById('submit-btn'),
+        skip: document.getElementById('skip-btn'),
+        feedback: document.getElementById('feedback'),
+        score: document.getElementById('score'),
+        wrong: document.getElementById('wrong'),
+        streak: document.getElementById('streak'),
+        table: document.getElementById('times-table'),
+        chant: document.getElementById('chant'),
+        speak: document.getElementById('speak-btn'),
+    };
+
+    let state = { a: 0, b: 0, score: 0, wrong: 0, streak: 0, answered: false };
+
+    function newQuestion() {
+        state.a = Math.floor(Math.random() * 8) + 2; // 2~9
+        state.b = Math.floor(Math.random() * 9) + 1; // 1~9
+        state.answered = false;
+        els.question.textContent = `${state.a} × ${state.b} = ?`;
+        els.answer.value = '';
+        els.feedback.textContent = '';
+        els.feedback.className = 'feedback';
+        els.answer.focus();
+    }
+
+    function check() {
+        if (state.answered) return;
+        const val = parseInt(els.answer.value, 10);
+        if (isNaN(val)) return;
+        state.answered = true;
+        const correct = state.a * state.b;
+        if (val === correct) {
+            state.score++;
+            state.streak++;
+            els.feedback.textContent = '정답! 🎉';
+            els.feedback.classList.add('correct');
+        } else {
+            state.wrong++;
+            state.streak = 0;
+            els.feedback.textContent = `틀렸어요. 정답은 ${correct}입니다.`;
+            els.feedback.classList.add('wrong');
+        }
+        updateStats();
+        setTimeout(newQuestion, 1200);
+    }
+
+    function updateStats() {
+        els.score.textContent = state.score;
+        els.wrong.textContent = state.wrong;
+        els.streak.textContent = state.streak;
+    }
+
+    function buildTable() {
+        let html = '<table><thead><tr><th>×</th>';
+        for (let i = 1; i <= 9; i++) html += `<th>${i}</th>`;
+        html += '</tr></thead><tbody>';
+        for (let a = 2; a <= 9; a++) {
+            html += `<tr><th>${a}</th>`;
+            for (let b = 1; b <= 9; b++) {
+                html += `<td data-a="${a}" data-b="${b}">${a * b}</td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        els.table.innerHTML = html;
+    }
+
+    function highlightCell(a, b) {
+        els.table.querySelectorAll('td').forEach(td => td.classList.remove('active'));
+        const cell = els.table.querySelector(`td[data-a="${a}"][data-b="${b}"]`);
+        if (cell) cell.classList.add('active');
+    }
+
+    function updateChant() {
+        const n = state.a;
+        const line = Array.from({length: 9}, (_, i) => n * (i + 1)).join(' ');
+        els.chant.textContent = `${n}단: ${line}`;
+    }
+
+    const origNewQuestion = newQuestion;
+    newQuestion = function() {
+        origNewQuestion();
+        highlightCell(state.a, state.b);
+        updateChant();
+    };
+
+    els.submit.addEventListener('click', check);
+    els.skip.addEventListener('click', newQuestion);
+    els.answer.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+    els.speak.addEventListener('click', () => {
+        if ('speechSynthesis' in window) {
+            const text = els.chant.textContent;
+            const u = new SpeechSynthesisUtterance(text.replace(/:/g, ', '));
+            u.lang = 'ko-KR';
+            u.rate = 0.9;
+            window.speechSynthesis.speak(u);
+        }
+    });
+
+    buildTable();
+    newQuestion();
+})();
+</script>
+{% endblock %}

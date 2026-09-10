@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}한글 연습 · {{ t('app_name') }}{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <span class="eyebrow">{{ grade_name(current_user.grade_level) }}</span>
+    <h1>ㄱㄴㄷ 한글 연습</h1>
+    <p>자음, 모음, 받침을 익히고 간단한 글자와 낱말을 읽어보세요.</p>
+</section>
+
+<section class="panel practice-panel">
+    <div class="mode-tabs" id="mode-tabs">
+        <button type="button" class="active" data-mode="consonant">자음</button>
+        <button type="button" data-mode="vowel">모음</button>
+        <button type="button" data-mode="syllable">글자 조합</button>
+        <button type="button" data-mode="word">낱말 읽기</button>
+    </div>
+
+    <div class="practice-stats">
+        <div><span>맞힘</span><strong id="score">0</strong></div>
+        <div><span>틀림</span><strong id="wrong">0</strong></div>
+    </div>
+
+    <div class="quiz-card" id="quiz-card">
+        <div class="question-display hangul-display" id="question">?</div>
+        <input type="text" id="answer" placeholder="정답 입력" autocomplete="off">
+        <div class="button-row">
+            <button type="button" class="button primary" id="submit-btn">제출</button>
+            <button type="button" class="button secondary" id="next-btn">다음</button>
+            <button type="button" class="button small secondary" id="speak-btn">🔊 듣기</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>한글판</h2></div>
+    <div class="hangul-board" id="hangul-board"></div>
+</section>
+
+<div class="center-actions">
+    <a class="button secondary" href="{{ url_for('student.dashboard') }}">학습 홈</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const els = {
+        question: document.getElementById('question'),
+        answer: document.getElementById('answer'),
+        submit: document.getElementById('submit-btn'),
+        next: document.getElementById('next-btn'),
+        speak: document.getElementById('speak-btn'),
+        feedback: document.getElementById('feedback'),
+        score: document.getElementById('score'),
+        wrong: document.getElementById('wrong'),
+        tabs: document.getElementById('mode-tabs'),
+        board: document.getElementById('hangul-board'),
+    };
+
+    const consonants = [
+        { char: 'ㄱ', name: '기역' }, { char: 'ㄴ', name: '니은' }, { char: 'ㄷ', name: '디귿' },
+        { char: 'ㄹ', name: '리을' }, { char: 'ㅁ', name: '미음' }, { char: 'ㅂ', name: '비읍' },
+        { char: 'ㅅ', name: '시옷' }, { char: 'ㅇ', name: '이응' }, { char: 'ㅈ', name: '지읒' },
+        { char: 'ㅊ', name: '치읓' }, { char: 'ㅋ', name: '키읔' }, { char: 'ㅌ', name: '티읕' },
+        { char: 'ㅍ', name: '피읖' }, { char: 'ㅎ', name: '히읗' }
+    ];
+    const vowels = [
+        { char: 'ㅏ', name: '아' }, { char: 'ㅑ', name: '야' }, { char: 'ㅓ', name: '어' },
+        { char: 'ㅕ', name: '여' }, { char: 'ㅗ', name: '오' }, { char: 'ㅛ', name: '요' },
+        { char: 'ㅜ', name: '우' }, { char: 'ㅠ', name: '유' }, { char: 'ㅡ', name: '으' },
+        { char: 'ㅣ', name: '이' }
+    ];
+    const finalConsonants = ['', 'ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+    const words = [
+        ['가','나','다','라','마','바','사','아','자','차','카','타','파','하'],
+        ['구','두','루','무','부','수','우','주','추','쿠','투','푸','후'],
+        ['고','노','도','로','모','보','소','오','조','초','코','토','포','호'],
+        ['게','네','데','레','메','베','세','에','제','체','케','테','페','헤'],
+        ['과','나','라','마','바','사','아','자','차','카','타','파','하']
+    ];
+    const simpleWords = [
+        { word: '바나나', mean: '노란 과일' }, { word: '사과', mean: '빨간 과일' },
+        { word: '고양이', mean: '야옹하는 동물' }, { word: '강아지', mean: '멍멍하는 동물' },
+        { word: '학교', mean: '공부하는 곳' }, { word: '집', mean: '사는 곳' },
+        { word: '친구', mean: '함께 노는 사람' }, { word: '엄마', mean: '어머니' },
+        { word: '아빠', mean: '아버지' }, { word: '하늘', mean: '머리 위의 공간' },
+        { word: '바다', mean: '물이 많은 곳' }, { word: '나무', mean: '숲에 있는 것' }
+    ];
+
+    let state = { mode: 'consonant', score: 0, wrong: 0, data: {}, answered: false };
+
+    function combine(c, v, f) {
+        const cho = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.indexOf(c);
+        const jung = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.indexOf(v);
+        const jong = finalConsonants.indexOf(f);
+        if (cho === -1 || jung === -1) return c + v + f;
+        return String.fromCharCode(0xAC00 + cho * 588 + jung * 28 + jong);
+    }
+
+    function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function newConsonant() {
+        const item = randomItem(consonants);
+        state.data = { char: item.char, answer: item.name };
+        els.question.textContent = item.char;
+        els.answer.placeholder = '이름 입력 (예: 기역)';
+    }
+
+    function newVowel() {
+        const item = randomItem(vowels);
+        state.data = { char: item.char, answer: item.name };
+        els.question.textContent = item.char;
+        els.answer.placeholder = '발음 입력 (예: 아)';
+    }
+
+    function newSyllable() {
+        const c = randomItem(consonants).char;
+        const v = randomItem(vowels).char;
+        const f = Math.random() < 0.3 ? randomItem(finalConsonants.slice(1)) : '';
+        const char = combine(c, v, f);
+        state.data = { char, answer: char };
+        els.question.textContent = char;
+        els.answer.placeholder = '글자 입력';
+    }
+
+    function newWord() {
+        const item = randomItem(simpleWords);
+        state.data = { char: item.word, answer: item.word };
+        els.question.textContent = item.word;
+        els.answer.placeholder = '낱말 입력';
+    }
+
+    function newQuestion() {
+        state.answered = false;
+        els.answer.value = '';
+        els.feedback.textContent = '';
+        els.feedback.className = 'feedback';
+        if (state.mode === 'consonant') newConsonant();
+        else if (state.mode === 'vowel') newVowel();
+        else if (state.mode === 'syllable') newSyllable();
+        else if (state.mode === 'word') newWord();
+        highlightBoard(state.data.char);
+        els.answer.focus();
+    }
+
+    function check() {
+        if (state.answered) return;
+        const val = els.answer.value.trim();
+        if (!val) return;
+        state.answered = true;
+        const ok = val === state.data.answer;
+        if (ok) {
+            state.score++;
+            els.feedback.textContent = '정답! 🎉';
+            els.feedback.classList.add('correct');
+        } else {
+            state.wrong++;
+            els.feedback.textContent = `틀렸어요. 정답은 "${state.data.answer}"입니다.`;
+            els.feedback.classList.add('wrong');
+        }
+        updateStats();
+        setTimeout(newQuestion, 1500);
+    }
+
+    function updateStats() {
+        els.score.textContent = state.score;
+        els.wrong.textContent = state.wrong;
+    }
+
+    function buildBoard() {
+        let html = '<div class="hangul-group"><h4>자음</h4>' + consonants.map(c => `<span class="hangul-cell" data-char="${c.char}">${c.char}</span>`).join('') + '</div>';
+        html += '<div class="hangul-group"><h4>모음</h4>' + vowels.map(v => `<span class="hangul-cell" data-char="${v.char}">${v.char}</span>`).join('') + '</div>';
+        els.board.innerHTML = html;
+    }
+
+    function highlightBoard(char) {
+        els.board.querySelectorAll('.hangul-cell').forEach(c => c.classList.remove('active'));
+        for (const ch of char) {
+            const cell = els.board.querySelector(`.hangul-cell[data-char="${ch}"]`);
+            if (cell) cell.classList.add('active');
+        }
+    }
+
+    els.tabs.addEventListener('click', e => {
+        if (e.target.tagName !== 'BUTTON') return;
+        state.mode = e.target.dataset.mode;
+        els.tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        newQuestion();
+    });
+
+    els.submit.addEventListener('click', check);
+    els.next.addEventListener('click', newQuestion);
+    els.answer.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+    els.speak.addEventListener('click', () => {
+        if ('speechSynthesis' in window && state.data.char) {
+            const u = new SpeechSynthesisUtterance(state.data.char);
+            u.lang = 'ko-KR';
+            u.rate = 0.8;
+            window.speechSynthesis.speak(u);
+        }
+    });
+
+    buildBoard();
+    newQuestion();
+})();
+</script>
+{% endblock %}
