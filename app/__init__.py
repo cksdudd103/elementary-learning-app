@@ -72,6 +72,9 @@ def create_app(config_class=Config):
         _ensure_question_semester_column()
         _ensure_attempt_semester_column()
         _ensure_curriculum_unit_semester_column()
+        from .seed_data import seed_all
+
+        seed_all()
 
     return app
 
