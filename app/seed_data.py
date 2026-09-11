@@ -573,10 +573,30 @@ def _reassign_semesters(rows):
             row.semester = 1 if i < mid else 2
 
 
+def seed_admin_user():
+    """기본 관리자 계정이 없으면 생성합니다. (admin / 0000)"""
+    from app.models import User
+
+    if User.query.filter_by(username="admin").first():
+        return
+    admin = User(
+        username="admin",
+        email="admin@example.com",
+        display_name="관리자",
+        role="admin",
+        grade_level=1,
+        ui_language="ko",
+    )
+    admin.set_password("0000")
+    db.session.add(admin)
+    db.session.commit()
+
+
 def seed_all():
     seed_education_offices()
     seed_schools()
     seed_curriculum_units()
+    seed_admin_user()
     print("Seed data inserted.")
 
 
