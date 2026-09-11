@@ -22,10 +22,12 @@ def create_app(config_class=Config):
     login_manager.login_view = "auth.login"
     login_manager.login_message = "로그인이 필요합니다."
 
+    from .admin.routes import admin_bp
     from .auth.routes import auth_bp
     from .parent.routes import parent_bp
     from .student.routes import student_bp
 
+    app.register_blueprint(admin_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(parent_bp)
@@ -49,6 +51,8 @@ def create_app(config_class=Config):
     @app.route("/")
     def index():
         if current_user.is_authenticated:
+            if current_user.role == "admin":
+                return redirect(url_for("admin.dashboard"))
             return redirect(url_for("student.dashboard"))
         return render_template("index.html")
 

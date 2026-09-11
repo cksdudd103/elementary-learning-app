@@ -158,6 +158,8 @@ def login():
             if user.update_grade_annually():
                 db.session.commit()
             login_user(user, remember=bool(request.form.get("remember")))
+            if user.role == "admin":
+                return redirect(url_for("admin.dashboard"))
             return redirect(url_for("student.dashboard"))
         flash("아이디 또는 비밀번호를 확인하세요.", "error")
     return render_template("auth/login.html", tab="general")
