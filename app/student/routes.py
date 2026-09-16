@@ -403,6 +403,7 @@ def _submit_attempt(current_attempt):
     current_attempt.auto_submitted = auto
     db.session.commit()
     _refresh_recommended_courses(current_attempt.user_id)
+    _mark_recommended_complete(current_attempt.user_id, current_attempt.subject, current_attempt.semester)
     return redirect(url_for("student.result", attempt_id=current_attempt.id))
 
 
@@ -453,6 +454,22 @@ def _refresh_recommended_courses(user_id):
         )
         db.session.add(course)
         priority += 1
+    db.session.commit()
+
+
+def _mark_recommended_complete(user_id, subject, semester):
+    """해당 과목/학기의 추천 코스 중 정답률이 70% 이상이면 완료 처리합니다."""
+    records = MasteryRecord.query.filter_by(
+        user_id=user_id, subject=subject, semester=semester
+    ).filter(MasteryRecord.accuracy_rate >= 70).all()
+    unit_names = {r.unit_name for r in records}
+    courses = RecommendedCourse.query.filter_by(
+        user_id=user_id, subject=subject, semester=semester, is_completed=False
+    ).filter(RecommendedCourse.unit_name.in_(unit_names)).all()
+    now = datetime.now(timezone.utc)
+    for course in courses:
+        course.is_completed = True
+        course.completed_at = now
     db.session.commit()
 
 
