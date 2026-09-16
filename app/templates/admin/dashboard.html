@@ -1,11 +1,112 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="page-heading"><span class="eyebrow">관리자 센터</span><h1>학습 현황</h1><p>학생의 학습 기록과 관리자가 등록한 문제를 관리합니다.</p></section>
-<section class="stats-grid four"><article><span>학생</span><strong>{{ stats.students }}명</strong></article><article><span>등록 문제</span><strong>{{ stats.questions }}개</strong></article><article><span>완료 시험</span><strong>{{ stats.attempts }}회</strong></article><article><span>전체 평균</span><strong>{{ stats.average }}점</strong></article></section>
-<section class="stats-grid four"><article><span>교육청</span><strong>{{ stats.offices }}개</strong></article><article><span>학교</span><strong>{{ stats.schools }}개</strong></article><article><span>교육과정 단원</span><strong>{{ stats.units }}개</strong></article></section>
-<div class="admin-actions"><a class="button primary" href="{{ url_for('admin.question_new') }}">+ 새 문제 등록</a><a class="button secondary" href="{{ url_for('admin.questions') }}">문제 관리</a><a class="button secondary" href="{{ url_for('admin.students') }}">학생 성적</a><a class="button secondary" href="{{ url_for('admin.education_offices') }}">교육청</a><a class="button secondary" href="{{ url_for('admin.schools') }}">학교</a><a class="button secondary" href="{{ url_for('admin.curriculum_units') }}">교육과정 단원</a></div>
-<section class="panel"><div class="section-head"><h2>최근 응시</h2></div><div class="table-wrap"><table><thead><tr><th>학생</th><th>과목</th><th>학년</th><th>점수</th><th>완료</th></tr></thead><tbody>
-{% for attempt in recent_attempts %}<tr><td><a href="{{ url_for('admin.student_detail', user_id=attempt.user.id) }}">{{ attempt.user.display_name }}</a></td><td>{{ subject_name(attempt.subject) }}</td><td>{{ grade_name(attempt.grade_level) }}</td><td><strong>{{ attempt.score }}점</strong></td><td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
-{% else %}<tr><td colspan="5" class="empty">응시 기록이 없습니다.</td></tr>{% endfor %}
-</tbody></table></div></section>
+
+<section class="stats-grid four">
+    <article><span>학생</span><strong>{{ stats.students }}명</strong></article>
+    <article><span>등록 문제</span><strong>{{ stats.questions }}개</strong></article>
+    <article><span>완료 시험</span><strong>{{ stats.attempts }}회</strong></article>
+    <article><span>전체 평균</span><strong>{{ stats.average }}점</strong></article>
+</section>
+
+<section class="stats-grid four">
+    <article><span>교육청</span><strong>{{ stats.offices }}개</strong></article>
+    <article><span>학교</span><strong>{{ stats.schools }}개</strong></article>
+    <article><span>교육과정 단원</span><strong>{{ stats.units }}개</strong></article>
+</section>
+
+<div class="admin-actions">
+    <a class="button primary" href="{{ url_for('admin.question_new') }}">+ 새 문제 등록</a>
+    <a class="button secondary" href="{{ url_for('admin.questions') }}">문제 관리</a>
+    <a class="button secondary" href="{{ url_for('admin.students') }}">학생 성적</a>
+    <a class="button secondary" href="{{ url_for('admin.education_offices') }}">교육청</a>
+    <a class="button secondary" href="{{ url_for('admin.schools') }}">학교</a>
+    <a class="button secondary" href="{{ url_for('admin.curriculum_units') }}">교육과정 단원</a>
+</div>
+
+<section class="panel">
+    <div class="section-head"><h2>과목별 평균 점수</h2></div>
+    <div class="chart-row">
+        <div class="chart-container"><canvas id="subjectChart"></canvas></div>
+        <div class="chart-container"><canvas id="gradeChart"></canvas></div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>전체 취약 단원 TOP 10</h2></div>
+    {% if weak_units %}
+    <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>단원</th><th>정답률</th><th>푼 문제 수</th></tr></thead><tbody>
+    {% for unit in weak_units %}
+    <tr>
+        <td>{{ subject_name(unit.subject) }}</td>
+        <td>{{ grade_name(unit.grade_level) }}</td>
+        <td>{{ unit.unit_name }}</td>
+        <td><strong class="{% if unit.accuracy_rate < 50 %}text-danger{% elif unit.accuracy_rate < 70 %}text-warning{% else %}text-success{% endif %}">{{ unit.accuracy_rate }}%</strong></td>
+        <td>{{ unit.total_questions }}문제</td>
+    </tr>
+    {% endfor %}
+    </tbody></table></div>
+    {% else %}
+    <div class="empty">아직 충분한 학습 데이터가 없습니다.</div>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>최근 응시</h2></div>
+    <div class="table-wrap"><table><thead><tr><th>학생</th><th>과목</th><th>학년</th><th>점수</th><th>완료</th></tr></thead><tbody>
+    {% for attempt in recent_attempts %}
+    <tr>
+        <td><a href="{{ url_for('admin.student_detail', user_id=attempt.user.id) }}">{{ attempt.user.display_name }}</a></td>
+        <td>{{ subject_name(attempt.subject) }}</td>
+        <td>{{ grade_name(attempt.grade_level) }}</td>
+        <td><strong>{{ attempt.score }}점</strong></td>
+        <td>{{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="empty">응시 기록이 없습니다.</td></tr>
+    {% endfor %}
+    </tbody></table></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const subjectCtx = document.getElementById('subjectChart');
+    if (subjectCtx) {
+        new Chart(subjectCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ subject_chart | map(attribute='subject') | list | tojson }},
+                datasets: [{
+                    label: '평균 점수',
+                    data: {{ subject_chart | map(attribute='average') | list | tojson }},
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false }, title: { display: true, text: '과목별 평균 점수' } }
+            }
+        });
+    }
+
+    const gradeCtx = document.getElementById('gradeChart');
+    if (gradeCtx) {
+        new Chart(gradeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ grade_chart | map(attribute='grade') | list | tojson }},
+                datasets: [{
+                    data: {{ grade_chart | map(attribute='count') | list | tojson }},
+                    backgroundColor: ['#34d399', '#10b981', '#059669', '#047857', '#065f46', '#92400e', '#b45309', '#d97706', '#f59e0b'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { title: { display: true, text: '학년별 학생 분포' } }
+            }
+        });
+    }
+</script>
 {% endblock %}

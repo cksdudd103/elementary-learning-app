@@ -1,12 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="page-heading"><span class="eyebrow">{{ grade_name(child.grade_level) }}</span><h1>{{ child.display_name }} 학생</h1><p>학습 기록을 확인합니다. 행을 클릭하면 틀린 문제와 정답을 볼 수 있어요.</p></section>
+<section class="page-heading"><span class="eyebrow">{{ grade_name(child.grade_level) }}</span><h1>{{ child.display_name }} 학생</h1><p>학습 기록과 취약 단원을 확인합니다. 행을 클릭하면 틀린 문제와 정답을 볼 수 있어요.</p></section>
 
 <section class="panel">
+    <div class="section-head"><h2>과목별 평균 점수</h2></div>
+    {% if subject_chart %}
+    <div class="chart-container" style="max-width:500px; margin:0 auto;">
+        <canvas id="subjectChart"></canvas>
+    </div>
+    <div class="stats-grid" style="margin-top:16px;">
+        {% for item in subject_chart %}
+        <article><span>{{ item.subject }}</span><strong>{{ item.average }}점 ({{ item.count }}회)</strong></article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">아직 완료된 시험이 없습니다.</div>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>취약 단원 TOP 10</h2></div>
+    {% if mastery %}
+    <div class="table-wrap"><table><thead><tr><th>과목</th><th>단원</th><th>정답률</th><th>푼 문제 수</th></tr></thead><tbody>
+    {% for record in mastery %}
+    <tr>
+        <td>{{ subject_name(record.subject) }}</td>
+        <td>{{ record.unit_name }}</td>
+        <td><strong class="{% if record.accuracy_rate < 50 %}text-danger{% elif record.accuracy_rate < 70 %}text-warning{% else %}text-success{% endif %}">{{ record.accuracy_rate }}%</strong></td>
+        <td>{{ record.total_questions }}문제</td>
+    </tr>
+    {% endfor %}
+    </tbody></table></div>
+    {% else %}
+    <div class="empty">아직 충분한 학습 데이터가 없습니다.</div>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>학습 기록</h2></div>
     <div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>학기</th><th>점수</th><th>완료 시각</th></tr></thead><tbody>
     {% for attempt in attempts %}
     <tr class="clickable-row" data-href="{{ url_for('parent.child_attempt_result', child_id=child.id, attempt_id=attempt.id) }}">
-        <td>{{ subject_name(attempt.subject) }}</td>
+        <td><span class="subject-badge {{ attempt.subject }}">{{ subject_name(attempt.subject) }}</span></td>
         <td>{{ grade_name(attempt.grade_level) }}</td>
         <td>{{ attempt.semester }}학기</td>
         <td><strong>{{ attempt.score }}점</strong></td>
@@ -20,7 +55,28 @@
 
 <div class="center-actions"><a class="button secondary" href="{{ url_for('parent.dashboard') }}">학부모 홈</a></div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    const ctx = document.getElementById('subjectChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ subject_chart | map(attribute='subject') | list | tojson }},
+                datasets: [{
+                    label: '평균 점수',
+                    data: {{ subject_chart | map(attribute='average') | list | tojson }},
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
     document.querySelectorAll('[data-href]').forEach(function(row){
         row.addEventListener('click', function(){
             window.location.href = row.dataset.href;

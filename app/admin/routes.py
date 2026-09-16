@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from ..extensions import db
-from ..models import Attempt, Question, User, EducationOffice, School, CurriculumUnit
+from ..models import Attempt, Question, User, EducationOffice, School, CurriculumUnit, MasteryRecord
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -47,7 +47,43 @@ def dashboard():
         .limit(10)
         .all()
     )
-    return render_template("admin/dashboard.html", stats=stats, recent_attempts=recent_attempts)
+    # 과목별 평균 점수
+    subject_stats = (
+        db.session.query(Attempt.subject, func.count(Attempt.id), func.avg(Attempt.score))
+        .filter(Attempt.completed_at.isnot(None))
+        .group_by(Attempt.subject)
+        .all()
+    )
+    subject_chart = [
+        {"subject": subject_name(s), "count": c, "average": round(a or 0)}
+        for s, c, a in subject_stats
+    ]
+    # 학년별 학생 수
+    grade_stats = (
+        db.session.query(User.grade_level, func.count(User.id))
+        .filter(User.role == "student")
+        .group_by(User.grade_level)
+        .order_by(User.grade_level.asc())
+        .all()
+    )
+    grade_chart = [
+        {"grade": grade_name(g), "count": c} for g, c in grade_stats
+    ]
+    # 취약 단원 TOP 10
+    weak_units = (
+        MasteryRecord.query.filter(MasteryRecord.total_questions >= 5)
+        .order_by(MasteryRecord.accuracy_rate.asc())
+        .limit(10)
+        .all()
+    )
+    return render_template(
+        "admin/dashboard.html",
+        stats=stats,
+        recent_attempts=recent_attempts,
+        subject_chart=subject_chart,
+        grade_chart=grade_chart,
+        weak_units=weak_units,
+    )
 
 
 @admin_bp.route("/questions")

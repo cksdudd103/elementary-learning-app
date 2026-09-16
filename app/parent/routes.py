@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from ..extensions import db
-from ..models import Attempt, User
+from ..models import Attempt, User, MasteryRecord, RecommendedCourse, CurriculumUnit
 
 parent_bp = Blueprint("parent", __name__, url_prefix="/parent")
 
@@ -171,7 +171,30 @@ def child_detail(child_id):
         .order_by(Attempt.completed_at.desc())
         .all()
     )
-    return render_template("parent/child_detail.html", child=child, attempts=attempts)
+    mastery = (
+        MasteryRecord.query.filter_by(user_id=child.id)
+        .order_by(MasteryRecord.accuracy_rate.asc(), MasteryRecord.total_questions.desc())
+        .limit(10)
+        .all()
+    )
+    # 과목별 평균 점수
+    subject_stats = (
+        db.session.query(Attempt.subject, func.count(Attempt.id), func.avg(Attempt.score))
+        .filter(Attempt.user_id == child.id, Attempt.completed_at.isnot(None))
+        .group_by(Attempt.subject)
+        .all()
+    )
+    subject_chart = [
+        {"subject": subject_name(s), "count": c, "average": round(a or 0)}
+        for s, c, a in subject_stats
+    ]
+    return render_template(
+        "parent/child_detail.html",
+        child=child,
+        attempts=attempts,
+        mastery=mastery,
+        subject_chart=subject_chart,
+    )
 
 
 @parent_bp.route("/children/<int:child_id>/reset-password", methods=["GET", "POST"])
