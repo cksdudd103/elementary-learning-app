@@ -19,6 +19,9 @@
                 <a href="{{ url_for('student.dashboard') }}">{{ t('dashboard') }}</a>
                 <a href="{{ url_for('student.history') }}">{{ t('history') }}</a>
                 <a href="{{ url_for('student.wrong_answers') }}">{{ t('wrong_answers') }}</a>
+                {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}">관리자 홈</a>
+                <a href="{{ url_for('admin.users') }}">계정 관리</a>
                 {% else %}
                 <a href="{{ url_for('parent.dashboard') }}">학부모 홈</a>
                 {% endif %}

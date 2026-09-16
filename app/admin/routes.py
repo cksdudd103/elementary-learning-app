@@ -6,7 +6,17 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from ..extensions import db
-from ..models import Attempt, Question, User, EducationOffice, School, CurriculumUnit, MasteryRecord
+from ..models import (
+    Attempt,
+    AttemptItem,
+    Question,
+    User,
+    EducationOffice,
+    School,
+    CurriculumUnit,
+    MasteryRecord,
+    RecommendedCourse,
+)
 from .. import grade_name, subject_name
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -163,6 +173,79 @@ def save_question(question):
 def students():
     student_rows = User.query.filter_by(role="student").order_by(User.created_at.desc()).all()
     return render_template("admin/students.html", students=student_rows)
+
+
+def _purge_users(user_ids):
+    """학생/학부모 계정과 관련 학습 데이터를 안전하게 삭제합니다."""
+    if not user_ids:
+        return 0
+    attempt_ids = [
+        row[0]
+        for row in db.session.query(Attempt.id).filter(Attempt.user_id.in_(user_ids)).all()
+    ]
+    if attempt_ids:
+        AttemptItem.query.filter(AttemptItem.attempt_id.in_(attempt_ids)).delete(
+            synchronize_session=False
+        )
+    Attempt.query.filter(Attempt.user_id.in_(user_ids)).delete(synchronize_session=False)
+    MasteryRecord.query.filter(MasteryRecord.user_id.in_(user_ids)).delete(
+        synchronize_session=False
+    )
+    RecommendedCourse.query.filter(RecommendedCourse.user_id.in_(user_ids)).delete(
+        synchronize_session=False
+    )
+    User.query.filter(User.parent_id.in_(user_ids)).update(
+        {User.parent_id: None}, synchronize_session=False
+    )
+    User.query.filter(User.id.in_(user_ids)).delete(synchronize_session=False)
+    db.session.commit()
+    return len(user_ids)
+
+
+@admin_bp.route("/users")
+@admin_required
+def users():
+    role_filter = request.args.get("role", "all")
+    query = User.query.order_by(User.created_at.desc())
+    if role_filter in ("student", "parent"):
+        query = query.filter_by(role=role_filter)
+    user_rows = query.all()
+    return render_template(
+        "admin/users.html",
+        users=user_rows,
+        role_filter=role_filter,
+        student_count=User.query.filter_by(role="student").count(),
+        parent_count=User.query.filter_by(role="parent").count(),
+    )
+
+
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def user_delete(user_id):
+    user = db.get_or_404(User, user_id)
+    if user.is_admin:
+        flash("관리자 계정은 삭제할 수 없습니다.", "error")
+        return redirect(url_for("admin.users"))
+    if user.id == current_user.id:
+        flash("본인 계정은 삭제할 수 없습니다.", "error")
+        return redirect(url_for("admin.users"))
+    display_name = user.display_name
+    _purge_users([user.id])
+    flash(f"{display_name} 계정과 학습 기록을 삭제했습니다.", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/reset", methods=["POST"])
+@admin_required
+def users_reset():
+    """관리자를 제외한 모든 학생/학부모 계정을 초기화합니다."""
+    user_ids = [
+        row[0]
+        for row in db.session.query(User.id).filter(User.role != "admin").all()
+    ]
+    count = _purge_users(user_ids)
+    flash(f"가입 계정 {count}개를 초기화했습니다. (관리자 계정은 유지)", "success")
+    return redirect(url_for("admin.users"))
 
 
 @admin_bp.route("/students/<int:user_id>")

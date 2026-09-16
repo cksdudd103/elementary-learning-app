@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="page-heading"><span class="eyebrow">계정 관리</span><h1>가입 계정 관리</h1><p>학생·학부모 계정을 조회하고 삭제하거나 전체를 초기화합니다.</p></section>
+
+<section class="panel">
+    <div class="section-head">
+        <h2>계정 현황</h2>
+        <div class="filter-row semester-filter">
+            <a class="{{ 'active' if role_filter == 'all' }}" href="{{ url_for('admin.users', role='all') }}">전체</a>
+            <a class="{{ 'active' if role_filter == 'student' }}" href="{{ url_for('admin.users', role='student') }}">학생 {{ student_count }}</a>
+            <a class="{{ 'active' if role_filter == 'parent' }}" href="{{ url_for('admin.users', role='parent') }}">학부모 {{ parent_count }}</a>
+        </div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>이름</th><th>역할</th><th>아이디</th><th>학년</th><th>가입일</th><th>관리</th></tr></thead><tbody>
+    {% for user in users %}
+    <tr>
+        <td><strong>{{ user.display_name }}</strong></td>
+        <td>{% if user.is_admin %}<span class="type-badge">관리자</span>{% elif user.is_parent %}<span class="type-badge">학부모</span>{% else %}<span class="type-badge">학생</span>{% endif %}</td>
+        <td>{{ user.username }}</td>
+        <td>{% if user.role == 'student' %}{{ grade_name(user.grade_level) }}{% else %}-{% endif %}</td>
+        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+        <td>
+            {% if user.is_admin %}
+            <span class="empty">보호 중</span>
+            {% else %}
+            <form method="post" action="{{ url_for('admin.user_delete', user_id=user.id) }}" style="display:inline" onsubmit="return confirm('{{ user.display_name }} 계정과 학습 기록을 삭제할까요?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="button small danger" type="submit">삭제</button>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% else %}<tr><td colspan="6" class="empty">가입된 계정이 없습니다.</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+
+<section class="panel">
+    <div class="section-head"><h2>전체 초기화</h2></div>
+    <p>관리자 계정을 제외한 모든 학생·학부모 계정과 학습 기록(시험 결과, 오답노트, 성취도, 추천 코스)을 삭제합니다. 이 작업은 되돌릴 수 없습니다.</p>
+    <form method="post" action="{{ url_for('admin.users_reset') }}" onsubmit="return confirm('관리자를 제외한 모든 계정을 삭제합니다. 정말 초기화할까요?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="button danger" type="submit">가입 계정 전체 초기화</button>
+    </form>
+</section>
+{% endblock %}

@@ -202,3 +202,72 @@ def test_login_with_wrong_password(client, student):
     res = login(client, student.username, "wrong-password")
     assert res.status_code == 200
     assert "아이디 또는 비밀번호를 확인하세요" in res.get_data(as_text=True)
+
+
+# ---------------------------------------------------------------------------
+# 관리자 계정 관리
+# ---------------------------------------------------------------------------
+
+def test_admin_can_access_users_page(client, admin):
+    login(client, admin.username)
+    assert client.get("/admin/users").status_code == 200
+
+
+def test_admin_delete_user_removes_account(client, admin, student, completed_attempt):
+    student_id = student.id
+    login(client, admin.username)
+    res = client.post(f"/admin/users/{student_id}/delete", follow_redirects=True)
+    assert res.status_code == 200
+    from app.models import Attempt, User
+
+    assert User.query.get(student_id) is None
+    assert Attempt.query.filter_by(user_id=student_id).count() == 0
+
+
+def test_admin_cannot_delete_admin_account(client, admin):
+    from app.extensions import db
+    from app.models import User
+
+    other_admin = User(
+        username="other-admin",
+        email="other-admin@example.com",
+        display_name="다른관리자",
+        role="admin",
+        grade_level=1,
+    )
+    other_admin.set_password(PASSWORD)
+    db.session.add(other_admin)
+    db.session.commit()
+
+    login(client, admin.username)
+    res = client.post(f"/admin/users/{other_admin.id}/delete", follow_redirects=True)
+    assert res.status_code == 200
+    assert "관리자 계정은 삭제할 수 없습니다" in res.get_data(as_text=True)
+    assert User.query.get(other_admin.id) is not None
+
+
+def test_admin_users_reset_keeps_admin_only(client, admin, student, parent, child):
+    removed_ids = {student.id, parent.id, child.id}
+    login(client, admin.username)
+    res = client.post("/admin/users/reset", follow_redirects=True)
+    assert res.status_code == 200
+    assert "3개를 초기화했습니다" in res.get_data(as_text=True)
+
+    from app.models import User
+
+    remaining = User.query.all()
+    remaining_ids = {u.id for u in remaining}
+    assert all(u.role == "admin" for u in remaining)
+    assert admin.id in remaining_ids
+    assert removed_ids.isdisjoint(remaining_ids)
+
+
+def test_student_forbidden_on_users_reset(client, student):
+    login(client, student.username)
+    assert client.post("/admin/users/reset").status_code == 403
+    assert client.post(f"/admin/users/{student.id}/delete").status_code == 403
+
+
+def test_parent_forbidden_on_user_delete(client, parent, student):
+    login(client, parent.username)
+    assert client.post(f"/admin/users/{student.id}/delete").status_code == 403
