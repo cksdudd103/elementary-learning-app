@@ -43,6 +43,10 @@ class User(UserMixin, db.Model):
     def is_parent(self):
         return self.role == "parent"
 
+    @property
+    def is_admin(self):
+        return self.role == "admin"
+
     def update_grade_annually(self):
         """가입일 기준 1년이 지날 때마다 학년을 1씩 올립니다 (최대 9학년)."""
         from datetime import datetime, timezone
