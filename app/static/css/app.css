@@ -246,7 +246,30 @@ h1, h2, h3, p { margin-top: 0; }
     .listen-write-nav .button { flex: 1; }
 }
 
-.chart-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.children-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.child-card { display: flex; flex-direction: column; gap: 16px; }
+.child-header { display: flex; align-items: center; gap: 14px; }
+.child-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; font-size: 1.2rem; font-weight: 700; }
+.child-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.child-stats div { background: var(--mint); padding: 12px; border-radius: 10px; text-align: center; }
+.child-stats span { display: block; font-size: .8rem; color: var(--muted); }
+.child-stats strong { display: block; font-size: 1.2rem; color: var(--primary); }
+.child-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.child-actions form { display: inline; }
+button.small.danger, .button.small.danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 8px; font-size: .8rem; cursor: pointer; }
+button.small.danger:hover { background: #fecaca; }
+
+.subject-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: .75rem; font-weight: 600; }
+.subject-badge.math { background: #dbeafe; color: #1e40af; }
+.subject-badge.english { background: #dcfce7; color: #166534; }
+.subject-badge.korean { background: #fef3c7; color: #92400e; }
+.subject-badge.social { background: #f3e8ff; color: #6b21a8; }
+
+.smart-panel { background: #f8fafc; border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+.split-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.split-actions .button { flex: 1; min-width: 140px; text-align: center; }
+
+
 .chart-container { position: relative; min-height: 280px; }
 .recommended-preview { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; padding: 16px; background: var(--mint); border-radius: 12px; }
 .smart-panel .split-actions { margin-bottom: 0; }

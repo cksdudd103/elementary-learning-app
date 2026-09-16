@@ -22,6 +22,7 @@
 <div class="center-actions">
     {% set retry_urls = {'math': 'student.start_math', 'english': 'student.start_english', 'korean': 'student.start_korean', 'social': 'student.start_social'} %}
     <a class="button primary" href="{{ url_for(retry_urls[attempt.subject], semester=attempt.semester) }}">다시 학습하기</a>
+    <a class="button secondary" href="{{ url_for('student.wrong_answers') }}">오답노트 보기</a>
     <a class="button secondary" href="{{ url_for('student.dashboard', semester=attempt.semester) }}">학습 홈</a>
 </div>
 {% endblock %}

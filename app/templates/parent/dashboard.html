@@ -18,31 +18,32 @@
 
 <section class="panel">
     <div class="section-head"><h2>자녀 목록</h2></div>
-    <div class="table-wrap">
-        <table>
-            <thead><tr><th>이름</th><th>학년</th><th>완료 시험</th><th>관리</th></tr></thead>
-            <tbody>
-            {% for child in children %}
-            <tr>
-                <td><a href="{{ url_for('parent.child_detail', child_id=child.id) }}"><strong>{{ child.display_name }}</strong></a></td>
-                <td>{{ grade_name(child.grade_level) }}</td>
-                <td>완료 {{ completed_counts.get(child.id, 0) }}회{% if in_progress_counts.get(child.id, 0) %}<br><span class="muted">진행 중 {{ in_progress_counts.get(child.id, 0) }}회</span>{% endif %}</td>
-                <td>
-                    <div class="row-actions">
-                        <a href="{{ url_for('parent.child_detail', child_id=child.id) }}">상세</a>
-                        <a href="{{ url_for('parent.child_reset_password', child_id=child.id) }}">비밀번호 재설정</a>
-                        <form method="post" action="{{ url_for('parent.child_unlink', child_id=child.id) }}">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit">연동 해제</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="4" class="empty">등록된 자녀가 없습니다. 상단의 "자녀 연동" 버튼을 눌러 학생 계정을 연결하세요.</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="children-grid">
+    {% for child in children %}
+    <article class="child-card panel">
+        <div class="child-header">
+            <div class="child-avatar" aria-hidden="true">{{ child.display_name[0] }}</div>
+            <div>
+                <h3><a href="{{ url_for('parent.child_detail', child_id=child.id) }}">{{ child.display_name }}</a></h3>
+                <span class="tag">{{ grade_name(child.grade_level) }}</span>
+            </div>
+        </div>
+        <div class="child-stats">
+            <div><span>완료 시험</span><strong>{{ completed_counts.get(child.id, 0) }}회</strong></div>
+            <div><span>진행 중</span><strong>{{ in_progress_counts.get(child.id, 0) }}회</strong></div>
+        </div>
+        <div class="child-actions">
+            <a class="button small secondary" href="{{ url_for('parent.child_detail', child_id=child.id) }}">상세 보기</a>
+            <a class="button small secondary" href="{{ url_for('parent.child_reset_password', child_id=child.id) }}">비밀번호 재설정</a>
+            <form method="post" action="{{ url_for('parent.child_unlink', child_id=child.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="small danger" type="submit">연동 해제</button>
+            </form>
+        </div>
+    </article>
+    {% else %}
+    <div class="empty panel">등록된 자녀가 없습니다. 상단의 "자녀 연동" 버튼을 눌러 학생 계정을 연결하세요.</div>
+    {% endfor %}
     </div>
 </section>
 
