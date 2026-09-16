@@ -11,6 +11,13 @@ def utcnow():
     return datetime.now(timezone.utc)
 
 
+def ensure_aware(value):
+    """SQLite처럼 timezone 정보가 유실되는 DB에서 가져온 datetime에 UTC를 붙입니다."""
+    if value is not None and value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
+
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(40), unique=True, nullable=False, index=True)
@@ -51,7 +58,7 @@ class User(UserMixin, db.Model):
         """가입일 기준 1년이 지날 때마다 학년을 1씩 올립니다 (최대 9학년)."""
         from datetime import datetime, timezone
         now = datetime.now(timezone.utc)
-        last = self.grade_updated_at or self.created_at or now
+        last = ensure_aware(self.grade_updated_at or self.created_at) or now
         years_passed = (now - last).days // 365
         if years_passed >= 1 and self.grade_level < 9:
             new_grade = min(9, self.grade_level + years_passed)

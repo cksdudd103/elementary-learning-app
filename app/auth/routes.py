@@ -6,7 +6,7 @@ from uuid import uuid4
 from sqlalchemy import or_
 
 from ..extensions import db
-from ..models import User
+from ..models import User, ensure_aware
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -191,7 +191,7 @@ def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for("student.dashboard"))
     user = User.query.filter_by(reset_token=token).first()
-    if not user or not user.reset_token_expires_at or user.reset_token_expires_at < datetime.now(timezone.utc):
+    if not user or not user.reset_token_expires_at or ensure_aware(user.reset_token_expires_at) < datetime.now(timezone.utc):
         flash("유효하지 않거나 만료된 링크입니다.", "error")
         return redirect(url_for("auth.forgot_password"))
     if request.method == "POST":

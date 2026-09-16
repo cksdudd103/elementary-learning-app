@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from ..extensions import db
-from ..models import Attempt, AttemptItem, Question, CurriculumUnit, MasteryRecord, RecommendedCourse
+from ..models import Attempt, AttemptItem, Question, CurriculumUnit, MasteryRecord, RecommendedCourse, ensure_aware
 from ..services.english_listen_write import CATEGORIES, LEVELS, get_lessons, is_correct
 from ..services.english_generator import SENTENCES, VOCABULARY, generate_english_set
 from ..services.english_review import generate_conversation_review, generate_word_set
@@ -362,7 +362,7 @@ def _valid_semester(value):
 def _check_time_limit(attempt):
     if attempt.completed_at:
         return True
-    elapsed = (datetime.now(timezone.utc) - attempt.started_at).total_seconds()
+    elapsed = (datetime.now(timezone.utc) - ensure_aware(attempt.started_at)).total_seconds()
     return elapsed >= attempt.time_limit_seconds
 
 
