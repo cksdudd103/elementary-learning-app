@@ -473,21 +473,6 @@ def _mark_recommended_complete(user_id, subject, semester):
     db.session.commit()
 
 
-@student_bp.route("/wrong-answers")
-@login_required
-def wrong_answers():
-    """학생의 틀린 문제(오답노트)를 보여줍니다."""
-    items = (
-        AttemptItem.query
-        .join(Attempt)
-        .filter(Attempt.user_id == current_user.id, AttemptItem.is_correct == False)
-        .order_by(Attempt.completed_at.desc())
-        .limit(50)
-        .all()
-    )
-    return render_template("student/wrong_answers.html", items=items)
-
-
 @student_bp.route("/recommended")
 @login_required
 def recommended_courses():
