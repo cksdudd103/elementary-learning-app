@@ -162,3 +162,48 @@ class CurriculumUnit(db.Model):
     learning_objective = db.Column(db.Text)
     keywords = db.Column(db.Text)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class MasteryRecord(db.Model):
+    """학생의 단원별 학습 성취도를 추적합니다."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    subject = db.Column(db.String(20), nullable=False, index=True)
+    grade_level = db.Column(db.Integer, nullable=False, index=True)
+    semester = db.Column(db.Integer, nullable=False, default=1, index=True)
+    unit_name = db.Column(db.String(120), nullable=False, index=True)
+    total_questions = db.Column(db.Integer, nullable=False, default=0)
+    correct_answers = db.Column(db.Integer, nullable=False, default=0)
+    wrong_answers = db.Column(db.Integer, nullable=False, default=0)
+    accuracy_rate = db.Column(db.Float, nullable=False, default=0.0)
+    last_attempt_at = db.Column(db.DateTime(timezone=True), default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    user = db.relationship(
+        "User", backref=db.backref("mastery_records", lazy=True, cascade="all, delete-orphan")
+    )
+
+    def update_accuracy(self):
+        total = self.correct_answers + self.wrong_answers
+        self.total_questions = total
+        self.accuracy_rate = round((self.correct_answers / total) * 100, 1) if total > 0 else 0.0
+        self.updated_at = utcnow()
+
+
+class RecommendedCourse(db.Model):
+    """학생별 추천 학습 코스를 저장합니다."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    subject = db.Column(db.String(20), nullable=False, index=True)
+    grade_level = db.Column(db.Integer, nullable=False, index=True)
+    semester = db.Column(db.Integer, nullable=False, default=1)
+    unit_name = db.Column(db.String(120), nullable=False)
+    reason = db.Column(db.Text, nullable=False)
+    priority = db.Column(db.Integer, nullable=False, default=1)
+    is_completed = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    completed_at = db.Column(db.DateTime(timezone=True))
+
+    user = db.relationship(
+        "User", backref=db.backref("recommended_courses", lazy=True, cascade="all, delete-orphan")
+    )

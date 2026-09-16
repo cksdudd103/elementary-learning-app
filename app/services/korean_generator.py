@@ -13,7 +13,7 @@ def _make(prompt, answer, topic, options=None, question_type=None, explanation=N
     }
 
 
-def _topic_for(grade, fallback, semester=None):
+def _topic_for(grade, fallback, semester=None, preferred=None):
     try:
         from ..models import CurriculumUnit
         query = CurriculumUnit.query.filter_by(subject="korean", grade_level=grade)
@@ -21,13 +21,18 @@ def _topic_for(grade, fallback, semester=None):
             query = query.filter_by(semester=semester)
         units = query.order_by(CurriculumUnit.unit_order).all()
         if units:
-            return random.choice([u.unit_name for u in units])
+            unit_names = [u.unit_name for u in units]
+            if preferred:
+                matched = [u for u in unit_names if any(p in u for p in preferred)]
+                if matched:
+                    return random.choice(matched)
+            return random.choice(unit_names)
     except Exception:
         pass
     return random.choice(fallback)
 
 
-def generate_korean_set(grade, count=10, semester=None):
+def generate_korean_set(grade, count=10, semester=None, preferred_topics=None):
     generators = GENERATORS.get(grade, GENERATORS[9])
     selected = []
     seen = set()
@@ -38,7 +43,7 @@ def generate_korean_set(grade, count=10, semester=None):
         q = g()
         # 학기가 지정되면 주제를 해당 학기 단원에서 다시 선택
         if semester in (1, 2) and q.get("topic"):
-            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
         q["semester"] = semester if semester in (1, 2) else None
         key = (q["prompt"], q.get("question_type", "choice"))
         if key not in seen:
@@ -49,7 +54,7 @@ def generate_korean_set(grade, count=10, semester=None):
         g = random.choice(generators)
         q = g()
         if semester in (1, 2) and q.get("topic"):
-            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
         q["semester"] = semester if semester in (1, 2) else None
         selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
     solution_bank = SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9])

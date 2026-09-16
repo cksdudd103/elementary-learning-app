@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="welcome-row">
+    <div>
+        <span class="eyebrow">AI 추천</span>
+        <h1>취약 단원 복습 코스</h1>
+        <p>틀린 문제를 분석해서 정답률이 낮은 단원을 추천해요.</p>
+    </div>
+</section>
+{% if courses %}
+<section class="learning-grid">
+    {% for course in courses %}
+    <article class="learn-card">
+        <span class="tag">{{ subject_name(course.subject) }} · {{ grade_name(course.grade_level) }} · {{ course.semester }}학기 · 우선순위 {{ course.priority }}</span>
+        <h2>{{ course.unit_name }}</h2>
+        <p>{{ course.reason }}</p>
+        <a class="button dark" href="{{ url_for('student.start_recommended', course_id=course.id) }}">이 단원 복습 시작</a>
+    </article>
+    {% endfor %}
+</section>
+{% else %}
+<div class="empty panel">취약한 단원이 없어요. 지금처럼 열심히 학습해 보세요!</div>
+{% endif %}
+{% endblock %}

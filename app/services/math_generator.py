@@ -79,7 +79,7 @@ def _arithmetic_choices(answer, count=4, span=10):
     return [str(o) for o in opts]
 
 
-def _topic_for(grade, fallback, semester=None):
+def _topic_for(grade, fallback, semester=None, preferred=None):
     try:
         from ..models import CurriculumUnit
         query = CurriculumUnit.query.filter_by(subject="math", grade_level=grade)
@@ -87,13 +87,18 @@ def _topic_for(grade, fallback, semester=None):
             query = query.filter_by(semester=semester)
         units = query.order_by(CurriculumUnit.unit_order).all()
         if units:
-            return random.choice([u.unit_name for u in units])
+            unit_names = [u.unit_name for u in units]
+            if preferred:
+                matched = [u for u in unit_names if any(p in u for p in preferred)]
+                if matched:
+                    return random.choice(matched)
+            return random.choice(unit_names)
     except Exception:
         pass
     return random.choice(fallback)
 
 
-def generate_math_set(grade, count=10, semester=None):
+def generate_math_set(grade, count=10, semester=None, preferred_topics=None):
     generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
     questions = []
     seen = set()
@@ -102,8 +107,8 @@ def generate_math_set(grade, count=10, semester=None):
     while len(questions) < count and attempts < max_attempts:
         q = random.choice(generators)()
         # 학기가 지정되면 주제를 해당 학기 단원에서 다시 선택
-        if semester in (1, 2) and q.get("topic"):
-            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+        if q.get("topic"):
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
         q["semester"] = semester if semester in (1, 2) else None
         key = (q["prompt"], q["question_type"])
         if key not in seen:
@@ -113,11 +118,11 @@ def generate_math_set(grade, count=10, semester=None):
     return questions
 
 
-def generate_question(grade, semester=None):
+def generate_question(grade, semester=None, preferred_topics=None):
     generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
     q = random.choice(generators)()
-    if semester in (1, 2) and q.get("topic"):
-        q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+    if q.get("topic"):
+        q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
     q["semester"] = semester if semester in (1, 2) else None
     return q
 def _g1_addition():
@@ -481,20 +486,7 @@ def generate_question(grade):
     return random.choice(generators)()
 
 
-def generate_math_set(grade, count=10):
-    generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
-    questions = []
-    seen = set()
-    max_attempts = count * 30
-    attempts = 0
-    while len(questions) < count and attempts < max_attempts:
-        q = random.choice(generators)()
-        key = (q["prompt"], q["question_type"])
-        if key not in seen:
-            seen.add(key)
-            questions.append(q)
-        attempts += 1
-    while len(questions) < count:
-        questions.append(random.choice(generators)())
-    random.shuffle(questions)
-    return questions
+def generate_math_set_old(grade, count=10):
+    """기존 하위 호환 함수입니다."""
+    return generate_math_set(grade, count=count)
+

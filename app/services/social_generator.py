@@ -26,7 +26,7 @@ def _choice_options(answer, distractors, shuffle=True):
     return opts
 
 
-def _topic_for(grade, fallback, semester=None):
+def _topic_for(grade, fallback, semester=None, preferred=None):
     try:
         from ..models import CurriculumUnit
         query = CurriculumUnit.query.filter_by(subject="social", grade_level=grade)
@@ -34,13 +34,18 @@ def _topic_for(grade, fallback, semester=None):
             query = query.filter_by(semester=semester)
         units = query.order_by(CurriculumUnit.unit_order).all()
         if units:
-            return random.choice([u.unit_name for u in units])
+            unit_names = [u.unit_name for u in units]
+            if preferred:
+                matched = [u for u in unit_names if any(p in u for p in preferred)]
+                if matched:
+                    return random.choice(matched)
+            return random.choice(unit_names)
     except Exception:
         pass
     return random.choice(fallback)
 
 
-def generate_social_set(grade, count=10, semester=None):
+def generate_social_set(grade, count=10, semester=None, preferred_topics=None):
     generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
     questions = []
     seen = set()
@@ -48,7 +53,7 @@ def generate_social_set(grade, count=10, semester=None):
     while len(questions) < count and attempts < count * 50:
         q = random.choice(generators)()
         if semester in (1, 2) and q.get("topic"):
-            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
         q["semester"] = semester if semester in (1, 2) else None
         key = (q["prompt"], q["question_type"])
         if key not in seen:
@@ -58,7 +63,7 @@ def generate_social_set(grade, count=10, semester=None):
     while len(questions) < count:
         q = random.choice(generators)()
         if semester in (1, 2) and q.get("topic"):
-            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
         q["semester"] = semester if semester in (1, 2) else None
         questions.append(q)
     random.shuffle(questions)

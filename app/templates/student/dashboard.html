@@ -16,6 +16,22 @@
     <article><span>총 학습</span><strong>{{ stats.count }}회</strong></article>
     <article><span>평균 점수</span><strong>{{ stats.average }}점</strong></article>
     <article><span>최고 점수</span><strong>{{ stats.best }}점</strong></article>
+    {% if mastery %}
+    <article><span>취약 단원</span><strong>{{ mastery|length }}개</strong></article>
+    {% endif %}
+</section>
+<section class="panel smart-panel">
+    <div class="section-head"><h2>스마트 학습</h2></div>
+    <div class="split-actions">
+        <a class="button secondary" href="{{ url_for('student.wrong_answers') }}">📝 오답노트</a>
+        <a class="button primary" href="{{ url_for('student.recommended_courses') }}">🎯 추천 학습</a>
+    </div>
+    {% if recommended %}
+    <div class="recommended-preview">
+        <p class="muted">오늘의 추천: <strong>{{ subject_name(recommended[0].subject) }}</strong> {{ recommended[0].unit_name }}</p>
+        <a class="button small dark" href="{{ url_for('student.start_recommended', course_id=recommended[0].id) }}">바로 시작</a>
+    </div>
+    {% endif %}
 </section>
 <section class="learning-grid">
     {% if current_user.grade_level in [1, 2] %}

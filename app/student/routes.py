@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from ..extensions import db
-from ..models import Attempt, AttemptItem, Question, CurriculumUnit
+from ..models import Attempt, AttemptItem, Question, CurriculumUnit, MasteryRecord, RecommendedCourse
 from ..services.english_listen_write import CATEGORIES, LEVELS, get_lessons, is_correct
 from ..services.english_generator import SENTENCES, VOCABULARY, generate_english_set
 from ..services.english_review import generate_conversation_review, generate_word_set
@@ -81,7 +81,27 @@ def dashboard():
         "average": round(completed.with_entities(func.avg(Attempt.score)).scalar() or 0),
         "best": completed.with_entities(func.max(Attempt.score)).scalar() or 0,
     }
-    return render_template("student/dashboard.html", recent_attempts=recent_attempts, stats=stats, semester=semester)
+    mastery = (
+        MasteryRecord.query.filter_by(user_id=current_user.id)
+        .filter(MasteryRecord.accuracy_rate < 70)
+        .order_by(MasteryRecord.accuracy_rate.asc())
+        .limit(5)
+        .all()
+    )
+    recommended = (
+        RecommendedCourse.query.filter_by(user_id=current_user.id, is_completed=False)
+        .order_by(RecommendedCourse.priority.asc())
+        .limit(3)
+        .all()
+    )
+    return render_template(
+        "student/dashboard.html",
+        recent_attempts=recent_attempts,
+        stats=stats,
+        semester=semester,
+        mastery=mastery,
+        recommended=recommended,
+    )
 
 
 @student_bp.post("/settings")
@@ -91,7 +111,7 @@ def settings():
     return redirect(url_for("student.dashboard"))
 
 
-def select_questions(subject, grade, count=10, difficulty="medium", semester=None):
+def select_questions(subject, grade, count=10, difficulty="medium", semester=None, focus_wrong=False):
     generators = {
         "math": generate_math_set,
         "english": generate_english_set,
@@ -107,7 +127,17 @@ def select_questions(subject, grade, count=10, difficulty="medium", semester=Non
         effective_grade = min(9, grade + 1)
     else:
         effective_grade = grade
-    generated = generators[subject](effective_grade, count, semester=semester)
+
+    # 취약 단원 우선 출제 모드
+    weak_units = []
+    if focus_wrong:
+        weak_units = [
+            r.unit_name for r in MasteryRecord.query.filter_by(
+                user_id=current_user.id, subject=subject, grade_level=grade
+            ).filter(MasteryRecord.accuracy_rate < 70).order_by(MasteryRecord.accuracy_rate.asc()).limit(3).all()
+        ]
+
+    generated = generators[subject](effective_grade, count, semester=semester, preferred_topics=weak_units)
     custom = Question.query.filter_by(subject=subject, grade_level=grade, active=True)
     if semester in (1, 2):
         custom = custom.filter_by(semester=semester)
@@ -129,7 +159,7 @@ def select_questions(subject, grade, count=10, difficulty="medium", semester=Non
     return generated
 
 
-def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False, semester=None):
+def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False, semester=None, focus_wrong=False):
     grade = current_user.grade_level
     difficulty = current_user.difficulty or "medium"
     count = count or 10
@@ -146,7 +176,7 @@ def build_attempt(subject, count=None, time_limit=None, is_comprehensive=False, 
     db.session.add(attempt)
     db.session.commit()
     if not is_comprehensive:
-        questions = select_questions(subject, grade, count, difficulty=difficulty, semester=semester)
+        questions = select_questions(subject, grade, count, difficulty=difficulty, semester=semester, focus_wrong=focus_wrong)
         for position, question in enumerate(questions, start=1):
             raw_image_url = question.get("image_url")
             # data:image/svg+xml;base64 URI는 길어질 수 있어 String(255) 컬럼에 저장하면
@@ -356,32 +386,114 @@ def _submit_attempt(current_attempt):
     for item in current_attempt.items:
         answer = request.form.get(f"answer_{item.id}", "").strip()
         item.student_answer = answer
-        if item.question_type == "solution":
-            item.points = grade_answer(
-                answer,
-                item.correct_answer,
-                item.question_type,
-                current_attempt.grade_level,
-                max_points=item.max_points,
-            )
-            item.is_correct = item.points >= item.max_points * 0.7
-        else:
-            item.points = grade_answer(
-                answer,
-                item.correct_answer,
-                item.question_type,
-                current_attempt.grade_level,
-                max_points=item.max_points,
-            )
-            item.is_correct = item.points >= item.max_points * 0.7
+        item.points = grade_answer(
+            answer,
+            item.correct_answer,
+            item.question_type,
+            current_attempt.grade_level,
+            max_points=item.max_points,
+        )
+        item.is_correct = item.points >= item.max_points * 0.7
         total_points += item.points
         max_total += item.max_points
+        _update_mastery(current_attempt.user_id, current_attempt.subject, current_attempt.grade_level,
+                        current_attempt.semester, item.topic, item.is_correct)
     current_attempt.score = round(total_points / max_total * 100) if max_total else 0
     current_attempt.completed_at = datetime.now(timezone.utc)
     current_attempt.auto_submitted = auto
     db.session.commit()
+    _refresh_recommended_courses(current_attempt.user_id)
     return redirect(url_for("student.result", attempt_id=current_attempt.id))
 
+
+def _update_mastery(user_id, subject, grade_level, semester, unit_name, is_correct):
+    record = MasteryRecord.query.filter_by(
+        user_id=user_id, subject=subject, grade_level=grade_level,
+        semester=semester, unit_name=unit_name
+    ).first()
+    if not record:
+        record = MasteryRecord(
+            user_id=user_id, subject=subject, grade_level=grade_level,
+            semester=semester, unit_name=unit_name
+        )
+        db.session.add(record)
+    if is_correct:
+        record.correct_answers += 1
+    else:
+        record.wrong_answers += 1
+    record.last_attempt_at = datetime.now(timezone.utc)
+    record.update_accuracy()
+
+
+def _refresh_recommended_courses(user_id):
+    """취약 단원을 기반으로 추천 학습 코스를 갱신합니다."""
+    weak_records = MasteryRecord.query.filter_by(user_id=user_id).filter(
+        MasteryRecord.accuracy_rate < 70
+    ).order_by(MasteryRecord.accuracy_rate.asc(), MasteryRecord.updated_at.desc()).limit(10).all()
+
+    # 기존 미완료 추천을 초기화하지 않고, 없는 것만 추가
+    existing = {
+        (r.subject, r.grade_level, r.semester, r.unit_name)
+        for r in RecommendedCourse.query.filter_by(user_id=user_id, is_completed=False).all()
+    }
+    priority = 1
+    for record in weak_records:
+        key = (record.subject, record.grade_level, record.semester, record.unit_name)
+        if key in existing:
+            continue
+        reason = f"{subject_name(record.subject)} {record.unit_name} 단원의 정답률이 {record.accuracy_rate}%입니다. 취약한 부분을 집중 복습해 보세요."
+        course = RecommendedCourse(
+            user_id=user_id,
+            subject=record.subject,
+            grade_level=record.grade_level,
+            semester=record.semester,
+            unit_name=record.unit_name,
+            reason=reason,
+            priority=priority,
+        )
+        db.session.add(course)
+        priority += 1
+    db.session.commit()
+
+
+@student_bp.route("/wrong-answers")
+@login_required
+def wrong_answers():
+    """학생의 틀린 문제(오답노트)를 보여줍니다."""
+    items = (
+        AttemptItem.query
+        .join(Attempt)
+        .filter(Attempt.user_id == current_user.id, AttemptItem.is_correct == False)
+        .order_by(Attempt.completed_at.desc())
+        .limit(50)
+        .all()
+    )
+    return render_template("student/wrong_answers.html", items=items)
+
+
+@student_bp.route("/recommended")
+@login_required
+def recommended_courses():
+    """추천 학습 코스를 보여줍니다."""
+    courses = (
+        RecommendedCourse.query.filter_by(user_id=current_user.id, is_completed=False)
+        .order_by(RecommendedCourse.priority.asc())
+        .all()
+    )
+    return render_template("student/recommended.html", courses=courses)
+
+
+@student_bp.route("/recommended/<int:course_id>/start")
+@login_required
+def start_recommended(course_id):
+    """추천 코스의 단원을 집중 복습합니다."""
+    course = db.get_or_404(RecommendedCourse, course_id)
+    if course.user_id != current_user.id:
+        abort(403)
+    attempt = build_attempt(
+        course.subject, count=10, semester=course.semester, focus_wrong=True
+    )
+    return redirect(url_for("student.attempt", attempt_id=attempt.id))
 
 @student_bp.route("/result/<int:attempt_id>")
 @login_required

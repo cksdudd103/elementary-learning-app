@@ -276,7 +276,7 @@ GENERATORS = {
 }
 
 
-def generate_english_set(grade, count=10, semester=None):
+def generate_english_set(grade, count=10, semester=None, preferred_topics=None):
     generators = GENERATORS.get(grade, GENERATORS[9])
     questions = []
     seen = set()
@@ -285,7 +285,7 @@ def generate_english_set(grade, count=10, semester=None):
         g = random.choice(generators)
         q = g(grade)
         if semester in (1, 2) and q.get("topic"):
-            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
         q["semester"] = semester if semester in (1, 2) else None
         key = (q["prompt"], q.get("question_type", "write"))
         if key not in seen:
@@ -296,7 +296,7 @@ def generate_english_set(grade, count=10, semester=None):
         g = random.choice(generators)
         q = g(grade)
         if semester in (1, 2) and q.get("topic"):
-            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester)
+            q["topic"] = _topic_for(grade, [q["topic"]], semester=semester, preferred=preferred_topics)
         q["semester"] = semester if semester in (1, 2) else None
         questions.append(q)
     random.shuffle(questions)
