@@ -20,7 +20,7 @@ from ..services.math_generator import generate_math_set
 from ..services.math_review import generate_math_review
 from ..services.social_generator import generate_social_set
 from ..services.social_review import generate_social_review
-from .. import grade_name
+from .. import grade_name, subject_name
 
 student_bp = Blueprint("student", __name__, url_prefix="/learn")
 

@@ -7,6 +7,7 @@ from sqlalchemy import func
 
 from ..extensions import db
 from ..models import Attempt, Question, User, EducationOffice, School, CurriculumUnit, MasteryRecord
+from .. import grade_name, subject_name
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 

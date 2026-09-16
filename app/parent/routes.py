@@ -6,6 +6,7 @@ from sqlalchemy import func
 
 from ..extensions import db
 from ..models import Attempt, User, MasteryRecord, RecommendedCourse, CurriculumUnit
+from .. import subject_name
 
 parent_bp = Blueprint("parent", __name__, url_prefix="/parent")
 
