@@ -195,9 +195,11 @@ class MasteryRecord(db.Model):
     )
 
     def update_accuracy(self):
-        total = self.correct_answers + self.wrong_answers
+        correct = self.correct_answers or 0
+        wrong = self.wrong_answers or 0
+        total = correct + wrong
         self.total_questions = total
-        self.accuracy_rate = round((self.correct_answers / total) * 100, 1) if total > 0 else 0.0
+        self.accuracy_rate = round((correct / total) * 100, 1) if total > 0 else 0.0
         self.updated_at = utcnow()
 
 

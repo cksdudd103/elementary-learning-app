@@ -419,9 +419,9 @@ def _update_mastery(user_id, subject, grade_level, semester, unit_name, is_corre
         )
         db.session.add(record)
     if is_correct:
-        record.correct_answers += 1
+        record.correct_answers = (record.correct_answers or 0) + 1
     else:
-        record.wrong_answers += 1
+        record.wrong_answers = (record.wrong_answers or 0) + 1
     record.last_attempt_at = datetime.now(timezone.utc)
     record.update_accuracy()
 
