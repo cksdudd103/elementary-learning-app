@@ -147,6 +147,42 @@ def test_parent_cannot_reset_other_parents_child_password(client, other_parent, 
     assert client.get(f"/parent/children/{child.id}/reset-password").status_code == 403
 
 
+def test_parent_dashboard_grade_filter(client, parent, child):
+    from app.extensions import db
+    from app.models import User
+
+    # Create another child in a different grade
+    child2 = User(
+        username="child2",
+        email="child2@example.com",
+        display_name="둘째",
+        role="student",
+        grade_level=5,
+        simple_pin="1234",
+        parent_id=parent.id,
+    )
+    child2.set_password("testpass")
+    db.session.add(child2)
+    db.session.commit()
+
+    login(client, parent.username)
+
+    res = client.get("/parent/")
+    assert res.status_code == 200
+    assert f"/parent/children/{child.id}".encode() in res.data
+    assert f"/parent/children/{child2.id}".encode() in res.data
+
+    res = client.get("/parent/?grade=3")
+    assert res.status_code == 200
+    assert f"/parent/children/{child.id}".encode() in res.data
+    assert f"/parent/children/{child2.id}".encode() not in res.data
+
+    res = client.get("/parent/?grade=5")
+    assert res.status_code == 200
+    assert f"/parent/children/{child.id}".encode() not in res.data
+    assert f"/parent/children/{child2.id}".encode() in res.data
+
+
 # ---------------------------------------------------------------------------
 # 관리자
 # ---------------------------------------------------------------------------

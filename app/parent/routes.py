@@ -25,7 +25,11 @@ def parent_required(view):
 @parent_bp.route("/")
 @parent_required
 def dashboard():
-    children = User.query.filter_by(parent_id=current_user.id).order_by(User.grade_level, User.display_name).all()
+    grade_filter = request.args.get("grade", "all")
+    children_query = User.query.filter_by(parent_id=current_user.id).order_by(User.grade_level, User.display_name)
+    if grade_filter.isdigit():
+        children_query = children_query.filter_by(grade_level=int(grade_filter))
+    children = children_query.all()
     child_ids = [child.id for child in children]
     completed_counts = {}
     in_progress_counts = {}
@@ -46,27 +50,25 @@ def dashboard():
             .all()
         )
         in_progress_counts = {user_id: count for user_id, count in in_progress_rows}
-    attempts = (
+
+    attempts_query = (
         Attempt.query.filter(Attempt.user_id.in_(child_ids))
         .filter(Attempt.completed_at.isnot(None))
-        .order_by(Attempt.completed_at.desc())
-        .limit(20)
-        .all()
     )
-    stats = {
-        "count": sum(completed_counts.values()),
-        "average": round(
-            Attempt.query.filter(Attempt.user_id.in_(child_ids))
-            .filter(Attempt.completed_at.isnot(None))
-            .with_entities(func.avg(Attempt.score))
-            .scalar()
-            or 0
-        ),
-        "best": Attempt.query.filter(Attempt.user_id.in_(child_ids))
+    if grade_filter.isdigit():
+        attempts_query = attempts_query.filter_by(grade_level=int(grade_filter))
+    attempts = attempts_query.order_by(Attempt.completed_at.desc()).limit(20).all()
+
+    stats_query = (
+        Attempt.query.filter(Attempt.user_id.in_(child_ids))
         .filter(Attempt.completed_at.isnot(None))
-        .with_entities(func.max(Attempt.score))
-        .scalar()
-        or 0,
+    )
+    if grade_filter.isdigit():
+        stats_query = stats_query.filter_by(grade_level=int(grade_filter))
+    stats = {
+        "count": stats_query.with_entities(func.count(Attempt.id)).scalar() or 0,
+        "average": round(stats_query.with_entities(func.avg(Attempt.score)).scalar() or 0),
+        "best": stats_query.with_entities(func.max(Attempt.score)).scalar() or 0,
     }
     return render_template(
         "parent/dashboard.html",
@@ -75,6 +77,8 @@ def dashboard():
         stats=stats,
         completed_counts=completed_counts,
         in_progress_counts=in_progress_counts,
+        grade_filter=grade_filter,
+        all_grades=list(range(1, 10)),
     )
 
 

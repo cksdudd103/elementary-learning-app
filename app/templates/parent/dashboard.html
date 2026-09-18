@@ -17,7 +17,15 @@
 </div>
 
 <section class="panel">
-    <div class="section-head"><h2>자녀 목록</h2></div>
+    <div class="section-head">
+        <h2>자녀 목록</h2>
+        <div class="filter-row semester-filter">
+            <a class="{{ 'active' if grade_filter == 'all' }}" href="{{ url_for('parent.dashboard', grade='all') }}">전체 학년</a>
+            {% for g in all_grades %}
+            <a class="{{ 'active' if grade_filter == g|string }}" href="{{ url_for('parent.dashboard', grade=g) }}">{{ grade_name(g) }}</a>
+            {% endfor %}
+        </div>
+    </div>
     <div class="children-grid">
     {% for child in children %}
     <article class="child-card panel">
