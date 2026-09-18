@@ -58,6 +58,40 @@ py run.py
 
 `stop_server.bat`을 더블클릭하면 실행 중인 서버를 중지할 수 있습니다.
 
+## 배포 (묵은 호스팅)
+
+### Koyeb (묵은 티어, 신용카드 불필요)
+
+1. [Koyeb](https://app.koyeb.com)에서 가입
+2. **Create Web Service** → **Build and deploy from a Git repository**
+3. GitHub `cksdudd103/elementary-learning-app` 저장소 연결
+4. 런타임: **Docker**
+5. `Dockerfile`이 자동 인식됨
+6. **Environment variables**:
+   - `PORT` = `8080`
+   - `SECRET_KEY` = 복잡한 랜덤 문자열
+7. **Deploy**
+8. 배포 완료 후 Koyeb에서 제공하는 `*.koyeb.app` 주소로 접속
+
+참고: Koyeb 묵은 티어는 디스크가 비휘발성이 아니므로, SQLite 데이터는 배포 시 초기화될 수 있습니다. 영구 데이터가 필요하면 Koyeb Database(유료) 또는 Neon PostgreSQL(묵은 티어)을 `DATABASE_URL` 환경변수로 연결하세요.
+
+### Railway (월 $5 묵은 크레딧)
+
+1. [Railway](https://railway.app)에서 가입
+2. **New Project** → **Deploy from GitHub repo**
+3. `elementary-learning-app` 선택
+4. 자동으로 Python 빌드팩 인식
+5. **Variables** 탭에서 `SECRET_KEY` 추가
+6. **Deploy** 실행
+
+### Fly.io
+
+```bash
+# flyctl 설치 후
+fly launch --name elementary-learning-app
+fly deploy
+```
+
 ## 회원가입 안내
 
 - **학생**: 학년을 선택해 바로 학습을 시작합니다.

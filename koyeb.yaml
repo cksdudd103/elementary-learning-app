@@ -1,0 +1,19 @@
+appname: elementary-learning-app
+service:
+  name: web
+  runtime: docker
+  env:
+    - name: PORT
+      value: "8080"
+    - name: PYTHONUNBUFFERED
+      value: "1"
+    - name: FLASK_ENV
+      value: "production"
+    - name: SECRET_KEY
+      value: change-me-in-production
+  ports:
+    - port: 8080
+      protocol: http
+  routes:
+    - path: /
+      port: 8080
