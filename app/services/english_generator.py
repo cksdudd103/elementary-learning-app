@@ -143,8 +143,13 @@ def _curriculum_topics(subject, grade, fallback, semester=None):
     return fallback
 
 
-def _topic_for(grade, fallback, semester=None):
-    return random.choice(_curriculum_topics("english", grade, fallback, semester=semester))
+def _topic_for(grade, fallback, semester=None, preferred=None):
+    topics = _curriculum_topics("english", grade, fallback, semester=semester)
+    if preferred:
+        matched = [t for t in topics if any(p in t for p in preferred)]
+        if matched:
+            return random.choice(matched)
+    return random.choice(topics)
 
 
 def _make(prompt, answer, topic, options=None, question_type=None, explanation=None, image_url=None, max_points=10):

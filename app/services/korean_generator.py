@@ -955,44 +955,22 @@ def _transform_question(prompt, answer, options, topic):
     return _make(prompt, answer, topic)
 
 
-def generate_korean_set(grade, count=10):
-    generators = GENERATORS.get(grade, GENERATORS[9])
-    selected = []
-    seen = set()
-    attempts = 0
-    target = count - min(2, len(SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9])))
-    while len(selected) < target and attempts < count * 50:
-        g = random.choice(generators)
-        q = g()
-        # 같은 문항(프롬프트+유형)이 중복되어 출제되지 않도록 관리합니다.
-        key = (q["prompt"], q.get("question_type", "choice"))
-        if key not in seen:
-            seen.add(key)
-            selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
-        attempts += 1
-    # 유일한 문항이 부족하면 기존 문항을 허용하며 채웁니다.
-    while len(selected) < target:
-        g = random.choice(generators)
-        q = g()
-        selected.append((q["prompt"], q["answer"], q.get("options", []), q["topic"]))
-    solution_bank = SOLUTION_BANKS.get(grade, SOLUTION_BANKS[9])
-    solution_count = min(2, len(solution_bank), count - len(selected))
-    selected += [(prompt, answer, [], topic) for prompt, answer, topic in random.sample(solution_bank, solution_count)]
-    random.shuffle(selected)
-    selected = selected[:count]
-    questions = []
-    for prompt, answer, options, topic in selected:
-        questions.append(_transform_question(prompt, answer, options, topic))
-    return questions
-
-
-def _choice_options(answer, distractors, shuffle=True):
+def _choice_options(answer, distractors, shuffle=True, fallback_pool=None):
     answer_str = str(answer)
     opts = [answer_str]
     for d in distractors:
         ds = str(d)
         if ds != answer_str and ds not in opts:
             opts.append(ds)
+    # 보기가 너무 적으면 fallback_pool에서 추가
+    pool = fallback_pool or ["글을 읽는다", "책을 읽는다", "학교에 간다", "친구와 논다", "선생님께 인사한다"]
+    while len(opts) < 3 and pool:
+        candidate = random.choice(pool)
+        if candidate != answer_str and candidate not in opts:
+            opts.append(candidate)
+        # 무한 루프 방지: 후보 풀이 바닥나면 중단
+        if len(set(pool + opts)) <= len(opts):
+            break
     if shuffle:
         random.shuffle(opts)
     return opts

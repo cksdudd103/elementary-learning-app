@@ -912,23 +912,3 @@ PROBLEM_GENERATORS = {
     8: [_s8_geography, _s7_constitution, _s8_history, _s8_economy, _s8_geography2, _s8_media, _s8_colonial, _s8_market, _s8_climate, _s8_society],
     9: [_s9_citizen, _s7_economy_price, _s9_history, _s9_economy2, _s9_world, _s9_ethics, _s9_constitution, _s9_coldwar, _s9_environment, _s9_labor],
 }
-
-
-def generate_social_set(grade, count=10):
-    generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
-    questions = []
-    seen = set()
-    attempts = 0
-    while len(questions) < count and attempts < count * 50:
-        q = random.choice(generators)()
-        key = (q["prompt"], q["question_type"])
-        if key not in seen:
-            seen.add(key)
-            questions.append(q)
-        attempts += 1
-    # 유일한 문항 풀이 부족할 때만 중복 허용
-    while len(questions) < count:
-        q = random.choice(generators)()
-        questions.append(q)
-    random.shuffle(questions)
-    return questions
