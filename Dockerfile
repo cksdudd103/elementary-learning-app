@@ -30,4 +30,5 @@ ENV FLASK_ENV=production
 
 EXPOSE 8080
 
-CMD ["gunicorn", "render_entry:app", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "120"]
+# Railway/Render 등에서 제공하는 PORT 환경변수를 사용 (기본 8080)
+CMD gunicorn render_entry:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --timeout 120
