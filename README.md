@@ -20,7 +20,7 @@
 
 ### 2. 처음 실행 전 의존성 설치
 
-프로젝트 폭더에서 다음 명령을 실행하세요.
+프로젝트 폴더에서 다음 명령을 실행하세요.
 
 ```powershell
 py -m pip install -r requirements.txt
@@ -48,7 +48,6 @@ start_and_open.bat
 ### 4. 수동 실행
 
 ```powershell
-cd C:\Users\Administrator\Documents\math-english-learning
 py run.py
 ```
 
@@ -58,9 +57,9 @@ py run.py
 
 `stop_server.bat`을 더블클릭하면 실행 중인 서버를 중지할 수 있습니다.
 
-## 배포 (묵은 호스팅)
+## 배포 (무료 호스팅)
 
-### Koyeb (묵은 티어, 신용카드 불필요)
+### Koyeb (무료 티어, 신용카드 불필요)
 
 1. [Koyeb](https://app.koyeb.com)에서 가입
 2. **Create Web Service** → **Build and deploy from a Git repository**
@@ -73,9 +72,9 @@ py run.py
 7. **Deploy**
 8. 배포 완료 후 Koyeb에서 제공하는 `*.koyeb.app` 주소로 접속
 
-참고: Koyeb 묵은 티어는 디스크가 비휘발성이 아니므로, SQLite 데이터는 배포 시 초기화될 수 있습니다. 영구 데이터가 필요하면 Koyeb Database(유료) 또는 Neon PostgreSQL(묵은 티어)을 `DATABASE_URL` 환경변수로 연결하세요.
+참고: Koyeb 무료 티어는 디스크가 비휘발성이 아니므로, SQLite 데이터는 배포 시 초기화될 수 있습니다. 영구 데이터가 필요하면 Koyeb Database(유료) 또는 Neon PostgreSQL(무료 티어)을 `DATABASE_URL` 환경변수로 연결하세요.
 
-### Railway (월 $5 묵은 크레딧)
+### Railway (월 $5 무료 크레딧)
 
 1. [Railway](https://railway.app)에서 가입
 2. **New Project** → **Deploy from GitHub repo**
@@ -104,19 +103,13 @@ fly deploy
 - 영어 음성인식은 Chrome/Edge 브라우저에서 가장 잘 작동합니다.
 - PyInstaller exe 빌드는 현재 환경에서 오류가 발생하므로 사용하지 않습니다. 웹 방식으로 실행해 주세요.
 
-## 프로젝트 위치
-
-```
-C:\Users\Administrator\Documents\math-english-learning
-```
-
 ## 문제 해결
 
 ### 바로가기를 눌러도 아무것도 안 뜸
 
 1. 작업 관리자에서 `python.exe`, `pythonw.exe`, `py.exe`, `pyw.exe`를 모두 종료합니다.
 2. `start_and_open.bat`을 한 번 더 더블클릭합니다.
-3. 그래도 안 되면 프로젝트 폭더에서 `server.log` 파일을 확인해 주세요.
+3. 그래도 안 되면 프로젝트 폴더에서 `server.log` 파일을 확인해 주세요.
 
 ### 서버가 중복 실행됨
 

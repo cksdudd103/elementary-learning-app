@@ -9,7 +9,7 @@
 </head>
 <body>
     <header class="topbar">
-        <a class="brand" href="{{ url_for('student.dashboard') if current_user.is_authenticated else url_for('index') }}">
+        <a class="brand" href="{{ home_url }}">
             <span class="brand-mark">✦</span>{{ t('app_name') }}
         </a>
         <button class="menu-button" type="button" aria-label="메뉴 열기" data-menu>☰</button>

@@ -7,6 +7,7 @@ from sqlalchemy import func
 from ..extensions import db
 from ..models import Attempt, User, MasteryRecord, RecommendedCourse, CurriculumUnit
 from .. import subject_name
+from ..services.explain import attempt_report, type_label
 
 parent_bp = Blueprint("parent", __name__, url_prefix="/parent")
 
@@ -161,7 +162,13 @@ def child_attempt_result(child_id, attempt_id):
     if attempt.completed_at is None:
         flash("아직 완료되지 않은 시험입니다.", "info")
         return redirect(url_for("parent.child_detail", child_id=child.id))
-    return render_template("parent/child_attempt_result.html", child=child, attempt=attempt)
+    return render_template(
+        "parent/child_attempt_result.html",
+        child=child,
+        attempt=attempt,
+        report=attempt_report(attempt),
+        type_label=type_label,
+    )
 
 
 @parent_bp.route("/children/<int:child_id>")

@@ -1,12 +1,14 @@
 import random
 
+from .explain import detailed_explanation
+
 
 def _make(prompt, answer, topic, options=None, question_type=None, explanation=None, max_points=10):
     return {
         "prompt": prompt,
         "answer": str(answer),
         "topic": topic,
-        "explanation": explanation or f"정답: {answer}",
+        "explanation": detailed_explanation(prompt, answer, topic, note=explanation, subject="국어"),
         "question_type": question_type or ("choice" if options else "write"),
         "options": options or [],
         "max_points": max_points,

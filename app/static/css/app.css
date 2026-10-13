@@ -151,7 +151,27 @@ h1, h2, h3, p { margin-top: 0; }
     .notepad-drawer { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-width: 100%; height: 70vh; max-height: 520px; transform: translateY(100%); border-radius: 20px 20px 0 0; }
     .notepad-drawer.open { transform: translateY(0); }
 }
-.question-meta { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .86rem; font-weight: 800; }.question-card h2 { margin: 20px 0 14px; font-size: 1.35rem; }
+.plan-steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 0; padding: 0; }
+.home-plan { margin: 28px 0 8px; }
+.home-plan li { background: white; border: 1px solid var(--line); }
+.plan-steps li { background: #f7f8fb; border-radius: 14px; padding: 14px; display: grid; gap: 6px; }
+.plan-steps strong { font-size: .95rem; }
+.plan-steps span, .card-points { color: var(--muted); font-size: .92rem; }
+.card-points { margin: 0 0 14px; padding-left: 18px; }
+.worksheet-guide { margin-bottom: 18px; }
+.worksheet-goal, .worksheet-prompt, .answer-block { margin-top: 16px; }
+.worksheet-prompt, .answer-block { padding: 16px; border-radius: 14px; background: #f8f9fc; }
+.worksheet-prompt > span, .answer-block > span, .steps-title { display: block; margin-bottom: 8px; color: var(--green-dark); font-size: .82rem; font-weight: 800; }
+.worksheet .approach, .review-card .approach { margin: 14px 0 0; padding-left: 18px; color: #3d4a63; }
+.worksheet .approach li, .review-card .approach li { margin: 4px 0; }
+.worksheet-field { display: grid; gap: 6px; margin-top: 12px; font-weight: 800; }
+.answer-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.answer-compare div { padding: 12px; border-radius: 12px; background: #f7f8fb; }
+.answer-compare span { display: block; color: var(--muted); font-size: .8rem; font-weight: 800; }
+.solution-steps { margin-top: 8px; padding: 14px 16px; border-radius: 12px; background: #f8fafc; }
+.solution-steps p { margin: 4px 0; white-space: pre-wrap; }
+.review-point { margin-top: 10px; color: #9c4221; font-weight: 800; }
+.question-meta { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .86rem; font-weight: 800; }.question-card h2 { margin: 8px 0 0; font-size: 1.45rem; line-height: 1.45; }
 .type-badge { margin-left: auto; color: #3757b4; background: #e1e9ff; }.hint, .word-hint { color: var(--muted); }.word-hint { padding: 13px; border-radius: 10px; background: #f5f7fb; font-weight: 800; }
 .audio-button { border: 0; border-radius: 12px; padding: 11px 15px; background: #e1e9ff; color: #294baf; font-weight: 800; margin-bottom: 12px; }
 .memorize-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
@@ -189,7 +209,7 @@ h1, h2, h3, p { margin-top: 0; }
 @media (max-width: 800px) {
     .topbar { height: 64px; padding: 0 20px; }.menu-button { display: block; }.nav { display: none; position: absolute; top: 64px; left: 0; right: 0; padding: 20px; background: white; flex-direction: column; align-items: stretch; border-bottom: 1px solid var(--line); }.nav.open { display: flex; }
     .page { width: min(100% - 28px, 1180px); padding-top: 30px; }.hero { min-height: auto; grid-template-columns: 1fr; gap: 35px; }.hero h1 { font-size: 3.2rem; }.hero-visual { height: 340px; }.subject-preview, .learning-grid { grid-template-columns: 1fr; }.subject-preview { margin-top: 50px; }
-    .welcome-row, .attempt-head, .result-hero, .submit-panel { align-items: stretch; flex-direction: column; }.grade-picker { width: 100%; }.stats-grid, .stats-grid.four { grid-template-columns: 1fr 1fr; }.two-column { grid-template-columns: 1fr; }.form-span { grid-column: auto; }.options { grid-template-columns: 1fr; }
+    .welcome-row, .attempt-head, .result-hero, .submit-panel { align-items: stretch; flex-direction: column; }.grade-picker { width: 100%; }.stats-grid, .stats-grid.four { grid-template-columns: 1fr 1fr; }.two-column { grid-template-columns: 1fr; }.form-span { grid-column: auto; }.options, .plan-steps, .answer-compare { grid-template-columns: 1fr; }
 }
 
 .listen-write-panel { margin-top: 24px; }

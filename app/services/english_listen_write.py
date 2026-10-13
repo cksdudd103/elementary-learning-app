@@ -112,7 +112,7 @@ LESSONS: list[dict] = [
 
     {"id": "w1", "en": "It might rain this afternoon.", "ko": "오늘 오후에 비가 올지도 몰라요.", "category": "Weather", "level": "middle", "grammar": ["주어(It) + 조동사(might) + 동사(rain)", "시간부사구(this afternoon)"]},
     {"id": "w2", "en": "The wind blew strongly yesterday.", "ko": "어제 바람이 세게 불었어요.", "category": "Weather", "level": "middle", "grammar": ["주어(The wind) + 동사(blew) + 부사(strongly)", "과거시제", "시간부사(yesterday)"]},
-    {"id": "w3", "en": "If it snows, we can build a snowman.", "ko": "눈이 오면 우리는 눈사람을 만들 수 있어요.", "category": "Weather", "level": "middle", "grammar": ["조걱문(if)", "주어(we) + 조동사(can) + 동사(build)", "목적어(a snowman)"]},
+    {"id": "w3", "en": "If it snows, we can build a snowman.", "ko": "눈이 오면 우리는 눈사람을 만들 수 있어요.", "category": "Weather", "level": "middle", "grammar": ["조건문(if)", "주어(we) + 조동사(can) + 동사(build)", "목적어(a snowman)"]},
 
     {"id": "h1", "en": "I enjoy reading comic books.", "ko": "나는 만화책 읽는 것을 즐겨요.", "category": "Hobbies", "level": "middle", "grammar": ["주어(I) + 동사(enjoy) + 동명사(reading)", "목적어(comic books)", "복수명사"]},
     {"id": "h2", "en": "She has been learning English for two years.", "ko": "그녀는 2년 동안 영어를 배우고 있어요.", "category": "Hobbies", "level": "middle", "grammar": ["주어(She) + 현재완료진행(has been learning)", "목적어(English)", "기간전치사(for)", "수(2) + 복수명사(years)"]},

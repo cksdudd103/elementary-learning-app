@@ -1,0 +1,32 @@
+<article class="result-item {{ 'correct' if item.is_correct else 'wrong' }}">
+    <div class="result-icon">{{ '✓' if item.is_correct else '×' }}</div>
+    <div class="solution-body">
+        <div class="question-meta">
+            <span class="question-number">{{ number }}</span>
+            <span>{{ item.topic }}</span>
+            <span>{{ type_label(item.question_type) }}</span>
+            <span class="type-badge">{{ item.points }}/{{ item.max_points }}점</span>
+        </div>
+        <h3>{{ item.prompt }}</h3>
+        {% if item.image_url %}<img class="question-image" src="{{ item.image_url }}" alt="문제 그림">{% endif %}
+        <div class="answer-compare">
+            <div>
+                <span>내가 쓴 답</span>
+                <strong>{{ item.student_answer or '미응답' }}</strong>
+            </div>
+            <div>
+                <span>정답</span>
+                <strong>{{ item.correct_answer }}</strong>
+            </div>
+        </div>
+        <div class="solution-steps">
+            <p class="steps-title">풀이</p>
+            {% for line in (item.explanation or '').split('\n') if line.strip() %}
+            <p>{{ line }}</p>
+            {% endfor %}
+        </div>
+        {% if not item.is_correct %}
+        <p class="review-point">다시 볼 점: {{ item.topic }}에서 조건과 답을 한 번 더 연결해 보세요.</p>
+        {% endif %}
+    </div>
+</article>

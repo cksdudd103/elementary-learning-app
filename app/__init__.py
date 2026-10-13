@@ -9,6 +9,16 @@ from .i18n import get_locale, translate
 from .models import User
 
 
+def home_url_for(user):
+    """역할에 맞는 첫 화면 주소를 돌려줍니다."""
+    role = getattr(user, "role", None)
+    if role == "admin":
+        return url_for("admin.dashboard")
+    if role == "parent":
+        return url_for("parent.dashboard")
+    return url_for("student.dashboard")
+
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -16,6 +26,7 @@ def create_app(config_class=Config):
         if app.config["SECRET_KEY"] == "local-development-secret-change-me":
             raise RuntimeError("운영 환경에서는 SECRET_KEY를 설정해야 합니다.")
 
+    _ensure_sqlite_directory(app)
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
@@ -46,14 +57,13 @@ def create_app(config_class=Config):
             "subject_name": subject_name,
             "difficulty_name": difficulty_name,
             "random_count": lambda: random.choice([10, 20, 30]),
+            "home_url": home_url_for(current_user) if current_user.is_authenticated else url_for("index"),
         }
 
     @app.route("/")
     def index():
         if current_user.is_authenticated:
-            if current_user.role == "admin":
-                return redirect(url_for("admin.dashboard"))
-            return redirect(url_for("student.dashboard"))
+            return redirect(home_url_for(current_user))
         return render_template("index.html")
 
     @app.route("/language/<language>")
@@ -81,6 +91,17 @@ def create_app(config_class=Config):
         seed_all()
 
     return app
+
+
+def _ensure_sqlite_directory(app):
+    """SQLite 파일을 둘 폴더가 없으면 만들어 첫 실행이 멈추지 않게 합니다."""
+    uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if not uri.startswith("sqlite:///") or uri == "sqlite:///:memory:":
+        return
+    db_path = uri.removeprefix("sqlite:///")
+    folder = os.path.dirname(db_path)
+    if folder:
+        os.makedirs(folder, exist_ok=True)
 
 
 def _ensure_user_simple_pin_column():

@@ -19,8 +19,13 @@
       <span class="review-number">{{ unit.unit_order }}</span>
       <div>
           <h3>{{ unit.unit_name }}</h3>
-          <p class="review-desc"><strong>학습목표:</strong> {{ unit.learning_objective }}</p>
-          <p class="review-example"><strong>키워드:</strong> {{ unit.keywords }}</p>
+          <p class="review-desc"><strong>{{ unit.semester }}학기 학습 목표.</strong> {{ unit.learning_objective }}</p>
+          <p class="review-example"><strong>꼭 기억할 낱말.</strong> {{ unit.keywords }}</p>
+          <ol class="approach">
+              <li>글에서 중심 문장과 근거가 되는 문장을 찾습니다.</li>
+              <li>핵심 낱말을 비슷한 말, 반대말로 바꾸어 말해 봅니다.</li>
+              <li>문제를 풀 때는 보기보다 글의 근거를 먼저 고릅니다.</li>
+          </ol>
       </div>
   </article>
   {% endfor %}
@@ -33,8 +38,13 @@
     <span class="review-number">{{ loop.index }}</span>
     <div>
         <h3>{{ topic }}</h3>
-        <p class="review-desc">{{ desc }}</p>
-        <button type="button" class="button small listen" data-speak="{{ desc }}">🔊 듣기</button>
+        <p class="review-desc"><strong>개념.</strong> {{ desc }}</p>
+        <ol class="approach">
+            <li>이 개념을 한 문장으로 말해 봅니다.</li>
+            <li>짧은 글을 읽고, 개념이 쓰인 낱말이나 문장을 찾습니다.</li>
+            <li>시험에서는 근거를 먼저 고른 다음 답을 적습니다.</li>
+        </ol>
+        <button type="button" class="button small listen" data-speak="{{ desc }}">개념 듣기</button>
     </div>
 </article>
 {% endfor %}</div>

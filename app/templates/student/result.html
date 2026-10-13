@@ -2,27 +2,51 @@
 {% block content %}
 <section class="result-hero">
     <div class="score-ring"><strong>{{ attempt.score }}</strong><span>/ 100</span></div>
-    <div><span class="eyebrow">{{ grade_name(attempt.grade_level) }}{% if attempt.semester in [1,2] %} · {{ attempt.semester }}학기{% endif %} · {{ subject_name(attempt.subject) }}</span><h1>{% if attempt.score >= 90 %}정말 훌륭해요!{% elif attempt.score >= 70 %}잘했어요!{% else %}조금만 더 연습해요!{% endif %}</h1><p>{{ attempt.items|selectattr('is_correct')|list|length }}문제를 맞혔어요.
-    {% if attempt.auto_submitted %}<span class="auto-badge">시간 초과로 자동 제출됨</span>{% endif %}
-    틀린 문제의 정답과 설명을 확인하세요.</p></div>
+    <div>
+        <span class="eyebrow">{{ grade_name(attempt.grade_level) }}{% if attempt.semester in [1,2] %} · {{ attempt.semester }}학기{% endif %} · {{ subject_name(attempt.subject) }}</span>
+        <h1>{% if attempt.score >= 90 %}개념이 잘 연결되어 있어요{% elif attempt.score >= 70 %}풀이 순서가 자리를 잡았어요{% else %}틀린 단원부터 다시 이어 가요{% endif %}</h1>
+        <p>{{ report.total }}문제 가운데 {{ report.correct }}문제를 맞혔고, 부분 점수는 {{ report.partial }}문제, 틀린 문제는 {{ report.missed }}문제입니다.
+        받은 점수는 {{ report.earned }} / {{ report.possible }}점입니다.
+        {% if attempt.auto_submitted %}<span class="auto-badge">시간 초과로 자동 제출됨</span>{% endif %}
+        </p>
+    </div>
+</section>
+<section class="stats-grid">
+    <article><span>맞힌 문제</span><strong>{{ report.correct }}</strong></article>
+    <article><span>부분 점수</span><strong>{{ report.partial }}</strong></article>
+    <article><span>틀린 문제</span><strong>{{ report.missed }}</strong></article>
+</section>
+<section class="panel">
+    <div class="section-head"><h2>단원별 결과</h2></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>단원</th><th>맞힌 수</th><th>점수</th><th>다음에 할 일</th></tr></thead>
+            <tbody>
+            {% for topic in report.topics %}
+            <tr>
+                <td>{{ topic.name }}</td>
+                <td>{{ topic.correct }} / {{ topic.total }}</td>
+                <td>{{ topic.points }} / {{ topic.max_points }}</td>
+                <td>{% if topic.correct == topic.total %}이 단원은 유지하면 됩니다.{% else %}예제를 다시 풀고, 틀린 문제의 풀이 순서를 베껴 적어 보세요.{% endif %}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 <div class="result-list">
 {% for item in attempt.items %}
-<article class="result-item {{ 'correct' if item.is_correct else 'wrong' }}">
-    <div class="result-icon">{{ '✓' if item.is_correct else '×' }}</div>
-    <div><span class="tag">{{ loop.index }}번 · {{ item.topic }} · {{ item.points }}/{{ item.max_points }}점 · {{ {'write':'주관식','choice':'객관식','solution':'풀이형','listening':'듣기','speaking':'말하기'}.get(item.question_type, item.question_type) }}</span><h3>{{ item.prompt }}</h3>
-        {% if item.image_url %}<img class="question-image" src="{{ item.image_url }}" alt="문제 그림">{% endif %}
-        <p><b>{{ t('your_answer') }}:</b> {{ item.student_answer or '(미응답)' }}</p>
-        {% if not item.is_correct or item.question_type == 'solution' %}<p class="correct-answer"><b>{{ t('correct') }}:</b> {{ item.correct_answer }}</p>{% endif %}
-        <p class="explanation">{{ item.explanation }}</p>
-    </div>
-</article>
+{% with number=loop.index %}{% include "student/_solution.html" %}{% endwith %}
 {% endfor %}
 </div>
 <div class="center-actions">
     {% set retry_urls = {'math': 'student.start_math', 'english': 'student.start_english', 'korean': 'student.start_korean', 'social': 'student.start_social'} %}
-    <a class="button primary" href="{{ url_for(retry_urls[attempt.subject], semester=attempt.semester) }}">다시 학습하기</a>
-    <a class="button secondary" href="{{ url_for('student.wrong_answers') }}">오답노트 보기</a>
+    {% if attempt.subject in retry_urls %}
+    <a class="button primary" href="{{ url_for(retry_urls[attempt.subject], semester=attempt.semester) }}">같은 범위로 다시 풀기</a>
+    {% else %}
+    <a class="button primary" href="{{ url_for('student.start_comprehensive') }}">종합 평가 다시 풀기</a>
+    {% endif %}
+    <a class="button secondary" href="{{ url_for('student.wrong_answers') }}">오답 노트 보기</a>
     <a class="button secondary" href="{{ url_for('student.dashboard', semester=attempt.semester) }}">학습 홈</a>
 </div>
 {% endblock %}

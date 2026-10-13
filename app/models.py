@@ -37,7 +37,7 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
 
     children = db.relationship(
-        "User", backref=db.backref("parent", remote_side=[id]), cascade="all, delete-orphan"
+        "User", backref=db.backref("parent", remote_side=[id])
     )
 
     def set_password(self, password):

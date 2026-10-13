@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="page-heading"><span class="eyebrow">나의 성장</span><h1>학습 기록</h1><p>응시 횟수에 제한 없이 매번 새로운 문제를 풀 수 있어요.</p></section>
+<section class="page-heading"><span class="eyebrow">나의 성장</span><h1>학습 기록</h1><p>점수를 누르면 그 학습지의 단원별 결과와 문제별 풀이가 열립니다.</p></section>
 <section class="panel"><div class="table-wrap"><table><thead><tr><th>과목</th><th>학년</th><th>학기</th><th>점수</th><th>시작</th><th>완료</th></tr></thead><tbody>
 {% for attempt in attempts %}<tr>
     <td><span class="subject-badge {{ attempt.subject }}">{{ subject_name(attempt.subject) }}</span></td>

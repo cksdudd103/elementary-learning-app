@@ -5,10 +5,15 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 from sqlalchemy import or_
 
+from .. import home_url_for
 from ..extensions import db
 from ..models import User, ensure_aware
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+
+def _home():
+    return redirect(home_url_for(current_user))
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
@@ -19,7 +24,7 @@ def register():
 @auth_bp.route("/register/student", methods=["GET", "POST"])
 def register_student():
     if current_user.is_authenticated:
-        return redirect(url_for("student.dashboard"))
+        return _home()
     if request.method == "POST":
         display_name = request.form.get("display_name", "").strip()
         password = request.form.get("password", "")
@@ -57,7 +62,7 @@ def register_student():
 @auth_bp.route("/register/parent", methods=["GET", "POST"])
 def register_parent():
     if current_user.is_authenticated:
-        return redirect(url_for("student.dashboard"))
+        return _home()
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         email = request.form.get("email", "").strip().lower()
@@ -111,23 +116,21 @@ def register_parent():
             db.session.commit()
             login_user(user)
             flash("회원가입이 완료되었습니다.", "success")
-            if linked:
-                return redirect(url_for("parent.dashboard"))
-            return redirect(url_for("student.dashboard"))
+            return redirect(url_for("parent.dashboard"))
     return render_template("auth/register_parent.html")
 
 
 @auth_bp.route("/register/choice")
 def register_choice():
     if current_user.is_authenticated:
-        return redirect(url_for("student.dashboard"))
+        return _home()
     return render_template("auth/register.html")
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("student.dashboard"))
+        return _home()
     if request.method == "POST":
         # 학생 간편 로그인 (이름 + 학년 + PIN)
         display_name = request.form.get("display_name", "").strip()
@@ -158,9 +161,7 @@ def login():
             if user.update_grade_annually():
                 db.session.commit()
             login_user(user, remember=bool(request.form.get("remember")))
-            if user.role == "admin":
-                return redirect(url_for("admin.dashboard"))
-            return redirect(url_for("student.dashboard"))
+            return redirect(home_url_for(user))
         flash("아이디 또는 비밀번호를 확인하세요.", "error")
     return render_template("auth/login.html", tab="general")
 
@@ -168,7 +169,7 @@ def login():
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     if current_user.is_authenticated:
-        return redirect(url_for("student.dashboard"))
+        return _home()
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         user = User.query.filter_by(email=email).first()
@@ -179,17 +180,17 @@ def forgot_password():
             # TODO: 실제 이메일 서비스 연동 시 아래 print 제거
             reset_url = url_for("auth.reset_password", token=user.reset_token, _external=True)
             print(f"[PASSWORD RESET] {reset_url}")
-            flash("입력하신 이메일로 재설정 안내를 별냈습니다.", "success")
+            flash("입력하신 이메일로 재설정 안내를 보냈습니다.", "success")
         else:
             # 동일한 메시지로 이메일 존재 여부 노출 방지
-            flash("입력하신 이메일로 재설정 안내를 별냈습니다.", "success")
+            flash("입력하신 이메일로 재설정 안내를 보냈습니다.", "success")
     return render_template("auth/forgot_password.html")
 
 
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
 def reset_password(token):
     if current_user.is_authenticated:
-        return redirect(url_for("student.dashboard"))
+        return _home()
     user = User.query.filter_by(reset_token=token).first()
     if not user or not user.reset_token_expires_at or ensure_aware(user.reset_token_expires_at) < datetime.now(timezone.utc):
         flash("유효하지 않거나 만료된 링크입니다.", "error")
@@ -243,7 +244,10 @@ def delete_account():
         elif not current_user.check_password(password):
             flash("비밀번호를 확인하세요.", "error")
         else:
-            user = User.query.get(current_user.id)
+            user = db.session.get(User, current_user.id)
+            if user.role == "parent":
+                for child in list(user.children):
+                    child.parent_id = None
             logout_user()
             db.session.delete(user)
             db.session.commit()

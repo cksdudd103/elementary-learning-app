@@ -1,5 +1,7 @@
 import random
 
+from .explain import detailed_explanation
+
 
 def make(
     prompt,
@@ -16,7 +18,7 @@ def make(
         "prompt": prompt,
         "answer": str(answer),
         "topic": topic,
-        "explanation": explanation or f"정답은 {answer}입니다.",
+        "explanation": explanation or detailed_explanation(prompt, answer, topic, subject="수학"),
         "question_type": determined_type,
         "options": options or [],
         "image_url": image_url,
@@ -134,7 +136,8 @@ def _g1_addition():
 
 
 def _g1_subtraction():
-    a, b = random.randint(2, 9), random.randint(1, 5)
+    b = random.randint(1, 8)
+    a = random.randint(b, 9)
     answer = a - b
     topic = _topic_for(1, ["수와 연산", "뺄셈"])
     prompt = f"{a} - {b} = ?"
@@ -142,7 +145,8 @@ def _g1_subtraction():
 
 
 def _g1_compare():
-    a, b = random.randint(1, 9), random.randint(1, 9)
+    a = random.randint(1, 9)
+    b = random.choice([n for n in range(1, 10) if n != a])
     answer = max(a, b)
     topic = _topic_for(1, ["수의 크기 비교"])
     prompt = f"{a}와 {b} 중 큰 수는?"
@@ -181,12 +185,17 @@ def _g2_addition_no_carry():
 
 
 def _g2_subtraction_no_borrow():
-    a = random.randint(21, 89)
-    b = random.randint(11, a - 1)
-    # 받아내림 없도록
-    if (a % 10) < (b % 10):
-        temp = a % 10
-        b = (b // 10) * 10 + temp - 1
+    a_tens = random.randint(2, 8)
+    a_ones = random.randint(0, 9)
+    b_tens = random.randint(1, a_tens)
+    if b_tens == a_tens:
+        if a_ones == 0:
+            a_ones = random.randint(1, 9)
+        b_ones = random.randint(0, a_ones - 1)
+    else:
+        b_ones = random.randint(0, a_ones)
+    a = a_tens * 10 + a_ones
+    b = b_tens * 10 + b_ones
     answer = a - b
     topic = _topic_for(2, ["수와 연산", "뺄셈"])
     prompt = f"{a} - {b} = ?"
@@ -254,10 +263,12 @@ def _g3_subtraction_borrow():
 
 
 def _g3_shape_count():
-    answer = random.randint(3, 8)
+    triangles = random.randint(1, 6)
+    squares = random.randint(1, 6)
+    answer = triangles + squares
     topic = _topic_for(3, ["도형", "변화와 관계"])
-    prompt = "삼각형이 3개, 사각형이 2개 있습니다. 도형은 모두 몇 개인가요?"
-    return make(prompt, 5, topic, options=_arithmetic_choices(5, count=4, span=6))
+    prompt = f"삼각형이 {triangles}개, 사각형이 {squares}개 있습니다. 도형은 모두 몇 개인가요?"
+    return make(prompt, answer, topic, options=_arithmetic_choices(answer, count=4, span=6))
 
 
 # ============================================================
@@ -349,12 +360,14 @@ def _g5_fraction_sub():
 
 
 def _g5_decimal_add():
-    a = round(random.uniform(0.1, 9.9), 1)
-    b = round(random.uniform(0.1, 9.9), 1)
-    answer = round(a + b, 1)
+    a_tenths = random.randint(1, 99)
+    b_tenths = random.randint(1, 99)
+    a = f"{a_tenths / 10:.1f}"
+    b = f"{b_tenths / 10:.1f}"
+    answer = f"{(a_tenths + b_tenths) / 10:.1f}"
     topic = _topic_for(5, ["수와 연산", "소수"])
     prompt = f"{a} + {b} = ?"
-    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(round(answer, 1), count=3, step=1, exclude=[a, b])))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(float(answer), count=3, step=1, exclude=[float(a), float(b)])))
 
 
 def _g5_average():
@@ -461,11 +474,16 @@ def _g7_coordinate():
 
 def _g7_ratio_word():
     a, b = random.randint(2, 8), random.randint(2, 8)
-    total = random.choice([20, 30, 40, 50])
-    answer = total * a // (a + b)
+    if a == b:
+        b = a + 1 if a < 8 else a - 1
+    unit = random.randint(2, 5)
+    part_a = unit * a
+    part_b = unit * b
+    total = part_a + part_b
+    answer = max(part_a, part_b)
     topic = _topic_for(7, ["비"])
     prompt = f"두 수의 비가 {a}:{b}이고 합이 {total}일 때, 큰 수는?"
-    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=total // 10)))
+    return make(prompt, answer, topic, options=_choice_options(answer, _distractors(answer, count=3, step=unit)))
 
 
 PROBLEM_GENERATORS = {
@@ -479,11 +497,6 @@ PROBLEM_GENERATORS = {
     8: [_g7_integer, _g7_linear_equation, _g7_coordinate, _g7_ratio_word],
     9: [_g7_integer, _g7_linear_equation, _g7_coordinate, _g7_ratio_word],
 }
-
-
-def generate_question(grade):
-    generators = PROBLEM_GENERATORS.get(grade, PROBLEM_GENERATORS[9])
-    return random.choice(generators)()
 
 
 def generate_math_set_old(grade, count=10):

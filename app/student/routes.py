@@ -12,6 +12,7 @@ from ..models import Attempt, AttemptItem, Question, CurriculumUnit, MasteryReco
 from ..services.english_listen_write import CATEGORIES, LEVELS, get_lessons, is_correct
 from ..services.english_generator import SENTENCES, VOCABULARY, generate_english_set
 from ..services.english_review import generate_conversation_review, generate_word_set
+from ..services.explain import attempt_report, type_label, type_steps
 from ..services.grading import grade_answer
 from ..services.image_helper import placeholder_image, topic_image
 from ..services.korean_generator import generate_korean_set
@@ -61,6 +62,8 @@ def practice_korean():
 @student_bp.before_request
 def require_student_role():
     if current_user.is_authenticated and current_user.role != "student":
+        if current_user.role == "admin":
+            return redirect(url_for("admin.dashboard"))
         flash("학생 메뉴는 학생 계정으로 로그인 후 이용할 수 있습니다.", "info")
         return redirect(url_for("parent.dashboard"))
 
@@ -376,7 +379,12 @@ def attempt(attempt_id):
         return redirect(url_for("student.result", attempt_id=attempt_id))
     if request.method == "POST":
         return _submit_attempt(current_attempt)
-    return render_template("student/attempt.html", attempt=current_attempt)
+    return render_template(
+        "student/attempt.html",
+        attempt=current_attempt,
+        type_label=type_label,
+        type_steps=type_steps,
+    )
 
 
 def _submit_attempt(current_attempt):
@@ -503,7 +511,12 @@ def result(attempt_id):
     current_attempt = db.get_or_404(Attempt, attempt_id)
     if current_attempt.user_id != current_user.id or not current_attempt.completed_at:
         abort(403)
-    return render_template("student/result.html", attempt=current_attempt)
+    return render_template(
+        "student/result.html",
+        attempt=current_attempt,
+        report=attempt_report(current_attempt),
+        type_label=type_label,
+    )
 
 
 @student_bp.route("/history")
@@ -528,7 +541,7 @@ def wrong_answers():
         .limit(100)
         .all()
     )
-    return render_template("student/wrong_answers.html", items=items)
+    return render_template("student/wrong_answers.html", items=items, type_label=type_label)
 
 
 @student_bp.route("/english/memorize")

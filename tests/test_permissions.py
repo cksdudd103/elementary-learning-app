@@ -202,7 +202,7 @@ def test_admin_redirected_from_student_pages(client, admin):
     login(client, admin.username)
     res = client.get("/learn/")
     assert res.status_code == 302
-    assert res.headers["Location"].startswith("/parent/")
+    assert res.headers["Location"].startswith("/admin/")
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +213,25 @@ def test_admin_login_redirects_to_admin_dashboard(client, admin):
     res = login(client, admin.username)
     assert res.status_code == 302
     assert res.headers["Location"].startswith("/admin/")
+
+
+def test_parent_login_redirects_to_parent_dashboard(client, parent):
+    res = login(client, parent.username)
+    assert res.status_code == 302
+    assert res.headers["Location"].startswith("/parent/")
+
+
+def test_parent_unlink_keeps_student_account(client, parent, child):
+    from app.extensions import db
+    from app.models import User
+
+    child_id = child.id
+    login(client, parent.username)
+    res = client.post(f"/parent/children/{child_id}/unlink", follow_redirects=False)
+    assert res.status_code == 302
+    kept = db.session.get(User, child_id)
+    assert kept is not None
+    assert kept.parent_id is None
 
 
 def test_student_login_redirects_to_student_dashboard(client, student):

@@ -2,9 +2,9 @@
 {% block content %}
 <section class="attempt-head">
     <div>
-        <span class="eyebrow">{{ grade_name(attempt.grade_level) }}{% if attempt.semester in [1,2] %} · {{ attempt.semester }}학기{% endif %}</span>
-        <h1>{{ subject_name(attempt.subject) }} {{ attempt.question_count }}문제</h1>
-        <p>모든 문제를 푼 뒤 제출하면 정답과 점수를 확인할 수 있어요.</p>
+        <span class="eyebrow">{{ grade_name(attempt.grade_level) }}{% if attempt.semester in [1,2] %} · {{ attempt.semester }}학기{% endif %} · {{ subject_name(attempt.subject) }}</span>
+        <h1>학습지 {{ attempt.question_count }}문제</h1>
+        <p>각 문제는 단원, 확인 내용, 푸는 순서, 답 칸으로 나뉘어 있습니다. 답만 고르지 말고 순서를 따라 적어 보세요.</p>
     </div>
     <div class="progress-box">
         <strong><span data-answered>0</span>/{{ attempt.question_count }}</strong>
@@ -15,67 +15,91 @@
         <span data-time-left>--:--:--</span>
     </div>
 </section>
+<section class="panel worksheet-guide">
+    <div class="section-head"><h2>이 학습지 푸는 법</h2></div>
+    <ol class="plan-steps">
+        <li><strong>단원 읽기</strong><span>문제 위 단원 이름이 오늘 확인하는 내용입니다.</span></li>
+        <li><strong>순서대로 풀기</strong><span>구하는 것, 식 또는 근거, 답 순서로 생각합니다.</span></li>
+        <li><strong>검산하기</strong><span>적은 답을 문제에 다시 넣어 조건과 맞는지 봅니다.</span></li>
+    </ol>
+</section>
 <div class="attempt-layout{% if attempt.subject == 'math' %} with-notepad{% endif %}">
 <form method="post" class="quiz-form" data-quiz data-auto-submit>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="auto_submit" value="0" data-auto-submit-flag>
     {% for item in attempt.items %}
-    <article class="question-card">
+    <article class="question-card worksheet">
         <div class="question-meta">
             <span class="question-number">{{ loop.index }}</span>
             <span>{{ item.topic }}</span>
-            <span class="type-badge">{{ {'write':'주관식','choice':'객관식','solution':'풀이형','listening':'듣기','speaking':'말하기'}.get(item.question_type, item.question_type) }}</span>
+            <span>{{ type_label(item.question_type) }}</span>
+            <span class="type-badge">{{ item.max_points }}점</span>
         </div>
+        <p class="worksheet-goal"><strong>이 문제에서 확인할 것.</strong> {{ item.topic }}의 조건과 답을 연결할 수 있는지 봅니다.</p>
         {% if item.image_url %}
         <img class="question-image" src="{{ item.image_url }}" alt="문제 그림">
         {% endif %}
-        {% if item.question_type == 'listening' %}
+        <div class="worksheet-prompt">
+            <span>문제</span>
+            {% if item.question_type == 'listening' %}
             <h2>문장을 듣고 그대로 입력하세요.</h2>
-            <button type="button" class="audio-button" data-speak="{{ item.correct_answer }}">🔊 영어 문장 듣기</button>
-        {% elif item.question_type == 'speaking' %}
+            <button type="button" class="audio-button" data-speak="{{ item.correct_answer }}">영어 문장 듣기</button>
+            {% elif item.question_type == 'speaking' %}
             <h2>{{ item.prompt }}</h2>
             <p class="hint">문장을 소리 내어 읽으세요.</p>
-            <button type="button" class="audio-button" data-recognize data-target="answer-{{ item.id }}">🎙 말하기 시작</button>
-        {% elif attempt.subject == 'english' and ' / ' in item.prompt %}
+            <button type="button" class="audio-button" data-recognize data-target="answer-{{ item.id }}">말하기 시작</button>
+            {% elif attempt.subject == 'english' and ' / ' in item.prompt %}
             <h2>낱말을 바르게 배열해 문장을 완성하세요.</h2>
             <p class="word-hint">{{ item.prompt }}</p>
-        {% else %}
-            <h2>{{ item.prompt }}</h2>
-        {% endif %}
-        {% if item.options %}
-        <div class="options">
-            {% for option in item.options %}
-            {% if option is string and option.startswith('IMG|') %}
-            {% set parts = option.split('|') %}
-            <label class="image-option">
-                <input type="radio" name="answer_{{ item.id }}" value="{{ parts[2] }}">
-                <img src="{{ parts[1] }}" alt="{{ parts[2] }}">
-            </label>
             {% else %}
-            <label><input type="radio" name="answer_{{ item.id }}" value="{{ option }}"><span>{{ option }}</span></label>
+            <h2>{{ item.prompt }}</h2>
             {% endif %}
-            {% endfor %}
         </div>
-        {% elif item.question_type == 'solution' %}
-        <textarea id="answer-{{ item.id }}" class="answer-input solution-input" name="answer_{{ item.id }}" rows="4" placeholder="풀이 과정과 답을 자세히 쓰세요" autocomplete="off"></textarea>
-        {% else %}
-        <input id="answer-{{ item.id }}" class="answer-input" name="answer_{{ item.id }}" placeholder="답을 입력하세요" autocomplete="off">
-        {% endif %}
+        <ol class="approach">
+            {% for step in type_steps(item.question_type) %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ol>
+        <div class="answer-block">
+            <span>답 칸</span>
+            {% if item.options %}
+            <div class="options">
+                {% for option in item.options %}
+                {% if option is string and option.startswith('IMG|') %}
+                {% set parts = option.split('|') %}
+                <label class="image-option">
+                    <input type="radio" name="answer_{{ item.id }}" value="{{ parts[2] }}">
+                    <img src="{{ parts[1] }}" alt="{{ parts[2] }}">
+                    <span>{{ loop.index }}번 {{ parts[2] }}</span>
+                </label>
+                {% else %}
+                <label><input type="radio" name="answer_{{ item.id }}" value="{{ option }}"><span><b>{{ loop.index }}.</b> {{ option }}</span></label>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% elif item.question_type == 'solution' %}
+            <label class="worksheet-field">조건과 구하는 것<textarea class="answer-input" name="plan_{{ item.id }}" rows="2" placeholder="문제에 나온 조건과 구하는 것을 적으세요" autocomplete="off"></textarea></label>
+            <label class="worksheet-field">풀이<textarea id="answer-{{ item.id }}" class="answer-input solution-input" name="answer_{{ item.id }}" rows="4" placeholder="식을 세우고 계산한 뒤, 마지막 줄에 답을 적으세요" autocomplete="off"></textarea></label>
+            {% else %}
+            <label class="worksheet-field">답<input id="answer-{{ item.id }}" class="answer-input" name="answer_{{ item.id }}" placeholder="답을 입력하세요" autocomplete="off"></label>
+            {% endif %}
+        </div>
         <p class="speech-status" data-status-for="answer-{{ item.id }}"></p>
     </article>
     {% endfor %}
     <div class="submit-panel">
-        <p>정답은 제출한 뒤 공개됩니다.</p>
-        <button class="button primary" type="submit">제출하고 채점하기</button>
+        <p>제출하면 문제마다 내 답, 정답, 풀이 순서가 열립니다.</p>
+        <button class="button primary" type="submit">제출하고 풀이 보기</button>
     </div>
 </form>
 {% if attempt.subject == 'math' %}
 <aside class="math-notepad" data-math-notepad>
     <div class="notepad-head">
-        <strong>📝 풀이 메모장</strong>
+        <strong>풀이 메모</strong>
         <button type="button" class="button small secondary" data-clear-notepad>지우기</button>
     </div>
-    <textarea placeholder="여기에 계산 과정이나 메모를 자유롭게 적으세요. 페이지를 새로고침해도 남아 있습니다."></textarea>
+    <p class="muted">세로셈, 받아올림, 검산은 여기에 적으세요. 새로고침해도 남습니다.</p>
+    <textarea placeholder="예: 일의 자리 7+6=13, 십의 자리로 1을 올림"></textarea>
 </aside>
 {% endif %}
 </div>

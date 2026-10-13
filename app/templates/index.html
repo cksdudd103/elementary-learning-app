@@ -3,25 +3,28 @@
 <section class="hero">
     <div>
         <span class="eyebrow">초등 1학년부터 중등 3학년까지</span>
-        <h1>매일 10문제로<br><em>실력이 쑥쑥</em> 자라요.</h1>
-        <p>학년별 수학 문제와 영어 듣기·쓰기·말하기를 재미있게 복습하고 바로 채점해 보세요.</p>
+        <h1>답만 고르지 않고<br><em>풀이까지 남기는</em> 학습지</h1>
+        <p>수학, 국어, 사회, 영어를 단원 목표와 예제, 문제, 검산 순서로 공부합니다. 제출하면 단원별 점수와 문제마다의 풀이가 열립니다.</p>
         <div class="hero-actions">
             <a class="button primary" href="{{ url_for('auth.register') }}">무료로 시작하기</a>
             <a class="button secondary" href="{{ url_for('auth.login') }}">로그인</a>
         </div>
-        <div class="feature-pills">
-            <span>✓ 매번 새로운 10문제</span><span>✓ 자동 채점</span><span>✓ 오답 복습</span>
-        </div>
     </div>
     <div class="hero-visual">
-        <div class="floating-card math-float"><b>12 × 4</b><span>수학 퀴즈</span></div>
-        <div class="mascot">✎<span>ABC</span></div>
-        <div class="floating-card english-float"><b>🎧 Hello!</b><span>영어 듣기</span></div>
+        <div class="floating-card math-float"><b>24 + 17</b><span>일의 자리부터 계산</span></div>
+        <div class="mascot">✎<span>풀이</span></div>
+        <div class="floating-card english-float"><b>듣고 적기</b><span>문장과 뜻, 문법</span></div>
     </div>
 </section>
+<ol class="plan-steps home-plan">
+    <li><strong>1. 단원 확인</strong><span>학기, 학습 목표, 꼭 기억할 낱말을 먼저 읽습니다.</span></li>
+    <li><strong>2. 예제 따라 하기</strong><span>주어진 조건과 구하는 것을 나누고 예제를 따라 풉니다.</span></li>
+    <li><strong>3. 학습지 풀이</strong><span>문제마다 확인 내용, 푸는 순서, 답 칸이 있습니다.</span></li>
+    <li><strong>4. 오답 정리</strong><span>내 답, 정답, 풀이를 나란히 보고 틀린 단원을 다시 고릅니다.</span></li>
+</ol>
 <section class="subject-preview">
-    <article><span class="icon math">∑</span><h3>학년별 수학</h3><p>연산부터 함수까지 내 학년에 꼭 맞는 문제를 풀어요.</p></article>
-    <article><span class="icon english">A</span><h3>영어 3단계</h3><p>듣고, 쓰고, 직접 말하며 문장을 익혀요.</p></article>
-    <article><span class="icon report">★</span><h3>성장 기록</h3><p>점수와 오답을 한눈에 보고 부족한 부분을 복습해요.</p></article>
+    <article><span class="icon math">∑</span><h3>수학</h3><p>식을 세우고 계산한 뒤, 답을 문제에 다시 넣어 확인합니다. 세로셈은 옆 메모장에 남습니다.</p></article>
+    <article><span class="icon english">A</span><h3>영어</h3><p>단어 뜻, 문장 배열, 듣기와 말하기를 나누어 연습하고 왜 그 문장인지 풀이로 확인합니다.</p></article>
+    <article><span class="icon report">가</span><h3>국어 · 사회</h3><p>글의 근거와 개념의 사례를 먼저 고른 다음 답을 적습니다. 결과는 단원별로 모입니다.</p></article>
 </section>
 {% endblock %}

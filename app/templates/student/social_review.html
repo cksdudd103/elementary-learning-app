@@ -19,8 +19,13 @@
       <span class="review-number">{{ unit.unit_order }}</span>
       <div>
           <h3>{{ unit.unit_name }}</h3>
-          <p class="review-desc"><strong>학습목표:</strong> {{ unit.learning_objective }}</p>
-          <p class="review-example"><strong>키워드:</strong> {{ unit.keywords }}</p>
+          <p class="review-desc"><strong>{{ unit.semester }}학기 학습 목표.</strong> {{ unit.learning_objective }}</p>
+          <p class="review-example"><strong>꼭 기억할 낱말.</strong> {{ unit.keywords }}</p>
+          <ol class="approach">
+              <li>낱말의 뜻을 내 생활의 예시와 연결합니다.</li>
+              <li>사실과 그 사실이 생긴 이유를 나누어 말합니다.</li>
+              <li>시험 문제는 용어를 사례 안에 넣어 확인합니다.</li>
+          </ol>
       </div>
   </article>
   {% endfor %}
@@ -33,7 +38,12 @@
     <span class="review-number">{{ loop.index }}</span>
     <div>
         <h3>{{ topic }}</h3>
-        <p class="review-desc">{{ desc }}</p>
+        <p class="review-desc"><strong>개념.</strong> {{ desc }}</p>
+        <ol class="approach">
+            <li>개념을 한 문장으로 정리합니다.</li>
+            <li>우리 주변이나 역사 속 사례 하나를 붙입니다.</li>
+            <li>문제에서는 사례가 어떤 개념인지 먼저 고릅니다.</li>
+        </ol>
     </div>
 </article>
 {% endfor %}

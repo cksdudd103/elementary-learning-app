@@ -21,7 +21,7 @@
     {% for unit in units %}
       <tr>
         <td><span class="subject-badge {{ unit.subject }}">{{ {'math':'수학','korean':'국어','english':'영어','social':'사회'}.get(unit.subject, unit.subject) }}</span></td>
-        <td>{{ unit.grade_level }}학년</td>
+        <td>{{ grade_name(unit.grade_level) }}</td>
         <td>{{ unit.unit_order }}</td>
         <td>{{ unit.unit_name }}</td>
         <td class="prompt-cell">{{ unit.learning_objective or '-' }}</td>

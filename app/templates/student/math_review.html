@@ -19,8 +19,13 @@
       <span class="review-number">{{ unit.unit_order }}</span>
       <div>
           <h3>{{ unit.unit_name }}</h3>
-          <p class="review-desc"><strong>학습목표:</strong> {{ unit.learning_objective }}</p>
-          <p class="review-example"><strong>키워드:</strong> {{ unit.keywords }}</p>
+          <p class="review-desc"><strong>{{ unit.semester }}학기 학습 목표.</strong> {{ unit.learning_objective }}</p>
+          <p class="review-example"><strong>꼭 기억할 낱말.</strong> {{ unit.keywords }}</p>
+          <ol class="approach">
+              <li>단원 이름을 읽고, 이 단원에서 구할 수 있어야 하는 것을 한 문장으로 말합니다.</li>
+              <li>핵심 낱말을 예제 속 수나 상황과 연결합니다.</li>
+              <li>시험을 본 뒤, 틀린 문제가 이 단원인지 오답 노트에서 확인합니다.</li>
+          </ol>
       </div>
   </article>
   {% endfor %}
@@ -33,9 +38,14 @@
     <span class="review-number">{{ loop.index }}</span>
     <div>
         <h3>{{ topic }}</h3>
-        <p class="review-desc">{{ desc }}</p>
-        <p class="review-example">예제: <strong>{{ example }}</strong></p>
-        <input placeholder="예제를 직접 풀어 보세요">
+        <p class="review-desc"><strong>개념.</strong> {{ desc }}</p>
+        <p class="review-example"><strong>따라 하는 예제.</strong> {{ example }}</p>
+        <ol class="approach">
+            <li>예제에서 이미 주어진 수와 구하는 수를 나눕니다.</li>
+            <li>식을 한 줄로 적고, 계산 과정을 건너뛰지 않습니다.</li>
+            <li>나온 답을 예제에 다시 넣어 검산합니다.</li>
+        </ol>
+        <label class="worksheet-field">내 풀이<input placeholder="예제를 위 순서대로 풀어 보세요"></label>
     </div>
 </article>
 {% endfor %}
