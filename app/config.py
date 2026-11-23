@@ -2,7 +2,7 @@ import os
 
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "local-development-secret-change-me")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
     database_url = os.environ.get(
         "DATABASE_URL",
         "sqlite:///" + os.path.join(os.path.dirname(os.path.dirname(__file__)), "instance", "learning.db"),

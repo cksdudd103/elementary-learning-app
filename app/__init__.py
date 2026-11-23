@@ -23,7 +23,11 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     if not app.config["TESTING"] and os.environ.get("FLASK_ENV") == "production":
-        if app.config["SECRET_KEY"] == "local-development-secret-change-me":
+        secret_key = (app.config.get("SECRET_KEY") or "").strip()
+        if not secret_key or secret_key in {
+            "local-development-secret-change-me",
+            "change-me-in-production",
+        }:
             raise RuntimeError("운영 환경에서는 SECRET_KEY를 설정해야 합니다.")
 
     _ensure_sqlite_directory(app)

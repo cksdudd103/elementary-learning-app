@@ -1,8 +1,15 @@
-# 임시/테스트 파일
+# 임시/디버그 파일
 _*.py
 _*.txt
+_check_*.py
+_debug_*.py
 debug*.txt
+debug*.py
+
+# 세션 쿠키
 cookie.txt
+cookie*.txt
+cookies*.txt
 
 # 데이터베이스 및 업로드
 *.db
@@ -12,6 +19,7 @@ uploads/
 # Python 캐시
 __pycache__/
 **/__pycache__/
+*.py[cod]
 .pytest_cache/
 
 # 환경 변수

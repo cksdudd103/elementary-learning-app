@@ -574,20 +574,37 @@ def _reassign_semesters(rows):
 
 
 def seed_admin_user():
-    """기본 관리자 계정이 없으면 생성합니다. (admin / 0000)"""
+    """ADMIN_PASSWORD가 있을 때만 관리자 계정을 만듭니다.
+
+    ADMIN_USERNAME이 없으면 아이디는 admin 입니다. 같은 아이디가 이미 있으면
+    비밀번호를 바꾸지 않고 넘어갑니다.
+    """
+    import os
+
+    from flask import current_app
+
     from app.models import User
 
-    if User.query.filter_by(username="admin").first():
+    password = (os.environ.get("ADMIN_PASSWORD") or "").strip()
+    if not password:
+        current_app.logger.warning(
+            "ADMIN_PASSWORD가 설정되지 않아 관리자 계정을 생성하지 않습니다."
+        )
         return
+
+    username = (os.environ.get("ADMIN_USERNAME") or "admin").strip() or "admin"
+    if User.query.filter_by(username=username).first():
+        return
+
     admin = User(
-        username="admin",
-        email="admin@example.com",
+        username=username,
+        email=f"{username}@example.com",
         display_name="관리자",
         role="admin",
         grade_level=1,
         ui_language="ko",
     )
-    admin.set_password("0000")
+    admin.set_password(password)
     db.session.add(admin)
     db.session.commit()
 

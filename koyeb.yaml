@@ -9,8 +9,8 @@ service:
       value: "1"
     - name: FLASK_ENV
       value: "production"
-    - name: SECRET_KEY
-      value: change-me-in-production
+    # SECRET_KEY, DATABASE_URL, ADMIN_PASSWORD 는 저장소에 넣지 말고
+    # Koyeb 대시보드 환경 변수로만 설정하세요.
   ports:
     - port: 8080
       protocol: http
